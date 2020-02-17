@@ -19,5 +19,7 @@
     "node": ">=8.0.0",
     "homebridge": ">=0.4.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "request": "^2.88.2"
+  }
 }

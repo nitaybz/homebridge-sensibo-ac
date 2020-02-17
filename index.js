@@ -1,7 +1,7 @@
 const sensibo = require('./lib/api')
 const storage = require('node-persist')
-const Service, Characteristic, Accessory, uuid
-var SensiboAccessory
+let Service, Characteristic, Accessory, uuid
+let SensiboAccessory
 
 
 
