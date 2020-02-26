@@ -1,0 +1,23 @@
+{
+  "bridge": {
+    "name": "Homebridge",
+    "username": "CD:22:3D:E3:CE:30",
+    "port": 51826,
+    "pin": "031-45-154"
+  },
+
+  "description": "This is an example configuration for the sensibo-ac homebridge plugin",
+  "platforms": [
+    {
+      "platform": "SensiboAC",
+      "apiKey": "*************",
+      "disableFan": false,
+      "disableDry": false,
+      "enableSyncButton": true,
+      "debug": false
+    }
+  ],
+
+  "accessories": [
+  ]
+}

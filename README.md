@@ -1,15 +1,13 @@
 # homebridge-sensibo-ac
 [Homebridge](https://github.com/nfarina/homebridge) plugin for Sensibo Sky - Smart AC Control
 
-Complies with ```Service.HeaterCooler / Service.Thermostat```
-
-Compatible with ***iOS 11 and above*** -  iOS 10 Home app does not support HeaterCooler service. 
+Complies with ```Service.HeaterCooler``` (AC)
 
 `min node version required: 8`<br>
-`min homebridge version required 4.0`
+`min homebridge version required 0.4.0`
 
 check with:
-`node -v` &`homebridge -V`
+`node -v` & `homebridge -V`
 <br>and update if needed
 
 # Installation
