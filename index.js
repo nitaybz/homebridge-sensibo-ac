@@ -1,7 +1,6 @@
 const sensibo = require('./lib/api')
 const storage = require('node-persist')
-let Service, Characteristic, Accessory, uuid
-let SensiboAccessory
+let Service, Characteristic, Accessory, uuid, SensiboAccessory
 
 
 
@@ -9,9 +8,10 @@ module.exports = function (homebridge) {
 	Service = homebridge.hap.Service
 	Characteristic = homebridge.hap.Characteristic
 	Accessory = homebridge.hap.Accessory
+    HomebridgeAPI = homebridge
 	uuid = homebridge.hap.uuid
 
-	SensiboAccessory = require('./lib/accessory')(Accessory, Service, Characteristic, uuid)
+	SensiboAccessory = require('./lib/accessories')(Accessory, Service, Characteristic, uuid)
 	homebridge.registerPlatform('homebridge-sensibo-ac', 'SensiboAC', SensiboACPlatform)
 }
 
@@ -29,68 +29,90 @@ function SensiboACPlatform(log, config) {
 	this.pollingInterval = 90000
 	this.processingState = false
 	this.cachedAccessories = []
-
-	storage.initSync({
-        dir: HomebridgeAPI.user.persistPath()
+	this.returnedAccessories = []
+    storage.init({
+        dir: HomebridgeAPI.user.persistPath() + '/../plugin-persist'
 	})
 	
-	this.cachedState = storage.getItem('sensibo_state')
-	if (!this.cachedState)
-		this.cachedState = {pods:{}, location:{}}
-
-
-	this.refreshState = async () => {
-		if (!this.processingState) {
-			this.processingState = true
-			try {
-				if (this.debug)
-					this.log('Getting Devices State')
-	
-				const pods = await sensibo.getDevicesStates()
-				if (pods.length) 
-					pods.forEach(pod => () => {
-						this.cachedState.pods[pod.id].acState =  pod.acState
-						this.cachedState.pods[pod.id].measurements =  pod.measurements
-						if (!this.cachedState.pods[pod.id].last)
-							this.cachedState.pods[pod.id].last = {}
-						this.cachedState.pods[pod.id].last[pod.acState.mode] =  pod.acState
-	
-						if (pod.acState.mode !== 'fan' && pod.acState.mode !== 'dry')
-							this.cachedState.pods[pod.id].last.mode = pod.acState.mode
-	
-						let thisAccessory = this.cachedAccessories.find(accessory => accessory.type === 'ac' && accessory.id === pod.id)
-						if (thisAccessory)
-							thisAccessory.updateHomeKit(pod.acState, pod.measurements)
-					
-					})
-				
-				if (this.enableOccupancySensor) {
-					this.cachedState.location = pods[0].location
-					let thisAccessory = this.cachedAccessories.find(accessory => accessory.type === 'occupancy')
-					if (thisAccessory)
-						thisAccessory.updateHomeKit(pods[0].location)
-				}
-				this.processingState = false
-				storage.setItem('sensibo_state', this.cachedState)
-				
-			} catch(err) {
-				this.processingState = false
-				this.log('ERROR getting devices status from API!')
-				if (this.debug)
-					this.log(err)
-			}
-		}
-		
-	}
 
 }
 
 
 SensiboACPlatform.prototype = {
 	accessories: async function (callback) {
+
+		this.cachedState = await storage.getItem('sensibo_state')
+		if (!this.cachedState)
+			this.cachedState = {pods:{}, location:{}}
+
+
+		// console.log('this.cachedState')
+		// console.log(this.cachedState)
+
+		this.refreshState = async () => {
+			if (!this.processingState) {
+				this.processingState = true
+				try {
+					if (this.debug)
+						this.log('Getting Devices State')
+		
+					const pods = await sensibo.getDevicesStates()
+
+					if (pods.length) 
+						pods.forEach(pod => {
+							if (!this.cachedState.pods[pod.id])
+								this.cachedState.pods[pod.id] = {}
+
+							const isStateChanged = (this.cachedState.pods[pod.id].acState && JSON.stringify(this.cachedState.pods[pod.id].acState) !== JSON.stringify(pod.acState)) || !this.cachedState.pods[pod.id].acState
+							const isMeasurementsChanged = (this.cachedState.pods[pod.id].measurements && (this.cachedState.pods[pod.id].measurements.temperature !== pod.measurements.temperature || this.cachedState.pods[pod.id].measurements.humidity !== pod.measurements.humidity)) || !this.cachedState.pods[pod.id].measurements
+							let newState = null
+							let newMeasurements = null
+
+							if (isStateChanged) {
+								this.cachedState.pods[pod.id].acState =  pod.acState
+
+								if (!this.cachedState.pods[pod.id].last)
+									this.cachedState.pods[pod.id].last = {}
+								this.cachedState.pods[pod.id].last[pod.acState.mode] =  pod.acState
+			
+								if (pod.acState.mode !== 'fan' && pod.acState.mode !== 'dry')
+									this.cachedState.pods[pod.id].last.mode = pod.acState.mode
+
+								newState = pod.acState
+							}
+
+							if (isMeasurementsChanged) {
+								this.cachedState.pods[pod.id].measurements =  pod.measurements
+								newMeasurements =  pod.measurements
+							}
+
+							let thisAccessory = this.returnedAccessories.find(accessory => accessory.type === 'ac' && accessory.id === pod.id)
+							if (thisAccessory) {
+								thisAccessory.updateHomeKit(newState, newMeasurements)
+							}
+						})
+						
+					
+					if (this.enableOccupancySensor) {
+						this.cachedState.location = pods[0].location
+						let thisAccessory = this.returnedAccessories.find(accessory => accessory.type === 'occupancy')
+						if (thisAccessory)
+							thisAccessory.updateHomeKit(pods[0].location)
+					}
+					this.processingState = false
+					await storage.setItem('sensibo_state', this.cachedState)
+					
+				} catch(err) {
+					this.processingState = false
+					this.log('ERROR getting devices status from API!')
+					if (this.debug)
+						this.log(err)
+				}
+			}
+			
+		}
 		this.log('Fetching Sensibo devices...')
 
-		const returnedAccessories = []
 		let pods = []
 
 		sensibo.init(this.apiKey, this.log, this.debug)
@@ -100,11 +122,11 @@ SensiboACPlatform.prototype = {
 		try {
 			await this.refreshState()
 			pods = await sensibo.getAllPods()
-			storage.setItem('sensibo_pods', pods)
+			await storage.setItem('sensibo_pods', pods)
 			
 		} catch(err) {
 			this.log('ERROR getting devices status from API!')
-			const cachedPods = storage.getItem('sensibo_pods')
+			const cachedPods = await storage.getItem('sensibo_pods')
 			if (cachedPods)
 				pods = cachedPods
 		}
@@ -125,9 +147,9 @@ SensiboACPlatform.prototype = {
 					debug: this.debug
 				}
 
-				cachedAccessories.push(newAccessory)
-				const accessory = new SensiboAccessory.AC(newAccessory, this.cachedState.pods[pod.id])
-				returnedAccessories.push(accessory)
+				this.cachedAccessories.push(newAccessory)
+				const accessory = new SensiboAccessory.acAccessory(newAccessory, this.cachedState.pods[pod.id])
+				this.returnedAccessories.push(accessory)
 				this.log(`New Sensibo AC Device Added (Name: ${newAccessory.name}, ID: ${newAccessory.id})`)
 			})
 
@@ -139,15 +161,15 @@ SensiboACPlatform.prototype = {
 					debug: this.debug
 				}
 
-				cachedAccessories.push(newAccessory)
-				const accessory = new SensiboAccessory.Occupancy(newAccessory, this.cachedState.location)
-				returnedAccessories.push(accessory)
+				this.cachedAccessories.push(newAccessory)
+				const accessory = new SensiboAccessory.occupancySensor(newAccessory, this.cachedState.location)
+				this.returnedAccessories.push(accessory)
 				this.log(`New Sensibo Occupancy Sensor (Name: ${newAccessory.name}`)
 
 			}
 		} else
 			this.log('No Senisbo devices were detected... Not doing anything!')
 
-		callback(returnedAccessories)
+		callback(this.returnedAccessories)
 	}
 }
