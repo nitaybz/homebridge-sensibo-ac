@@ -16,7 +16,7 @@
     "smart-ac"
   ],
   "engines": {
-    "node": ">=8.0.0",
+    "node": ">=10.17.0",
     "homebridge": ">=0.4.0"
   },
   "dependencies": {

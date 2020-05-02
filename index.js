@@ -93,12 +93,12 @@ SensiboACPlatform.prototype = {
 						})
 						
 					
-					if (this.enableOccupancySensor) {
-						this.cachedState.location = pods[0].location
-						let thisAccessory = this.returnedAccessories.find(accessory => accessory.type === 'occupancy')
-						if (thisAccessory)
-							thisAccessory.updateHomeKit(pods[0].location)
-					}
+					// if (this.enableOccupancySensor) {
+					// 	this.cachedState.location = pods[0].location
+					// 	let thisAccessory = this.returnedAccessories.find(accessory => accessory.type === 'occupancy')
+					// 	if (thisAccessory)
+					// 		thisAccessory.updateHomeKit(pods[0].location)
+					// }
 					this.processingState = false
 					await storage.setItem('sensibo_state', this.cachedState)
 					

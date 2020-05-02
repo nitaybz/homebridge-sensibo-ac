@@ -3,7 +3,7 @@
 
 Complies with ```Service.HeaterCooler``` (AC)
 
-`min node version required: 8`<br>
+`min node version required: 10.17`<br>
 `min homebridge version required 0.4.0`
 
 check with:
