@@ -21,13 +21,14 @@ function SensiboACPlatform(log, config) {
 	this.apiKey = config['apiKey']
 	this.disableFan = config['disableFan'] || false
 	this.disableDry = config['disableDry'] || false
-	this.enableOccupancySensor = config['enableOccupancySensor'] || false
+	this.enableOccupancySensor = false // config['enableOccupancySensor']
 	this.enableSyncButton= config['enableSyncButton'] || false
 	this.debug = config['debug'] || false
 	this.log = log
 	this.debug = log.debug
 	this.pollingInterval = 90000
 	this.processingState = false
+	this.refreshTimeout = null
 	this.cachedAccessories = []
 	this.returnedAccessories = []
     storage.init({
@@ -52,6 +53,8 @@ SensiboACPlatform.prototype = {
 		this.refreshState = async () => {
 			if (!this.processingState) {
 				this.processingState = true
+				if (this.refreshTimeout)
+					clearTimeout(this.refreshTimeout)
 				try {
 					if (this.debug)
 						this.log('Getting Devices State')
@@ -100,10 +103,12 @@ SensiboACPlatform.prototype = {
 					// 		thisAccessory.updateHomeKit(pods[0].location)
 					// }
 					this.processingState = false
+					this.refreshTimeout = setTimeout(this.refreshState, this.pollingInterval)
 					await storage.setItem('sensibo_state', this.cachedState)
 					
 				} catch(err) {
 					this.processingState = false
+					this.refreshTimeout = setTimeout(this.refreshState, this.pollingInterval)
 					this.log('ERROR getting devices status from API!')
 					if (this.debug)
 						this.log(err)
@@ -112,12 +117,8 @@ SensiboACPlatform.prototype = {
 			
 		}
 		this.log('Fetching Sensibo devices...')
-
 		let pods = []
-
 		sensibo.init(this.apiKey, this.log, this.debug)
-
-		setInterval(this.refreshState, this.pollingInterval)
 
 		try {
 			await this.refreshState()

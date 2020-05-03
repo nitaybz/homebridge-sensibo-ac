@@ -1,7 +1,7 @@
 {
   "name": "homebridge-sensibo-ac",
   "description": "Homebridge plugin for Sensibo Sky - Smart AC Control",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/nitaybz/homebridge-sensibo-ac.git"
@@ -15,9 +15,12 @@
     "sensibo-ac",
     "smart-ac"
   ],
+  "bugs": {
+    "url": "https://github.com/nitaybz/homebridge-sensibo-ac/issues"
+  },
   "engines": {
     "node": ">=10.17.0",
-    "homebridge": ">=0.4.0"
+    "homebridge": ">=0.4.4"
   },
   "dependencies": {
     "request": "^2.88.2"
