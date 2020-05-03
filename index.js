@@ -31,9 +31,6 @@ function SensiboACPlatform(log, config) {
 	this.refreshTimeout = null
 	this.cachedAccessories = []
 	this.returnedAccessories = []
-    storage.init({
-        dir: HomebridgeAPI.user.persistPath() + '/../plugin-persist'
-	})
 	
 
 }
@@ -42,6 +39,9 @@ function SensiboACPlatform(log, config) {
 SensiboACPlatform.prototype = {
 	accessories: async function (callback) {
 
+		await storage.init({
+			dir: HomebridgeAPI.user.persistPath() + '/../plugin-persist'
+		})
 		this.cachedState = await storage.getItem('sensibo_state')
 		if (!this.cachedState)
 			this.cachedState = {pods:{}, location:{}}
