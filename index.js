@@ -154,20 +154,20 @@ SensiboACPlatform.prototype = {
 				this.log(`New Sensibo AC Device Added (Name: ${newAccessory.name}, ID: ${newAccessory.id})`)
 			})
 
-			if (this.enableOccupancySensor) {
-				const newAccessory = {
-					type: 'occupancy',
-					name: 'Home Occupancy',
-					log: this.log,
-					debug: this.debug
-				}
+			// if (this.enableOccupancySensor) {
+			// 	const newAccessory = {
+			// 		type: 'occupancy',
+			// 		name: 'Home Occupancy',
+			// 		log: this.log,
+			// 		debug: this.debug
+			// 	}
 
-				this.cachedAccessories.push(newAccessory)
-				const accessory = new SensiboAccessory.occupancySensor(newAccessory, this.cachedState.location)
-				this.returnedAccessories.push(accessory)
-				this.log(`New Sensibo Occupancy Sensor (Name: ${newAccessory.name}`)
+			// 	this.cachedAccessories.push(newAccessory)
+			// 	const accessory = new SensiboAccessory.occupancySensor(newAccessory, this.cachedState.location)
+			// 	this.returnedAccessories.push(accessory)
+			// 	this.log(`New Sensibo Occupancy Sensor (Name: ${newAccessory.name}`)
 
-			}
+			// }
 		} else
 			this.log('No Senisbo devices were detected... Not doing anything!')
 
