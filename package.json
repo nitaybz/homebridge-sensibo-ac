@@ -10,6 +10,8 @@
   "preferGlobal": true,
   "keywords": [
     "homebridge-plugin",
+    "homebridge-sensibo-ac",
+    "homebridge-sensibo",
     "sensibo",
     "sensibo-sky",
     "sensibo-ac",
@@ -23,6 +25,7 @@
     "homebridge": ">=0.4.4"
   },
   "dependencies": {
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "node-persist": "^3.0.5"
   }
 }
