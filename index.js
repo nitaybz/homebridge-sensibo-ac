@@ -31,7 +31,7 @@ function SensiboACPlatform(log, config) {
 	this.refreshTimeout = null
 	this.cachedAccessories = []
 	this.returnedAccessories = []
-    await storage.init({
+    storage.init({
         dir: HomebridgeAPI.user.persistPath() + '/../plugin-persist'
 	})
 	
