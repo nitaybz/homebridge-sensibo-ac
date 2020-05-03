@@ -54,7 +54,7 @@ Taking into consideration the other plugins for Sensibo, I decided to create thi
 ]
 ```
 
-#### How to get an API key?
+#### How to get an API key:
 You can generate an API key from the webapp at https://home.sensibo.com/me/api, once you login with your sensibo account username and password.
 
 # Advanced Control
