@@ -38,10 +38,26 @@ function SensiboACPlatform(log, config) {
 
 SensiboACPlatform.prototype = {
 	accessories: async function (callback) {
+		try {
+			await storage.init({
+				dir: HomebridgeAPI.user.persistPath() + '/../plugin-persist'
+			})
+		} catch(err) {
+			this.log("Failed setting storage dir under 'plugin-persist':")
+			this.log(err)
+			this.log("Trying again in default persist path...")
+			try {
+				await storage.init({
+					dir: HomebridgeAPI.user.persistPath()
+				})
+				this.log("Success setting storage dir under default persist path")
+			} catch(err) {
+				this.log("Failed setting storage dir under default persist path")
+				this.log(err)
+				this.log("Please contact the plugin creator...")
+			}
+		}
 
-		await storage.init({
-			dir: HomebridgeAPI.user.persistPath() + '/../plugin-persist'
-		})
 		this.cachedState = await storage.getItem('sensibo_state')
 		if (!this.cachedState)
 			this.cachedState = {pods:{}, location:{}}
