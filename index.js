@@ -38,10 +38,12 @@ function SensiboACPlatform(log, config) {
 
 SensiboACPlatform.prototype = {
 	accessories: async function (callback) {
+
 		try {
 			await storage.init({
 				dir: HomebridgeAPI.user.persistPath() + '/../plugin-persist'
 			})
+			this.cachedState = await storage.getItem('sensibo_state')
 		} catch(err) {
 			this.log("Failed setting storage dir under 'plugin-persist':")
 			this.log(err)
@@ -58,13 +60,9 @@ SensiboACPlatform.prototype = {
 			}
 		}
 
-		this.cachedState = await storage.getItem('sensibo_state')
 		if (!this.cachedState)
 			this.cachedState = {pods:{}, location:{}}
 
-
-		// console.log('this.cachedState')
-		// console.log(this.cachedState)
 
 		this.refreshState = async () => {
 			if (!this.processingState) {
@@ -107,6 +105,7 @@ SensiboACPlatform.prototype = {
 
 							let thisAccessory = this.returnedAccessories.find(accessory => accessory.type === 'ac' && accessory.id === pod.id)
 							if (thisAccessory) {
+								this.log('updating HomeKit from Index', newState, newMeasurements)
 								thisAccessory.updateHomeKit(newState, newMeasurements)
 							}
 						})
