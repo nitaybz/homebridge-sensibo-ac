@@ -105,7 +105,6 @@ SensiboACPlatform.prototype = {
 
 							let thisAccessory = this.returnedAccessories.find(accessory => accessory.type === 'ac' && accessory.id === pod.id)
 							if (thisAccessory) {
-								this.log('updating HomeKit from Index', newState, newMeasurements)
 								thisAccessory.updateHomeKit(newState, newMeasurements)
 							}
 						})
