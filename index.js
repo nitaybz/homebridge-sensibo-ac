@@ -1,6 +1,6 @@
 const sensibo = require('./lib/api')
 const storage = require('node-persist')
-let Service, Characteristic, Accessory, uuid, SensiboAccessory
+let Service, Characteristic, Accessory, uuid, SensiboAccessory, fakegatoHistoryService
 
 
 
@@ -10,6 +10,7 @@ module.exports = function (homebridge) {
 	Accessory = homebridge.hap.Accessory
     HomebridgeAPI = homebridge
 	uuid = homebridge.hap.uuid
+	fakegatoHistoryService = require("fakegato-history")(homebridge)
 
 	SensiboAccessory = require('./lib/accessories')(Accessory, Service, Characteristic, uuid)
 	homebridge.registerPlatform('homebridge-sensibo-ac', 'SensiboAC', SensiboACPlatform)
@@ -23,6 +24,7 @@ function SensiboACPlatform(log, config) {
 	this.disableDry = config['disableDry'] || false
 	this.enableOccupancySensor = false // config['enableOccupancySensor']
 	this.enableSyncButton= config['enableSyncButton'] || false
+    this.disableHistoryStorage = config['disableHistoryStorage'] || false //new
 	this.debug = config['debug'] || false
 	this.log = log
 	this.debug = log.debug
@@ -158,6 +160,7 @@ SensiboACPlatform.prototype = {
 					disableDry: this.disableDry,
 					enableSyncButton: this.enableSyncButton,
 					refreshState: this.refreshState,
+					disableHistoryStorage: this.disableHistoryStorage,
 					log: this.log,
 					debug: this.debug
 				}
