@@ -1,6 +1,6 @@
 const sensibo = require('./lib/api')
 const storage = require('node-persist')
-let Service, Characteristic, Accessory, uuid, SensiboAccessory, fakegatoHistoryService
+let Service, Characteristic, Accessory, HomebridgeAPI, uuid, SensiboAccessory
 
 
 
@@ -10,9 +10,9 @@ module.exports = function (homebridge) {
 	Accessory = homebridge.hap.Accessory
     HomebridgeAPI = homebridge
 	uuid = homebridge.hap.uuid
-	fakegatoHistoryService = require("fakegato-history")(homebridge)
+	const FakeGatoHistoryService = require("fakegato-history")(homebridge)
 
-	SensiboAccessory = require('./lib/accessories')(Accessory, Service, Characteristic, uuid, fakegatoHistoryService)
+	SensiboAccessory = require('./lib/accessories')(Accessory, Service, Characteristic, HomebridgeAPI, uuid, FakeGatoHistoryService)
 	homebridge.registerPlatform('homebridge-sensibo-ac', 'SensiboAC', SensiboACPlatform)
 }
 
@@ -24,7 +24,7 @@ function SensiboACPlatform(log, config) {
 	this.disableDry = config['disableDry'] || false
 	this.enableOccupancySensor = false // config['enableOccupancySensor']
 	this.enableSyncButton= config['enableSyncButton'] || false
-    this.disableHistoryStorage = config['disableHistoryStorage'] || false //new
+    this.enableHistoryStorage = config['enableHistoryStorage'] || false //new
 	this.debug = config['debug'] || false
 	this.log = log
 	this.debug = log.debug
@@ -120,14 +120,19 @@ SensiboACPlatform.prototype = {
 					// }
 					this.processingState = false
 					this.refreshTimeout = setTimeout(this.refreshState, this.pollingInterval)
-					await storage.setItem('sensibo_state', this.cachedState)
+					try {
+						await storage.setItem('sensibo_state', this.cachedState)
+					} catch(err) {
+						this.log('ERROR setting sensibo status to cache!')
+						this.debug(err)
+					}
 					
 				} catch(err) {
 					this.processingState = false
 					this.refreshTimeout = setTimeout(this.refreshState, this.pollingInterval)
 					this.log('ERROR getting devices status from API!')
 					if (this.debug)
-						this.log(err)
+						this.log(err) 
 				}
 			}
 			
@@ -160,7 +165,7 @@ SensiboACPlatform.prototype = {
 					disableDry: this.disableDry,
 					enableSyncButton: this.enableSyncButton,
 					refreshState: this.refreshState,
-					disableHistoryStorage: this.disableHistoryStorage,
+					enableHistoryStorage: this.enableHistoryStorage,
 					log: this.log,
 					debug: this.debug
 				}
