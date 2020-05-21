@@ -12,7 +12,7 @@ module.exports = function (homebridge) {
 	uuid = homebridge.hap.uuid
 	fakegatoHistoryService = require("fakegato-history")(homebridge)
 
-	SensiboAccessory = require('./lib/accessories')(Accessory, Service, Characteristic, uuid)
+	SensiboAccessory = require('./lib/accessories')(Accessory, Service, Characteristic, uuid, fakegatoHistoryService)
 	homebridge.registerPlatform('homebridge-sensibo-ac', 'SensiboAC', SensiboACPlatform)
 }
 
