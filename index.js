@@ -43,16 +43,18 @@ SensiboACPlatform.prototype = {
 
 		try {
 			await storage.init({
-				dir: HomebridgeAPI.user.persistPath() + '/../plugin-persist'
+				dir: HomebridgeAPI.user.persistPath() + '/../sensibo-persist',
+				forgiveParseErrors: true
 			})
 			this.cachedState = await storage.getItem('sensibo_state')
 		} catch(err) {
-			this.log("Failed setting storage dir under 'plugin-persist':")
+			this.log("Failed setting storage dir under 'sensibo-persist':")
 			this.log(err)
 			this.log("Trying again in default persist path...")
 			try {
 				await storage.init({
-					dir: HomebridgeAPI.user.persistPath()
+					dir: HomebridgeAPI.user.persistPath(),
+					forgiveParseErrors: true
 				})
 				this.log("Success setting storage dir under default persist path")
 			} catch(err) {
