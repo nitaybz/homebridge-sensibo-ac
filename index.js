@@ -41,7 +41,7 @@ SensiboACPlatform.prototype = {
 
 		try {
 			await storage.init({
-				dir: HomebridgeAPI.user.persistPath() + '/../plugin-persist'
+				dir: HomebridgeAPI.user.persistPath() + '/../sensibo-persist'
 			})
 			this.cachedState = await storage.getItem('sensibo_state')
 		} catch(err) {
