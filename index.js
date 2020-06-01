@@ -51,7 +51,8 @@ SensiboACPlatform.prototype = {
 			this.log("Trying again in default persist path...")
 			try {
 				await storage.init({
-					dir: HomebridgeAPI.user.persistPath()
+					dir: HomebridgeAPI.user.persistPath(),
+					forgiveParseErrors: true
 				})
 				this.log("Success setting storage dir under default persist path")
 			} catch(err) {
