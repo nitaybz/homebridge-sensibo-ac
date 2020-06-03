@@ -7,7 +7,6 @@
 
 [![Downloads](https://img.shields.io/npm/dt/homebridge-sensibo-ac.svg?color=critical)](https://www.npmjs.com/package/homebridge-sensibo-ac)
 [![Version](https://img.shields.io/npm/v/homebridge-sensibo-ac)](https://www.npmjs.com/package/homebridge-hue)
-[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 
 
 
@@ -15,9 +14,9 @@
 
 ### Requirements
 
-![node](https://img.shields.io/badge/node-%3E%3D10.17-brightgreen) &nbsp;
-![Homebridge](https://img.shields.io/badge/homebridge-%3E%3D0.4.4-brightgreen) &nbsp;
-![iOS](https://img.shields.io/badge/iOS-%3E%3D11.0.0-brightgreen)
+<img src="https://img.shields.io/badge/node-%3E%3D10.17-brightgreen"> &nbsp;
+<img src="https://img.shields.io/badge/nhomebridge-%3E%3D0.4.4-brightgreen"> &nbsp;
+<img src="https://img.shields.io/badge/iOS-%3E%3D11.0.0-brightgreen">
 
 check with: `node -v` & `homebridge -V` and update if needed
 
