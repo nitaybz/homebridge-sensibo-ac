@@ -1,0 +1,65 @@
+{
+  "pluginAlias": "SensiboAC",
+  "pluginType": "platform",
+  "singular": true,
+  "headerDisplay": "Homebridge plugin for Sensibo - Smart AC Control",
+  "footerDisplay": "Created by @nitaybz",
+  "schema": {
+      "type": "object",
+      "properties": {
+          "platform": {
+              "title": "Platform",
+              "type": "string",
+              "const": "SensiboAC",
+              "readOnly": true
+          },
+          "apiKey": {
+              "title": "API Key",
+              "type": "string",
+              "required": true
+          },
+          "disableFan": {
+              "title": "Disable Fan Accessory",
+              "type": "boolean",
+              "default": false,
+              "required": false
+          },
+          "disableDry": {
+              "title": "Disable Dry Accessory",
+              "type": "boolean",
+              "default": false,
+              "required": false
+          },
+          "enableSyncButton": {
+              "title": "Enable Sync Button",
+              "type": "boolean",
+              "default": false,
+              "required": false
+          },
+          "enableOccupancySensor": {
+              "title": "Enable Occupancy Sensor",
+              "type": "boolean",
+              "default": false,
+              "required": false
+          },
+          "enableClimateReactSwitch": {
+              "title": "Enable Climate React Switch",
+              "type": "boolean",
+              "default": false,
+              "required": false
+          },
+          "enableHistoryStorage": {
+              "title": "Enable History Storage",
+              "type": "boolean",
+              "default": false,
+              "required": false
+          },
+          "debug": {
+              "title": "Enable Debug Logs",
+              "type": "boolean",
+              "default": false,
+              "required": false
+          }
+      }
+  }
+}

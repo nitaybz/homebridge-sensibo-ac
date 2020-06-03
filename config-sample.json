@@ -14,6 +14,9 @@
       "disableFan": false,
       "disableDry": false,
       "enableSyncButton": true,
+      "enableOccupancySensor": true,
+      "enableClimateReactSwitch": true,
+      "enableHistoryStorage": true,
       "debug": false
     }
   ],

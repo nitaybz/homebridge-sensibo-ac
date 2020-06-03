@@ -22,8 +22,9 @@ function SensiboACPlatform(log, config) {
 	this.apiKey = config['apiKey']
 	this.disableFan = config['disableFan'] || false
 	this.disableDry = config['disableDry'] || false
-	this.enableOccupancySensor = false // config['enableOccupancySensor']
 	this.enableSyncButton= config['enableSyncButton'] || false
+	this.enableOccupancySensor = config['enableOccupancySensor'] || false
+	this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
     this.enableHistoryStorage = config['enableHistoryStorage'] || false //new
 	this.debug = config['debug'] || false
 	this.log = log
@@ -84,10 +85,15 @@ SensiboACPlatform.prototype = {
 							if (!this.cachedState.pods[pod.id])
 								this.cachedState.pods[pod.id] = {}
 
+							const climateReactState =  pod.smartMode ? pod.smartMode.enabled : false
+
 							const isStateChanged = (this.cachedState.pods[pod.id].acState && JSON.stringify(this.cachedState.pods[pod.id].acState) !== JSON.stringify(pod.acState)) || !this.cachedState.pods[pod.id].acState
 							const isMeasurementsChanged = (this.cachedState.pods[pod.id].measurements && (this.cachedState.pods[pod.id].measurements.temperature !== pod.measurements.temperature || this.cachedState.pods[pod.id].measurements.humidity !== pod.measurements.humidity)) || !this.cachedState.pods[pod.id].measurements
+							const isClimateReactChanged = this.enableClimateReactSwitch && (!this.cachedState.pods[pod.id].smartMode || (this.cachedState.pods[pod.id].smartMode.enabled !== climateReactState))
+							
 							let newState = null
 							let newMeasurements = null
+							let newClimateReactState = null
 
 							if (isStateChanged) {
 								this.cachedState.pods[pod.id].acState =  pod.acState
@@ -107,19 +113,25 @@ SensiboACPlatform.prototype = {
 								newMeasurements =  pod.measurements
 							}
 
+							if (this.enableClimateReactSwitch && isClimateReactChanged) {
+								this.cachedState.pods[pod.id].smartMode = {enabled: climateReactState}
+								newClimateReactState = {enabled: climateReactState}
+							}
+
+
 							let thisAccessory = this.returnedAccessories.find(accessory => accessory.type === 'ac' && accessory.id === pod.id)
 							if (thisAccessory) {
-								thisAccessory.updateHomeKit(newState, newMeasurements)
+								thisAccessory.updateHomeKit(newState, newMeasurements, newClimateReactState)
 							}
 						})
 						
 					
-					// if (this.enableOccupancySensor) {
-					// 	this.cachedState.location = pods[0].location
-					// 	let thisAccessory = this.returnedAccessories.find(accessory => accessory.type === 'occupancy')
-					// 	if (thisAccessory)
-					// 		thisAccessory.updateHomeKit(pods[0].location)
-					// }
+					if (this.enableOccupancySensor) {
+						this.cachedState.location = pods[0].location
+						let thisAccessory = this.returnedAccessories.find(accessory => accessory.type === 'occupancy')
+						if (thisAccessory)
+							thisAccessory.updateHomeKit(pods[0].location.occupancy)
+					}
 					this.processingState = false
 					this.refreshTimeout = setTimeout(this.refreshState, this.pollingInterval)
 					try {
@@ -166,6 +178,7 @@ SensiboACPlatform.prototype = {
 					disableFan: this.disableFan,
 					disableDry: this.disableDry,
 					enableSyncButton: this.enableSyncButton,
+					enableClimateReactSwitch: this.enableClimateReactSwitch,
 					refreshState: this.refreshState,
 					enableHistoryStorage: this.enableHistoryStorage,
 					log: this.log,
@@ -178,22 +191,22 @@ SensiboACPlatform.prototype = {
 				this.log(`New Sensibo AC Device Added (Name: ${newAccessory.name}, ID: ${newAccessory.id})`)
 			})
 
-			// if (this.enableOccupancySensor) {
-			// 	const newAccessory = {
-			// 		type: 'occupancy',
-			// 		name: 'Home Occupancy',
-			// 		log: this.log,
-			// 		debug: this.debug
-			// 	}
+			if (this.enableOccupancySensor) {
+				const newAccessory = {
+					type: 'occupancy',
+					name: 'Home Occupancy',
+					log: this.log,
+					debug: this.debug
+				}
 
-			// 	this.cachedAccessories.push(newAccessory)
-			// 	const accessory = new SensiboAccessory.occupancySensor(newAccessory, this.cachedState.location)
-			// 	this.returnedAccessories.push(accessory)
-			// 	this.log(`New Sensibo Occupancy Sensor (Name: ${newAccessory.name}`)
+				this.cachedAccessories.push(newAccessory)
+				const accessory = new SensiboAccessory.occupancySensor(newAccessory, this.cachedState.location)
+				this.returnedAccessories.push(accessory)
+				this.log(`New Sensibo Occupancy Sensor (Name: ${newAccessory.name}`)
 
-			// }
+			}
 		} else
-			this.log('No Senisbo devices were detected... Not doing anything!')
+			this.log('No Sensibo devices were detected... Not doing anything!')
 
 		callback(this.returnedAccessories)
 	}
