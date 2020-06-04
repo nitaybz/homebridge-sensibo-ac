@@ -1,65 +1,73 @@
 {
-  "pluginAlias": "SensiboAC",
-  "pluginType": "platform",
-  "singular": true,
-  "headerDisplay": "Homebridge plugin for Sensibo - Smart AC Control",
-  "footerDisplay": "Created by @nitaybz",
-  "schema": {
-      "type": "object",
-      "properties": {
-          "platform": {
-              "title": "Platform",
-              "type": "string",
-              "const": "SensiboAC",
-              "readOnly": true
-          },
-          "apiKey": {
-              "title": "API Key",
-              "type": "string",
-              "required": true
-          },
-          "disableFan": {
-              "title": "Disable Fan Accessory",
-              "type": "boolean",
-              "default": false,
-              "required": false
-          },
-          "disableDry": {
-              "title": "Disable Dry Accessory",
-              "type": "boolean",
-              "default": false,
-              "required": false
-          },
-          "enableSyncButton": {
-              "title": "Enable Sync Button",
-              "type": "boolean",
-              "default": false,
-              "required": false
-          },
-          "enableOccupancySensor": {
-              "title": "Enable Occupancy Sensor",
-              "type": "boolean",
-              "default": false,
-              "required": false
-          },
-          "enableClimateReactSwitch": {
-              "title": "Enable Climate React Switch",
-              "type": "boolean",
-              "default": false,
-              "required": false
-          },
-          "enableHistoryStorage": {
-              "title": "Enable History Storage",
-              "type": "boolean",
-              "default": false,
-              "required": false
-          },
-          "debug": {
-              "title": "Enable Debug Logs",
-              "type": "boolean",
-              "default": false,
-              "required": false
-          }
-      }
+    "pluginAlias": "SensiboAC",
+    "pluginType": "platform",
+    "singular": true,
+    "headerDisplay": "Homebridge plugin for Sensibo - Smart AC Control",
+    "footerDisplay": "Created by @nitaybz",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "platform": {
+                "title": "Platform",
+                "type": "string",
+                "const": "SensiboAC",
+                "readOnly": true
+            },
+            "apiKey": {
+                "title": "API Key",
+                "description": "Your Sensibo api key from https://home.sensibo.com/me/api",
+                "type": "string",
+                "required": true
+            },
+            "disableFan": {
+                "title": "Disable Fan Accessory",
+                "description": "Disable FAN mode control - remove extra fan accessory",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
+            "disableDry": {
+                "title": "Disable Dry Accessory",
+                "description": "Disable DRY mode control - remove extra dehumidifier accessory",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
+            "enableSyncButton": {
+                "title": "Enable Sync Button",
+                "description": "Adding a switch to quickly toggle the state of the AC without sending commands to the AC",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
+            "enableOccupancySensor": {
+                "title": "Enable Occupancy Sensor",
+                "description": "Adding occupancy sensor to represent the state of someone at home/away",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
+            "enableClimateReactSwitch": {
+                "title": "Enable Climate React Switch",
+                "description": "Adding a switch to quickly enable/disable Climate React",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
+            "enableHistoryStorage": {
+                "title": "Enable History Storage",
+                "description": "Records all temperature & humidity measurements history to be viewable in the Eve app",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
+            "debug": {
+                "title": "Enable Debug Logs",
+                "description": "When checked, the plugin will produce extra logs for debugging purposes",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            }
+        }
+    }
   }
-}

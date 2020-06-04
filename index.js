@@ -28,15 +28,19 @@ function SensiboACPlatform(log, config) {
     this.enableHistoryStorage = config['enableHistoryStorage'] || false //new
 	this.debug = config['debug'] || false
 	this.log = log
-	this.debug = log.debug
 	this.processingState = false
 	this.refreshTimeout = null
 	this.cachedAccessories = []
 	this.returnedAccessories = []
-
 	const requestedInterval = 90000
 	this.refreshDelay = 2000
 	this.pollingInterval = requestedInterval - this.refreshDelay
+
+	if (!this.apiKey) {
+		this.log('XXXXXXXXXXXXXXXXXXX  --  ERROR  --  XXXXXXXXXXXXXXXXXXXXXXXX\n')
+		this.log('Can\'t start homebridge-sensibo-ac plugin without API KEY !!\n')
+		this.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
+	}
 	
 
 }
@@ -45,26 +49,28 @@ function SensiboACPlatform(log, config) {
 SensiboACPlatform.prototype = {
 	accessories: async function (callback) {
 
-		try {
-			await storage.init({
-				dir: HomebridgeAPI.user.persistPath() + '/../sensibo-persist',
-				forgiveParseErrors: true
-			})
-			this.cachedState = await storage.getItem('sensibo_state')
-		} catch(err) {
-			this.log("Failed setting storage dir under 'sensibo-persist':")
-			this.log(err)
-			this.log("Trying again in default persist path...")
+		if (this.apiKey) {
 			try {
 				await storage.init({
-					dir: HomebridgeAPI.user.persistPath(),
+					dir: HomebridgeAPI.user.persistPath() + '/../sensibo-persist',
 					forgiveParseErrors: true
 				})
-				this.log("Success setting storage dir under default persist path")
+				this.cachedState = await storage.getItem('sensibo_state')
 			} catch(err) {
-				this.log("Failed setting storage dir under default persist path")
+				this.log("Failed setting storage dir under 'sensibo-persist':")
 				this.log(err)
-				this.log("Please contact the plugin creator...")
+				this.log("Trying again in default persist path...")
+				try {
+					await storage.init({
+						dir: HomebridgeAPI.user.persistPath(),
+						forgiveParseErrors: true
+					})
+					this.log("Success setting storage dir under default persist path")
+				} catch(err) {
+					this.log("Failed setting storage dir under default persist path")
+					this.log(err)
+					this.log("Please contact the plugin creator...")
+				}
 			}
 		}
 
@@ -165,20 +171,22 @@ SensiboACPlatform.prototype = {
 			}
 			
 		}
-		this.log('Fetching Sensibo devices...')
 		let pods = []
-		sensibo.init(this.apiKey, this.log, this.debug)
 
-		try {
-			await this.refreshState()
-			pods = await sensibo.getAllPods()
-			await storage.setItem('sensibo_pods', pods)
-			
-		} catch(err) {
-			this.log('ERROR getting devices status from API!')
-			const cachedPods = await storage.getItem('sensibo_pods')
-			if (cachedPods)
-				pods = cachedPods
+		if (this.apiKey) {
+				sensibo.init(this.apiKey, this.log, this.debug)
+				this.log('Fetching Sensibo devices...')
+			try {
+				await this.refreshState()
+				pods = await sensibo.getAllPods()
+				await storage.setItem('sensibo_pods', pods)
+				
+			} catch(err) {
+				this.log('ERROR getting devices status from API!')
+				const cachedPods = await storage.getItem('sensibo_pods')
+				if (cachedPods)
+					pods = cachedPods
+			}
 		}
 		if (pods.length) {
 			pods.forEach(pod => {
@@ -191,7 +199,6 @@ SensiboACPlatform.prototype = {
 					temperatureUnit: pod.temperatureUnit,
 					capabilities: pod.remoteCapabilities.modes,
 					disableFan: this.disableFan,
-					disableDry: this.disableDry,
 					enableSyncButton: this.enableSyncButton,
 					enableClimateReactSwitch: this.enableClimateReactSwitch,
 					refreshState: this.refreshState,
@@ -222,9 +229,8 @@ SensiboACPlatform.prototype = {
 				this.log(`New Sensibo Occupancy Sensor (Name: ${newAccessory.name}`)
 
 			}
-		} else
-			this.log('No Sensibo devices were detected... Not doing anything!')
-
+		} else this.log('No Sensibo devices were detected... Not doing anything!')
+				
 		callback(this.returnedAccessories)
 	}
 }

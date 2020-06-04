@@ -1,13 +1,13 @@
 <p align="center">
-  <img src="branding/homebridge_sensibo.png" height="100px">
+  <img src="branding/hoobs_homebridge_sensibo.svg" width="700px">
 </p>
 
 
 # homebridge-sensibo-ac
 
 [![Downloads](https://img.shields.io/npm/dt/homebridge-sensibo-ac.svg?color=critical)](https://www.npmjs.com/package/homebridge-sensibo-ac)
-[![Version](https://img.shields.io/npm/v/homebridge-sensibo-ac)](https://www.npmjs.com/package/homebridge-hue)
-
+[![Version](https://img.shields.io/npm/v/homebridge-sensibo-ac)](https://www.npmjs.com/package/homebridge-hue)<br>
+[![certified-hoobs-plugin](https://badgen.net/badge/HOOBS/Certified/yellow)](https://plugins.hoobs.org) [![hoobs-support](https://badgen.net/badge/HOOBS/Support/yellow)](https://support.hoobs.org)
 
 
 [Homebridge](https://github.com/nfarina/homebridge) plugin for Sensibo - Smart AC Control
@@ -15,7 +15,7 @@
 ### Requirements
 
 <img src="https://img.shields.io/badge/node-%3E%3D10.17-brightgreen"> &nbsp;
-<img src="https://img.shields.io/badge/nhomebridge-%3E%3D0.4.4-brightgreen"> &nbsp;
+<img src="https://img.shields.io/badge/homebridge-%3E%3D0.4.4-brightgreen"> &nbsp;
 <img src="https://img.shields.io/badge/iOS-%3E%3D11.0.0-brightgreen">
 
 check with: `node -v` & `homebridge -V` and update if needed
