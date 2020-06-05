@@ -8,7 +8,7 @@ module.exports = function (homebridge) {
 	Service = homebridge.hap.Service
 	Characteristic = homebridge.hap.Characteristic
 	Accessory = homebridge.hap.Accessory
-    HomebridgeAPI = homebridge
+	HomebridgeAPI = homebridge
 	uuid = homebridge.hap.uuid
 	const FakeGatoHistoryService = require("fakegato-history")(homebridge)
 
@@ -18,14 +18,14 @@ module.exports = function (homebridge) {
 
 function SensiboACPlatform(log, config) {
 	// Load Wink Authentication From Config File
-    this.name = config['name'] || 'Sensibo AC'
+	this.name = config['name'] || 'Sensibo AC'
 	this.apiKey = config['apiKey']
 	this.disableFan = config['disableFan'] || false
 	this.disableDry = config['disableDry'] || false
 	this.enableSyncButton= config['enableSyncButton'] || false
 	this.enableOccupancySensor = config['enableOccupancySensor'] || false
 	this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
-    this.enableHistoryStorage = config['enableHistoryStorage'] || false //new
+	this.enableHistoryStorage = config['enableHistoryStorage'] || false //new
 	this.debug = config['debug'] || false
 	this.log = log
 	this.processingState = false
@@ -174,8 +174,8 @@ SensiboACPlatform.prototype = {
 		let pods = []
 
 		if (this.apiKey) {
-				sensibo.init(this.apiKey, this.log, this.debug)
-				this.log('Fetching Sensibo devices...')
+			sensibo.init(this.apiKey, this.log, this.debug)
+			this.log('Fetching Sensibo devices...')
 			try {
 				await this.refreshState()
 				pods = await sensibo.getAllPods()
