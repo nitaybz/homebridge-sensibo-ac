@@ -3,5 +3,8 @@
       "node": true,
       "es2020": true
   },
-  "extends": "eslint:recommended"
+  "extends": "eslint:recommended",
+  "rules": {
+    "indent": ["error", "tab"]
+  }
 }

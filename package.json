@@ -32,5 +32,9 @@
   },
   "devDependencies": {
     "eslint": "^7.1.0"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   }
 }
