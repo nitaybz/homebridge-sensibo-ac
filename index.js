@@ -41,7 +41,7 @@ function SensiboACPlatform(log, config) {
 		this.log('Can\'t start homebridge-sensibo-ac plugin without API KEY !!\n')
 		this.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
 	}
-	
+
 
 }
 
@@ -87,9 +87,9 @@ SensiboACPlatform.prototype = {
 					try {
 						if (this.debug)
 							this.log('Getting Devices State')
-			
-						const pods = await sensibo.getDevicesStates()
 
+						const pods = await sensibo.getDevicesStates()
+            this.log('Received device states:', pods);
 						if (pods.length) {
 							pods.forEach(pod => {
 								if (!this.cachedState.pods[pod.id])
@@ -100,7 +100,7 @@ SensiboACPlatform.prototype = {
 								const isStateChanged = (this.cachedState.pods[pod.id].acState && JSON.stringify(this.cachedState.pods[pod.id].acState) !== JSON.stringify(pod.acState)) || !this.cachedState.pods[pod.id].acState
 								const isMeasurementsChanged = (this.cachedState.pods[pod.id].measurements && (this.cachedState.pods[pod.id].measurements.temperature !== pod.measurements.temperature || this.cachedState.pods[pod.id].measurements.humidity !== pod.measurements.humidity)) || !this.cachedState.pods[pod.id].measurements
 								const isClimateReactChanged = this.enableClimateReactSwitch && (!this.cachedState.pods[pod.id].smartMode || (this.cachedState.pods[pod.id].smartMode.enabled !== climateReactState))
-								
+
 								let newState = null
 								let newMeasurements = null
 								let newClimateReactState = null
@@ -111,7 +111,7 @@ SensiboACPlatform.prototype = {
 									if (!this.cachedState.pods[pod.id].last)
 										this.cachedState.pods[pod.id].last = {}
 									this.cachedState.pods[pod.id].last[pod.acState.mode] =  pod.acState
-				
+
 									if (pod.acState.mode !== 'fan' && pod.acState.mode !== 'dry')
 										this.cachedState.pods[pod.id].last.mode = pod.acState.mode
 
@@ -159,17 +159,17 @@ SensiboACPlatform.prototype = {
 							this.log('ERROR setting sensibo status to cache!')
 							this.debug(err)
 						}
-						
+
 					} catch(err) {
 						this.processingState = false
 						this.refreshTimeout = setTimeout(this.refreshState, this.pollingInterval)
 						this.log('ERROR getting devices status from API!')
 						if (this.debug)
-							this.log(err) 
+							this.log(err)
 					}
 				}, this.refreshDelay)
 			}
-			
+
 		}
 		let pods = []
 
@@ -180,7 +180,7 @@ SensiboACPlatform.prototype = {
 				await this.refreshState()
 				pods = await sensibo.getAllPods()
 				await storage.setItem('sensibo_pods', pods)
-				
+
 			} catch(err) {
 				this.log('ERROR getting devices status from API!')
 				const cachedPods = await storage.getItem('sensibo_pods')
@@ -230,7 +230,7 @@ SensiboACPlatform.prototype = {
 
 			}
 		} else this.log('No Sensibo devices were detected... Not doing anything!')
-				
+
 		callback(this.returnedAccessories)
 	}
 }
