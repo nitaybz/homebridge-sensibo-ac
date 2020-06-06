@@ -89,8 +89,8 @@ SensiboACPlatform.prototype = {
 							this.log('Getting Devices State')
 
 						const pods = await sensibo.getDevicesStates()
-            this.log('Received device states:', pods);
-						if (pods.length) {
+
+            if (pods.length) {
 							pods.forEach(pod => {
 								if (!this.cachedState.pods[pod.id])
 									this.cachedState.pods[pod.id] = {}
