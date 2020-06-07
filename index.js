@@ -199,6 +199,7 @@ SensiboACPlatform.prototype = {
 					temperatureUnit: pod.temperatureUnit,
 					capabilities: pod.remoteCapabilities.modes,
 					disableFan: this.disableFan,
+					disableDry: this.disableDry,
 					enableSyncButton: this.enableSyncButton,
 					enableClimateReactSwitch: this.enableClimateReactSwitch,
 					refreshState: this.refreshState,
