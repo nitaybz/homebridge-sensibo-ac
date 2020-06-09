@@ -190,28 +190,35 @@ SensiboACPlatform.prototype = {
 		}
 		if (pods.length) {
 			pods.forEach(pod => {
-				const newAccessory = {
-					type: 'ac',
-					state: this.cachedState.pods[pod.id],
-					id: pod.id,
-					model: pod.productModel,
-					name: pod.room.name + ' AC',
-					temperatureUnit: pod.temperatureUnit,
-					capabilities: pod.remoteCapabilities.modes,
-					disableFan: this.disableFan,
-					disableDry: this.disableDry,
-					enableSyncButton: this.enableSyncButton,
-					enableClimateReactSwitch: this.enableClimateReactSwitch,
-					refreshState: this.refreshState,
-					enableHistoryStorage: this.enableHistoryStorage,
-					log: this.log,
-					debug: this.debug
-				}
+				if (pod.remoteCapabilities) {
+					const newAccessory = {
+						type: 'ac',
+						state: this.cachedState.pods[pod.id],
+						id: pod.id,
+						model: pod.productModel,
+						name: pod.room.name + ' AC',
+						temperatureUnit: pod.temperatureUnit,
+						capabilities: pod.remoteCapabilities.modes,
+						disableFan: this.disableFan,
+						disableDry: this.disableDry,
+						enableSyncButton: this.enableSyncButton,
+						enableClimateReactSwitch: this.enableClimateReactSwitch,
+						refreshState: this.refreshState,
+						enableHistoryStorage: this.enableHistoryStorage,
+						log: this.log,
+						debug: this.debug
+					}
+	
+					this.cachedAccessories.push(newAccessory)
+					const accessory = new SensiboAccessory.acAccessory(newAccessory)
+					this.returnedAccessories.push(accessory)
+					this.log(`New Sensibo AC Device Added (Name: ${newAccessory.name}, ID: ${newAccessory.id})`)
 
-				this.cachedAccessories.push(newAccessory)
-				const accessory = new SensiboAccessory.acAccessory(newAccessory)
-				this.returnedAccessories.push(accessory)
-				this.log(`New Sensibo AC Device Added (Name: ${newAccessory.name}, ID: ${newAccessory.id})`)
+				} else {
+					this.log(`Sensibo AC Device was detected but without remote configured! (Name: ${pod.room.name}, ID: ${pod.id})`)
+					this.log(' ~~~~~~~ SKIPPING DEVICE ~~~~~~~~~')
+
+				}
 			})
 
 			if (this.enableOccupancySensor) {
