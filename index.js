@@ -33,7 +33,7 @@ function SensiboACPlatform(log, config) {
 	this.cachedAccessories = []
 	this.returnedAccessories = []
 	const requestedInterval = 90000
-	this.refreshDelay = 2000
+	this.refreshDelay = 5000
 	this.pollingInterval = requestedInterval - this.refreshDelay
 
 	if (!this.apiKey) {
