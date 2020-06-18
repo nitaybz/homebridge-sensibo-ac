@@ -6,7 +6,7 @@
 # homebridge-sensibo-ac
 
 [![Downloads](https://img.shields.io/npm/dt/homebridge-sensibo-ac.svg?color=critical)](https://www.npmjs.com/package/homebridge-sensibo-ac)
-[![Version](https://img.shields.io/npm/v/homebridge-sensibo-ac)](https://www.npmjs.com/package/homebridge-hue)<br>
+[![Version](https://img.shields.io/npm/v/homebridge-sensibo-ac)](https://www.npmjs.com/package/homebridge-sensibo-ac)<br>
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins) [![Homebridge Discord](https://img.shields.io/discord/432663330281226270?color=728ED5&logo=discord&label=discord)](https://discord.gg/kqFA2K)<br>
 [![certified-hoobs-plugin](https://badgen.net/badge/HOOBS/Certified/yellow)](https://plugins.hoobs.org) [![hoobs-support](https://badgen.net/badge/HOOBS/Support/yellow)](https://support.hoobs.org) 
 
@@ -36,9 +36,9 @@ Taking into consideration the other plugins for Sensibo, I decided to create thi
 
 # Installation
 
-1. Install homebridge using: `sudo npm install -g homebridge`
+1. Install homebridge using: `sudo npm install -g homebridge --unsafe-perm`
 2. Install this plugin using: `sudo npm install -g homebridge-sensibo-ac`
-3. Update your configuration file. See `sample-config.json` in this repository for a sample.
+3. Update your configuration file. See `config-sample.json` in this repository for a sample.
 
 \* install from git: `sudo npm install -g git+https://github.com/nitaybz/homebridge-sensibo-ac.git`
 
@@ -67,6 +67,7 @@ Taking into consideration the other plugins for Sensibo, I decided to create thi
         "enableOccupancySensor": true,
         "enableClimateReactSwitch": true,
         "enableHistoryStorage": true,
+        "externalHumiditySensor": false,
         "debug": false
     }
 ]
@@ -186,7 +187,7 @@ Great thanks to Sensibo company and especially Omer Enbar, their CEO & CO-Founde
 
 ## Support homebridge-sensibo-ac
 
-**homebridge-sensibo-ac** is a free plugin under the ISC license. it was developed as a contribution to the homebridge/hoobs community with lots of love and thoughts.
+**homebridge-sensibo-ac** is a free plugin under the GNU license. it was developed as a contribution to the homebridge/hoobs community with lots of love and thoughts.
 Creating and maintaining Homebridge plugins consume a lot of time and effort and if you would like to share your appreciation, feel free to "Star" or donate. 
 
 <a target="blank" href="https://www.paypal.me/nitaybz"><img src="https://img.shields.io/badge/Donate-PayPal-blue.svg"/></a>

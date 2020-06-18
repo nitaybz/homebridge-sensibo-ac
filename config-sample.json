@@ -17,6 +17,7 @@
       "enableOccupancySensor": true,
       "enableClimateReactSwitch": true,
       "enableHistoryStorage": true,
+      "externalHumiditySensor": false,
       "debug": false
     }
   ],

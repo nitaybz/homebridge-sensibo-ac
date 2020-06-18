@@ -61,6 +61,13 @@
                 "default": false,
                 "required": false
             },
+            "externalHumiditySensor": {
+                "title": "Enable External Humidity Sensor",
+                "description": "Creates an external sensor outside of the accessory that shows relative humidity",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
             "debug": {
                 "title": "Enable Debug Logs",
                 "description": "When checked, the plugin will produce extra logs for debugging purposes",

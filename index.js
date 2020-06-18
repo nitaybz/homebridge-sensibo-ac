@@ -26,6 +26,7 @@ function SensiboACPlatform(log, config) {
 	this.enableOccupancySensor = config['enableOccupancySensor'] || false
 	this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
 	this.enableHistoryStorage = config['enableHistoryStorage'] || false //new
+	this.externalHumiditySensor = config['externalHumiditySensor'] || false
 	this.debug = config['debug'] || false
 	this.log = log
 	this.processingState = false
@@ -205,6 +206,7 @@ SensiboACPlatform.prototype = {
 						enableClimateReactSwitch: this.enableClimateReactSwitch,
 						refreshState: this.refreshState,
 						enableHistoryStorage: this.enableHistoryStorage,
+						externalHumiditySensor: this.externalHumiditySensor,
 						log: this.log,
 						debug: this.debug
 					}

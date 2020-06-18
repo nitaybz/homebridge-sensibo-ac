@@ -6,7 +6,7 @@
     "type": "git",
     "url": "git://github.com/nitaybz/homebridge-sensibo-ac.git"
   },
-  "license": "ISC",
+  "license": "GNU",
   "preferGlobal": true,
   "keywords": [
     "homebridge-plugin",

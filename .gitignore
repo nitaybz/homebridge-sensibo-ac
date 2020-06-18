@@ -65,7 +65,8 @@ Carthage/Build
 node_modules/
 .vscode/
 .DS_Store
-
+.eslintignore
+.eslintrc.json
 
 # ignore all logs
 *.log
