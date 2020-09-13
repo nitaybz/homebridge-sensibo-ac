@@ -1,9 +1,9 @@
-const AirConditioner = require('./homekit/AirConditioner')
-const RoomSensor = require('./homekit/RoomSensor')
+const AirConditioner = require('./../homekit/AirConditioner')
+const RoomSensor = require('./../homekit/RoomSensor')
 const HumiditySensor = require('./homekit/HumiditySensor')
-const SyncButton = require('./homekit/SyncButton')
-const ClimateReactSwitch = require('./homekit/ClimateReactSwitch')
-const OccupancySensor = require('./homekit/OccupancySensor')
+const SyncButton = require('./../homekit/SyncButton')
+const ClimateReactSwitch = require('./../homekit/ClimateReactSwitch')
+const OccupancySensor = require('./../homekit/OccupancySensor')
 
 module.exports = () => {
 	this.devices.forEach(device => {
