@@ -5,6 +5,6 @@
   },
   "extends": "eslint:recommended",
   "rules": {
-    "indent": ["error", "tab"]
+    "indent": ["error", "tab", { "SwitchCase": 1 }]
   }
 }
