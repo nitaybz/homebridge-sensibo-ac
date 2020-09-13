@@ -34,14 +34,14 @@ module.exports = async function (platform) {
 	
 		getAllDevices: async () => {
 			const path = '/users/me/pods'
-			const queryString = 'fields=id,acState,measurements,remoteCapabilities,room,temperatureUnit,productModel,location,occupancy,smartMode,motionSensors,filtersCleaning'
+			const queryString = 'fields=id,acState,measurements,remoteCapabilities,room,temperatureUnit,productModel,location,occupancy,smartMode,motionSensors,filtersCleaning,serial'
 				
 			return await apiRequest('get', path + '?' + queryString)
 		},
 	
 		getDevicesStates: async () => {
 			const path = '/users/me/pods'
-			const queryString = 'fields=id,acState,measurements,motionSensors,location,occupancy,smartMode,motionSensors,filtersCleaning'
+			const queryString = 'fields=id,acState,measurements,motionSensors,location,occupancy,smartMode,motionSensors,filtersCleaning,serial'
 
 			return await apiRequest('get', path + '?' + queryString)
 		},
@@ -99,7 +99,7 @@ function apiRequest(method, url, data) {
 		log.easyDebug(`Creating ${method.toUpperCase()} request to Sensibo API --->`)
 		log.easyDebug(baseURL + url)
 		if (data)
-			log.easyDebug('data: ' +JSON.stringify(data, null, 2))
+			log.easyDebug('data: ' +JSON.stringify(data))
 
 		axios({url, data, method})
 			.then(response => {
@@ -112,7 +112,7 @@ function apiRequest(method, url, data) {
 						results = removePrivateAddress(json.result)
 					else 
 						results = json
-					log.easyDebug(JSON.stringify(results, null, 2))
+					log.easyDebug(JSON.stringify(results))
 					resolve(results)
 				} else {
 					const error = json

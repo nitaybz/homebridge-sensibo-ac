@@ -26,16 +26,6 @@ module.exports = (device, platform) => {
 					}
 				}
 
-			// return a function to update a single state property
-			if (prop === 'updateProperty')
-				return (updateProp, value) => {
-					if (!setProcessing) {
-						target[updateProp] = value
-						device.updateHomeKit()
-					}
-				}
-
-
 			// return a function to sync ac state
 			if (prop === 'syncState')
 				return async() => {
@@ -62,14 +52,23 @@ module.exports = (device, platform) => {
 			
 			// Send Reset Filter command and update value
 			if (prop === 'filterChange') {
-				sensiboApi.resetFilterIndicator(device.id)
+				try {
+					sensiboApi.resetFilterIndicator(device.id)
+				} catch(err) {
+					log('Error occurred! -> Could not reset filter indicator')
+				}
 				return
 			} else if (prop === 'filterLifeLevel')
 				return
 
 			// Send Reset Filter command and update value
 			if (prop === 'smartMode') {
-				sensiboApi.enableDisableClimateReact(device.id, value)
+				try {
+					sensiboApi.enableDisableClimateReact(device.id, value)
+				} catch(err) {
+					log('Error occurred! -> Climate React state did not change')
+				}
+				
 				if (!setProcessing)
 					platform.refreshState()
 				return
@@ -98,12 +97,13 @@ module.exports = (device, platform) => {
 				try {
 					// send state command to Sensibo
 					await sensiboApi.setDeviceState(device.id, unified.sensiboFormattedState(device, state))
-					device.updateHomeKit()
-					setProcessing = false
 				} catch(err) {
 					log(`ERROR setting ${prop} to ${value}`)
 					return
 				}
+				device.updateHomeKit()
+				setProcessing = false
+
 			}, setTimeoutDelay)
 
 			return true;
