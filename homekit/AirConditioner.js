@@ -4,8 +4,8 @@ let Characteristic, Service, CELSIUS_UNIT, FAHRENHEIT_UNIT
 class AirConditioner {
 	constructor(device, platform) {
 
-		Service = this.api.hap.Service
-		Characteristic = this.api.hap.Characteristic
+		Service = platform.api.hap.Service
+		Characteristic = platform.api.hap.Characteristic
 		CELSIUS_UNIT = platform.CELSIUS_UNIT
 		FAHRENHEIT_UNIT = platform.FAHRENHEIT_UNIT
 
@@ -32,8 +32,7 @@ class AirConditioner {
 		this.filterService = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device)
 
-		if (!(this.id in this.cachedState.devices))
-			this.cachedState.devices[this.id] = this.state = unified.acState(device)
+		this.state = this.cachedState.devices[this.id] = unified.acState(device)
 		
 		const StateHandler = require('../sensibo/StateHandler')(this, platform)
 		this.state = new Proxy(this.state, StateHandler)
@@ -100,8 +99,8 @@ class AirConditioner {
 			this.HeaterCoolerService = this.accessory.addService(Service.HeaterCooler, this.name, 'HeaterCooler')
 
 		this.HeaterCoolerService.getCharacteristic(Characteristic.Active)
-			.on('get', this.stateManager.get.Active)
-			.on('set', this.stateManager.set.Active)
+			.on('get', this.stateManager.get.ACActive)
+			.on('set', this.stateManager.set.ACActive)
 
 		this.HeaterCoolerService.getCharacteristic(Characteristic.CurrentHeaterCoolerState)
 			.on('get', this.stateManager.get.CurrentHeaterCoolerState)
@@ -308,7 +307,7 @@ class AirConditioner {
 		// if status is OFF, set all services to INACTIVE
 		if (!this.state.active) {
 			this.updateValue('HeaterCoolerService', 'Active', 0)
-			this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.OFF)
+			this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
 
 			if (this.FanService)
 				this.updateValue('FanService', 'Active', 0)
@@ -382,7 +381,7 @@ class AirConditioner {
 
 				// turn off HeaterCoolerService
 				this.updateValue('HeaterCoolerService', 'Active', 0)
-				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.OFF)
+				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
 
 				// turn off DryService
 				if (this.DryService) {
@@ -409,7 +408,7 @@ class AirConditioner {
 
 				// turn off HeaterCoolerService
 				this.updateValue('HeaterCoolerService', 'Active', 0)
-				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.OFF)
+				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
 
 				// turn off FanService
 				if (this.FanService)

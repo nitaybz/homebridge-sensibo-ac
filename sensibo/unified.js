@@ -141,7 +141,7 @@ module.exports = {
 			state.filterLifeLevel =  100 - Math.floor(device.filtersCleaning.acOnSecondsSinceLastFiltersClean/device.filtersCleaning.filtersCleanSecondsThreshold*100)
 		}
 
-		const modeCapabilities = device.remoteCapabilities.modes[state.mode]
+		const modeCapabilities = device.remoteCapabilities.modes[device.acState.mode]
 
 		if (modeCapabilities.swing && modeCapabilities.swing.includes('rangeFull'))
 			state.swing = device.acState.swing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
@@ -151,7 +151,7 @@ module.exports = {
 			state.horizontalSwing = device.acState.horizontalSwing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
 
 		if (modeCapabilities.fanLevels && modeCapabilities.fanLevels.length)
-			state.fanSpeed = fanLevelToHK(device.acState.fanLevel, device.capabilities[state.mode].fanSpeeds)
+			state.fanSpeed = fanLevelToHK(device.acState.fanLevel, modeCapabilities.fanLevels)
 
 		return state
 	},

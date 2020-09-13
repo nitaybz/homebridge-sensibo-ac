@@ -4,8 +4,8 @@ let Characteristic, Service, FAHRENHEIT_UNIT
 class RoomSensor {
 	constructor(sensor, device, platform) {
 
-		Service = this.api.hap.Service
-		Characteristic = this.api.hap.Characteristic
+		Service = platform.api.hap.Service
+		Characteristic = platform.api.hap.Characteristic
 		FAHRENHEIT_UNIT = platform.FAHRENHEIT_UNIT
 
 		const deviceInfo = unified.deviceInformation(device)
@@ -28,8 +28,7 @@ class RoomSensor {
 		this.temperatureUnit = deviceInfo.temperatureUnit
 		this.usesFahrenheit = this.temperatureUnit === FAHRENHEIT_UNIT
 
-		if (!(this.id in this.cachedState.sensors))
-			this.cachedState.sensors[this.id] = this.state = unified.sensorState(sensor)
+		this.state = this.cachedState.sensors[this.id] = unified.sensorState(sensor)
 		
 		const StateHandler = require('../sensibo/StateHandler')(this, platform)
 		this.state = new Proxy(this.state, StateHandler)
@@ -93,7 +92,7 @@ class RoomSensor {
 		this.log.easyDebug(`Adding TemperatureSensor Service in the ${this.roomName}`)
 		this.TemperatureSensorService = this.accessory.getService(Service.TemperatureSensor)
 		if (!this.TemperatureSensorService)
-			this.MotionSensorService = this.accessory.addService(Service.TemperatureSensor, this.name + ' Temperature', 'TemperatureSensor')
+			this.TemperatureSensorService = this.accessory.addService(Service.TemperatureSensor, this.name + ' Temperature', 'TemperatureSensor')
 
 		this.TemperatureSensorService.getCharacteristic(Characteristic.CurrentTemperature)
 			.setProps({

@@ -1,7 +1,7 @@
 const path = require('path')
 const SensiboApi = require('./sensibo/api')
-const syncHomeKitCache = require('./sensibo/syncHomeKitCache')
-const refreshState = require('./sensibo/refreshState')
+// const syncHomeKitCache = 
+// const refreshState = 
 const storage = require('node-persist')
 const PLUGIN_NAME = 'homebridge-sensibo-ac'
 const PLATFORM_NAME = 'SensiboAC'
@@ -18,8 +18,8 @@ class SensiboACPlatform {
 		this.log = log
 		this.api = api
 		this.storage = storage
-		this.refreshState = refreshState
-		this.syncHomeKitCache = syncHomeKitCache
+		this.refreshState = require('./sensibo/refreshState')(this)
+		this.syncHomeKitCache = require('./sensibo/syncHomeKitCache')(this)
 		this.name = config['name'] || PLATFORM_NAME
 		this.disableFan = config['disableFan'] || false
 		this.disableDry = config['disableDry'] || false
@@ -84,15 +84,16 @@ class SensiboACPlatform {
 
 
 			this.cachedState = await this.storage.getItem('state') || this.emptyState
-			this.sensiboApi = SensiboApi(this)
+			this.sensiboApi = await SensiboApi(this)
 
 			try {
 				this.devices = await this.sensiboApi.getAllDevices()
 				await this.storage.setItem('devices', this.devices)
 			} catch(err) {
+				this.log('ERR:', err)
 				this.devices = await this.storage.getItem('devices') || []
 			}
-
+			
 			this.syncHomeKitCache()
 
 			if (this.pollingInterval)

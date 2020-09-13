@@ -3,8 +3,8 @@ let Characteristic, Service
 class SyncButton {
 	constructor(airConditioner, platform) {
 
-		Service = this.api.hap.Service
-		Characteristic = this.api.hap.Characteristic
+		Service = platform.api.hap.Service
+		Characteristic = platform.api.hap.Characteristic
 		
 		this.log = airConditioner.log
 		this.api = airConditioner.api

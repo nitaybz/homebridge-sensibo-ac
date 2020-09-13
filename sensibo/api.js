@@ -29,7 +29,7 @@ module.exports = async function (platform) {
 		}
 	}
 	axios.defaults.baseURL = baseURL
-
+	
 	return {
 	
 		getAllDevices: async () => {
@@ -96,7 +96,7 @@ module.exports = async function (platform) {
 function apiRequest(method, url, data) {
 	return new Promise((resolve, reject) => {
 	
-		log.easyDebug(`Creating a ${method.toUpperCase()} request to Sensibo API --->`)
+		log.easyDebug(`Creating ${method.toUpperCase()} request to Sensibo API --->`)
 		log.easyDebug(baseURL + url)
 		if (data)
 			log.easyDebug('data: ' +JSON.stringify(data, null, 2))
@@ -136,7 +136,8 @@ function getToken(username, password, storage) {
 		let token = await storage.getItem('token')
 		if (token && new Date().getTime() < token.expirationDate) {
 			log.easyDebug('Found valid token in storage')
-			return token.key
+			resolve(token.key)
+			return
 		}
 	
 		let data = {

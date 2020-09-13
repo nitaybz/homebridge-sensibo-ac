@@ -4,8 +4,8 @@ let Characteristic, Service
 class OccupancySensor {
 	constructor(device, platform) {
 
-		Service = this.api.hap.Service
-		Characteristic = this.api.hap.Characteristic
+		Service = platform.api.hap.Service
+		Characteristic = platform.api.hap.Characteristic
 
 		const deviceInfo = unified.deviceInformation(device)
 		const locationInfo = unified.locationInformation(device.location)
@@ -23,8 +23,7 @@ class OccupancySensor {
 		this.type = 'OccupancySensor'
 		this.displayName = this.name
 
-		if (!(this.id in this.cachedState.sensors))
-			this.cachedState.occupancy[this.id] = this.state = unified.occupancyState(device.location)
+		this.state = this.cachedState.occupancy[this.id] = unified.occupancyState(device.location)
 		
 		const StateHandler = require('../sensibo/StateHandler')(this, platform)
 		this.state = new Proxy(this.state, StateHandler)
@@ -68,7 +67,7 @@ class OccupancySensor {
 			this.OccupancySensorService = this.accessory.addService(Service.OccupancySensor, this.name, this.type)
 
 		this.OccupancySensorService.getCharacteristic(Characteristic.OccupancyDetected)
-			.on('get', this.getOccupancy.bind(this))
+			.on('get', this.stateManager.get.OccupancyDetected)
 	}
 
 

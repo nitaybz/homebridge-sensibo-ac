@@ -275,7 +275,7 @@ module.exports = (device, platform) => {
 
 			// OCCUPANCY SENSOR
 
-			getOccupancy: (callback) => {
+			OccupancyDetected: (callback) => {
 				const occupancy = device.state.occupancy
 				log.easyDebug(device.name, '(GET) - is:', occupancy)
 				callback(null, Characteristic.OccupancyDetected[occupancy])
