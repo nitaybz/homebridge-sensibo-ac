@@ -58,6 +58,7 @@ class SensiboACPlatform {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
+		this.setProcessing = false
 		this.pollingTimeout = null
 		this.processingState = false
 		this.refreshTimeout = null

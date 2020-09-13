@@ -2,7 +2,7 @@ const unified = require('./unified')
 
 module.exports = (platform) => {
 	return () => {
-		if (!platform.processingState) {
+		if (!platform.processingState && !platform.setProcessing) {
 			platform.processingState = true
 			clearTimeout(platform.pollingTimeout)
 			setTimeout(async () => {
@@ -18,6 +18,10 @@ module.exports = (platform) => {
 						platform.log.easyDebug(`Will try again in ${platform.pollingInterval/1000} seconds...`)
 						platform.pollingTimeout = setTimeout(platform.refreshState, platform.pollingInterval)
 					}
+					return
+				}
+				if (platform.setProcessing) {
+					platform.processingState = false
 					return
 				}
 				

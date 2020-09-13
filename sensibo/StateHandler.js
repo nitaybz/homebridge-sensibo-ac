@@ -5,7 +5,6 @@ module.exports = (device, platform) => {
 	const setTimeoutDelay = 1000
 	let setTimer = null
 	let preventTurningOff = false
-	let setProcessing = false
 	const sensiboApi = platform.sensiboApi
 
 	const log = platform.log
@@ -14,13 +13,13 @@ module.exports = (device, platform) => {
 	return {
 		get: (target, prop) => {
 			// check for last update and refresh state if needed
-			if (!setProcessing)
+			if (!platform.setProcessing)
 				platform.refreshState()
 
 			// return a function to update state (multiple properties)
 			if (prop === 'update')
 				return (state) => {
-					if (!setProcessing) {
+					if (!platform.setProcessing) {
 						Object.keys(state).forEach(key => { target[key] = state[key] })
 						device.updateHomeKit()
 					}
@@ -69,13 +68,13 @@ module.exports = (device, platform) => {
 					log('Error occurred! -> Climate React state did not change')
 				}
 				
-				if (!setProcessing)
+				if (!platform.setProcessing)
 					platform.refreshState()
 				return
 			}
 	
 
-			setProcessing = true
+			platform.setProcessing = true
 
 			// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
 			if (prop === 'fanSpeed' && value === 0 && device.capabilities[state.mode].autoFanSpeed)
@@ -93,7 +92,7 @@ module.exports = (device, platform) => {
 				log(device.name, ' -> Setting New State:')
 				log(JSON.stringify(state, null, 2))
 				
-				setProcessing = false
+				platform.setProcessing = false
 				try {
 					// send state command to Sensibo
 					await sensiboApi.setDeviceState(device.id, unified.sensiboFormattedState(device, state))
@@ -103,7 +102,7 @@ module.exports = (device, platform) => {
 				}
 				setTimeout(() => {
 					device.updateHomeKit()
-					setProcessing = false
+					platform.setProcessing = false
 				}, 500)
 
 			}, setTimeoutDelay)
