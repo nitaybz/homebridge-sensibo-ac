@@ -101,8 +101,10 @@ module.exports = (device, platform) => {
 					log(`ERROR setting ${prop} to ${value}`)
 					return
 				}
-				device.updateHomeKit()
-				setProcessing = false
+				setTimeout(() => {
+					device.updateHomeKit()
+					setProcessing = false
+				}, 200)
 
 			}, setTimeoutDelay)
 
