@@ -104,7 +104,7 @@ module.exports = (device, platform) => {
 				setTimeout(() => {
 					device.updateHomeKit()
 					setProcessing = false
-				}, 200)
+				}, 500)
 
 			}, setTimeoutDelay)
 
