@@ -105,8 +105,6 @@ class SensiboACPlatform {
 	}
 
 	configureAccessory(accessory) {
-		this.log.easyDebug('Configured Accessory:')
-		this.log.easyDebug(accessory)
 		this.cachedAccessories.push(accessory)
 	}
 

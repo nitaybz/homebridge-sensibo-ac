@@ -89,21 +89,20 @@ module.exports = (device, platform) => {
 					preventTurningOff = false
 				}
 		
+				const sensiboNewState = unified.sensiboFormattedState(device, state)
 				log(device.name, ' -> Setting New State:')
-				log(JSON.stringify(state, null, 2))
+				log(JSON.stringify(sensiboNewState, null, 2))
 				
-				platform.setProcessing = false
 				try {
 					// send state command to Sensibo
-					await sensiboApi.setDeviceState(device.id, unified.sensiboFormattedState(device, state))
+					await sensiboApi.setDeviceState(device.id, sensiboNewState)
 				} catch(err) {
 					log(`ERROR setting ${prop} to ${value}`)
 					return
 				}
-				setTimeout(() => {
-					device.updateHomeKit()
-					platform.setProcessing = false
-				}, 500)
+				
+				device.updateHomeKit()
+				platform.setProcessing = false
 
 			}, setTimeoutDelay)
 

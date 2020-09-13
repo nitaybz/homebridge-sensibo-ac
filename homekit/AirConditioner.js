@@ -322,7 +322,9 @@ class AirConditioner {
 		}
 
 		switch (this.state.mode) {
-			case 	'COOL', 'HEAT', 'AUTO':
+			case 'COOL':
+			case 'HEAT':
+			case 'AUTO':
 
 				// turn on HeaterCoolerService
 				this.updateValue('HeaterCoolerService', 'Active', 1)
