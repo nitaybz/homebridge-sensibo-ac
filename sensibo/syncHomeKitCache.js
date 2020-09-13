@@ -61,6 +61,12 @@ module.exports = (platform) => {
 		// find devices to remove
 		const accessoriesToRemove = []
 		platform.cachedAccessories.forEach(accessory => {
+
+			if (!accessory.context.type) {
+				accessoriesToRemove.push(accessory)
+				platform.log.easyDebug('removing old cached accessory')
+			}
+
 			let deviceExists, sensorExists, locationExists
 			switch(accessory.context.type) {
 				case 'AirConditioner':
