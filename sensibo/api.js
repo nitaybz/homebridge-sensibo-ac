@@ -1,6 +1,6 @@
-const axios = require('axios');
-const qs = require('qs');
-const version = require('./../package.json').version;
+const axios = require('axios')
+const qs = require('qs')
+const version = require('./../package.json').version
 
 
 const integrationName = 'homebridge-sensibo-ac@' + version

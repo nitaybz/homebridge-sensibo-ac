@@ -8,10 +8,12 @@
 [![Downloads](https://img.shields.io/npm/dt/homebridge-sensibo-ac.svg?color=critical)](https://www.npmjs.com/package/homebridge-sensibo-ac)
 [![Version](https://img.shields.io/npm/v/homebridge-sensibo-ac)](https://www.npmjs.com/package/homebridge-sensibo-ac)<br>
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins) [![Homebridge Discord](https://img.shields.io/discord/432663330281226270?color=728ED5&logo=discord&label=discord)](https://discord.gg/yguuVAX)<br>
-[![certified-hoobs-plugin](https://badgen.net/badge/HOOBS/Certified/yellow)](https://plugins.hoobs.org?ref=10876) [![hoobs-support](https://badgen.net/badge/HOOBS/Support/yellow)](https://support.hoobs.org?ref=10876) 
+[![certified-hoobs-plugin](https://badgen.net/badge/HOOBS/Certified/yellow)](https://plugins.hoobs.org?ref=10876) [![hoobs-support](https://badgen.net/badge/HOOBS/Support/yellow)](https://support.hoobs.org?ref=10876)
 
 
-[Homebridge](https://github.com/nfarina/homebridge) plugin for Sensibo - Smart AC Control
+[Homebridge](https://github.com/nfarina/homebridge) plugin for Sensibo - Smart AC Controller
+
+<img src="branding/products.jpg" width="400px">
 
 ### Requirements
 
@@ -21,17 +23,19 @@
 
 check with: `node -v` & `homebridge -V` and update if needed
 
-### Why this plugin?
-Taking into consideration the other plugins for Sensibo, I decided to create this plugin using a different service/characteristic ("HeaterCooler") which is a better match to control air conditioners + I've added some extra options that are missing in other plugins.
+### Plugin Unique Features
 
-### so what's actually new in this plugin?
-- Accessory type "**HeaterCooler**" - allowing adjusting fan speed (Rotation Speed) & swing (Oscillate) from within the accessory in "Home" App.
+- Login with **username & password** instead of API-key (api-key is still supported).
+- **Sensibo Air Support** including the attached **Room Sensors**.
 - **Auto Detect Configurations** - Automatically detect all your devices and their capabilities and opens up only the options available in Sensibo app to be controlled in HomeKit. More details [below](##Auto-Detect-Configurations).
+- Accessory type "**HeaterCooler**" - allowing adjusting fan speed (Rotation Speed) & swing (Oscillate) from within the accessory in "Home" App.
 - **Fan Mode** control (including it's own fan speed and swing control) in a new separate accessory.
 - **Dry Mode** control (including it's own fan speed and swing control) in a new separate accessory.
+- **Horizontal Swing** - allows you to quickly enable/disable horizontal swing in your AC.
 - **AC Sync Button** - allows you to quickly toggle the state of the AC between ON/OFF in case your AC is out of sync with HomeKit (does not send commands to the AC).
 - **Occupancy Sensor** - Gets the Home/Away status from Sensibo API to HomeKit via Occupancy sensor.
 - **Enable/Disable Climate React** - allows you to quickly enable/disable your climate react setup in Sensibo app (it is not possible to change settings, on/off only).
+- **Filter Cleaning Indication** - If this feature is available in your Sensibo account (via plus), a HomeKit representation of the Filter status will appear in Home app.
 - **History Storage** - This feature will remember temperature and humidity measurements and will present them in Eve app as a graph.
 
 # Installation
@@ -54,7 +58,8 @@ If you don't use HOOBS (or Homebridge UI), keep reading:
 "platforms": [
     {
         "platform": "SensiboAC",
-        "apiKey": "*************"
+        "username": "******@*******.**",
+        "password": "*******"
     }
 ]
 ```
@@ -64,21 +69,20 @@ If you don't use HOOBS (or Homebridge UI), keep reading:
 "platforms": [
     {
         "platform": "SensiboAC",
-        "apiKey": "*************",
+        "username": "******@*******.**",
+        "password": "*******",
         "disableFan": false,
         "disableDry": false,
         "enableSyncButton": true,
         "enableOccupancySensor": true,
         "enableClimateReactSwitch": true,
         "enableHistoryStorage": true,
+        "disableHorizontalSwing": false,
         "externalHumiditySensor": false,
         "debug": false
     }
 ]
 ```
-
-#### How to get an API key:
-You can generate an API key from the webapp at https://home.sensibo.com/me/api, once you login with your sensibo account username and password.
 
 
 ### Configurations Table
@@ -87,9 +91,11 @@ You can generate an API key from the webapp at https://home.sensibo.com/me/api, 
 |             Parameter            |                       Description                       | Required |  Default |   type   |
 | -------------------------------- | ------------------------------------------------------- |:--------:|:--------:|:--------:|
 | `platform`                 | always "SensiboAC"                                            |     ✓    |     -    |  String  |
-| `apiKey`                   | Your Sensibo api key from https://home.sensibo.com/me/api     |     ✓    |     -    |  String  |
+| `username`                 | Your Sensibo account username/email                           |     ✓    |     -    |  String  |
+| `password`                 | Your Sensibo account password                                 |     ✓    |     -    |  String  |
 | `disableFan`               |  When set to `true`, it will disable the FAN accessory        |          |  `false` |  Boolean |
 | `disableDry`               |  When set to `true`, it will disable the DRY accessory        |          |  `false` |  Boolean |
+| `disableHorizontalSwing`   |  Disable horizontal swing control (via extra switch)          |          |  `false` |  Boolean |
 | `enableSyncButton`         |  Adding a switch to quickly toggle the state of the AC without sending commands to the AC.   |          |  `false` |  Boolean  |
 | `enableOccupancySensor`    |  Adding occupancy sensor to represent the state of someone at home   |         |  `false` |  Boolean  |
 | `enableClimateReactSwitch` |  Adding a switch to quickly enable/disable climate react.     |          |  `false` |  Boolean  |
@@ -135,6 +141,12 @@ it will also include all the fan speeds and swing possibilities you have for DRY
 To disable the extra dehumidifier accessory, add `"disableDry": true` to your config.
 
 
+### Horizontal Swing
+
+If your Sensibo app has **Horizontal Swing** control, this plugin will create extra switch accessory in HomeKit to control it.
+To disable the extra horizontal swing  switch accessory, add `"disableHorizontalSwing": true` to your config.
+
+
 ### AC Sync Button
 
 Does Sensibo shows your AC is ON while it's actually OFF?<br>
@@ -170,6 +182,16 @@ Use this feature in conjunction with the occupancy sensor and you'll be able to 
 
 **To enable the extra "Climate React" switch**, add 
 `"enableClimateReactSwitch": true` to your config.
+
+
+### Filter Cleaning Indication
+
+If you have the Filter Cleaning notifications feature in Sensibo (from Sensibo "Plus" subscription or via old account) it will appear in the AC settings in HomeKit in this form:
+
+1. **Filer Life Level** - Relative (0-100%) representation of the filter life level. calculated from the last time it was cleaned until the next time it should be clean
+2. **Filter Change Indication** - Boolean state represent whether the filter should be cleaned or not (based on usage time).
+3. **Reset Filter Indication** - Stateless button appears only in Eve app that resets the counter of the filter life. normally you would click this button right after you cleaned the filters.
+
 
 ### History Storage
 Enabling this feature will keep all measurements of temperature and humidity and will store them. Then, all the historic data will be viewable in Eve app under the accessory in a nice graph.

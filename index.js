@@ -1,7 +1,7 @@
-const path = require('path')
 const SensiboApi = require('./sensibo/api')
-// const syncHomeKitCache = 
-// const refreshState = 
+const syncHomeKitCache = require('./sensibo/syncHomeKitCache')
+const refreshState = require('./sensibo/refreshState')
+const path = require('path')
 const storage = require('node-persist')
 const PLUGIN_NAME = 'homebridge-sensibo-ac'
 const PLATFORM_NAME = 'SensiboAC'
@@ -18,8 +18,8 @@ class SensiboACPlatform {
 		this.log = log
 		this.api = api
 		this.storage = storage
-		this.refreshState = require('./sensibo/refreshState')(this)
-		this.syncHomeKitCache = require('./sensibo/syncHomeKitCache')(this)
+		this.refreshState = refreshState(this)
+		this.syncHomeKitCache = syncHomeKitCache(this)
 		this.name = config['name'] || PLATFORM_NAME
 		this.disableFan = config['disableFan'] || false
 		this.disableDry = config['disableDry'] || false
@@ -39,7 +39,7 @@ class SensiboACPlatform {
 			this.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  --  ERROR  --  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
 			this.log('Can\'t start homebridge-sensibo-ac plugin without username and password or API key !!\n')
 			this.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
-			return;
+			return
 		}
 
 		this.externalHumiditySensor = config['externalHumiditySensor'] || false
@@ -68,11 +68,11 @@ class SensiboACPlatform {
 		this.log.easyDebug = (...content) => {
 			if (this.debug) {
 				this.log(content.reduce((previous, current) => {
-					return previous + ' ' + current;
-				}));
+					return previous + ' ' + current
+				}))
 			} else
 				this.log.debug(content.reduce((previous, current) => {
-					return previous + ' ' + current;
+					return previous + ' ' + current
 				}))
 		}
 		

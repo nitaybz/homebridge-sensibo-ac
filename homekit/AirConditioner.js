@@ -268,9 +268,9 @@ class AirConditioner {
 	addHorizontalSwingSwitch() {
 		this.log.easyDebug(`Adding Horizontal Swing Switch Service in the ${this.roomName}`)
 
-		this.HorizontalSwingSwitch = this.accessory.getService(Service.Switch, this.roomName + ' Horizontal Swing', 'HorizontalSwingSwitch')
-		if (!this.DryService)
-			this.DryService = this.accessory.addService(Service.HumidifierDehumidifier, this.roomName + ' Dry', 'Dry')
+		this.HorizontalSwingSwitch = this.accessory.getService(this.roomName + ' Horizontal Swing')
+		if (!this.HorizontalSwingSwitch)
+			this.HorizontalSwingSwitch = this.accessory.addService(Service.Switch, this.roomName + ' Horizontal Swing', 'HorizontalSwingSwitch')
 
 		this.HorizontalSwingSwitch.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.HorizontalSwing)

@@ -22,7 +22,7 @@ function HKToFanLevel(value, fanLevels) {
 		for (let i = 0; i < fanLevels.length; i++) {
 			if (value < (100 * (i + 1) / totalLevels))	{
 				selected = fanLevels[i]
-				break;
+				break
 			}
 		}
 	}
