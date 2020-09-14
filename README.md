@@ -31,7 +31,7 @@ check with: `node -v` & `homebridge -V` and update if needed
 - Accessory type "**HeaterCooler**" - allowing adjusting fan speed (Rotation Speed) & swing (Oscillate) from within the accessory in "Home" App.
 - **Fan Mode** control (including it's own fan speed and swing control) in a new separate accessory.
 - **Dry Mode** control (including it's own fan speed and swing control) in a new separate accessory.
-- **Horizontal Swing** - allows you to quickly enable/disable horizontal swing in your AC.
+- **Horizontal Swing** - allows you to quickly enable/disable horizontal swing of your AC.
 - **AC Sync Button** - allows you to quickly toggle the state of the AC between ON/OFF in case your AC is out of sync with HomeKit (does not send commands to the AC).
 - **Occupancy Sensor** - Gets the Home/Away status from Sensibo API to HomeKit via Occupancy sensor.
 - **Enable/Disable Climate React** - allows you to quickly enable/disable your climate react setup in Sensibo app (it is not possible to change settings, on/off only).
@@ -40,9 +40,9 @@ check with: `node -v` & `homebridge -V` and update if needed
 
 # Installation
 
-This plugin is [HOOBS](https://hoobs.org/?ref=10876) certified and can be easily installed and configured through their UI.
+This plugin is [HOOBS](https://hoobs.org/?ref=10876) certified and Homebridge verified and can be easily installed and configured through their UI.
 
-If you don't use HOOBS (or Homebridge UI), keep reading:
+If you don't use HOOBS or Homebridge UI, or if you want to know more about the plugin features and options, keep reading...
 
 1. Install homebridge using: `sudo npm install -g homebridge --unsafe-perm`
 2. Install this plugin using: `sudo npm install -g homebridge-sensibo-ac`
@@ -111,19 +111,18 @@ If you don't use HOOBS (or Homebridge UI), keep reading:
 The plugin will scan for all your devices and retrieve each device capabilities separately. that means, that in HomeKit you will see only the things that the Sensibo app allows you to control.
 
 In practice:
+
 - Minimum and Maximum temperatures are taken from Sensibo api.
 - Temperature unit (Celsius/Fahrenheit) is taken from Sensibo api.
 - "AUTO" mode is available in the AC states in HomeKit only if it is available in Sensibo app.
 - Modes "FAN" and "DRY" (dehumidifier) will create their own accessories only if you have this ability inside Sensibo app.
 - Fan Speed ("Rotation Speed" in Home app) And Swing ("Oscillate" in Home app) will show in the accessory settings, but only if you have this capability in Sensibo app.
-
-
+- "Horizontal" Swing capability in Sensibo app will show up as a normal switch in HomeKit (because there is no other way to control horizontal swing at the moment)
 
 ### State Polling
 
 The accessory state will be updated in the background every 90 seconds, this is hard coded and requested specifically by Sensibo company.
 The state will also refresh every time you open the "Home" app or any related HomeKit app.
-
 
 ### Fan Mode
 
@@ -132,7 +131,6 @@ it will also include all the fan speeds and swing possibilities you have for FAN
 
 To disable the extra fan accessory, add `"disableFan": true` to your config.
 
-
 ### Dry Mode
 
 If your Sensibo app can control your AC **DRY** mode, this plugin will create extra dehumidifier accessory in HomeKit to control the DRY mode of your device.<br>
@@ -140,12 +138,10 @@ it will also include all the fan speeds and swing possibilities you have for DRY
 
 To disable the extra dehumidifier accessory, add `"disableDry": true` to your config.
 
-
 ### Horizontal Swing
 
 If your Sensibo app has **Horizontal Swing** control, this plugin will create extra switch accessory in HomeKit to control it.
 To disable the extra horizontal swing  switch accessory, add `"disableHorizontalSwing": true` to your config.
-
 
 ### AC Sync Button
 
@@ -203,7 +199,8 @@ Enabling this feature will keep all measurements of temperature and humidity and
 Fan speed steps are determined by the steps you have available in the Sensibo app. Since HomeKit control over fan speed is with a slider between 0-100, the plugin converts the steps you have in the Sensibo app to values between 1 to 100, when 100 is highest and 1 is lowest. if "AUTO" speed is available in your setup, setting the fan speed to 0, should actually set it to "AUTO" speed.
 
 ### Issues & Debug
-If you experience any issues with the plugins please refer to the [Issues](https://github.com/nitaybz/homebridge-sensibo-ac/issues) tab and check if your issue is already described there, if it doesn't, please create a new issue with as much detailed information as you can give (logs are crucial).<br>
+If you experience any issues with the plugins please refer to the [Issues](https://github.com/nitaybz/homebridge-sensibo-ac/issues) tab or [Sensibo-AC Discord channel](https://discord.gg/yguuVAX) and check if your issue is already described there, if it doesn't, please create a new issue with as much detailed information as you can give (logs are crucial).<br>
+
 if you want to even speed up the process, you can add `"debug": true` to your config, which will give me more details on the logs and speed up fixing the issue.
 
 <br>
