@@ -99,7 +99,7 @@ module.exports = {
 				capabilities[mode].fanSpeeds = modeCapabilities.fanLevels
 
 				// set AUTO fanSpeed
-				if (capabilities[mode].fanSpeeds.includes['auto'])
+				if (capabilities[mode].fanSpeeds.includes('auto'))
 					capabilities[mode].autoFanSpeed = true
 				else
 					capabilities[mode].autoFanSpeed = false
