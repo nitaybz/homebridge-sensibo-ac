@@ -20,7 +20,7 @@ function HKToFanLevel(value, fanLevels) {
 		fanLevels = fanLevels.filter(level => level !== 'auto')
 		const totalLevels = fanLevels.length
 		for (let i = 0; i < fanLevels.length; i++) {
-			if (value < (100 * (i + 1) / totalLevels))	{
+			if (value <= (100 * (i + 1) / totalLevels))	{
 				selected = fanLevels[i]
 				break
 			}
