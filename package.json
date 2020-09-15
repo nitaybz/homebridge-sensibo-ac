@@ -1,7 +1,7 @@
 {
   "name": "homebridge-sensibo-ac",
   "description": "Homebridge plugin for Sensibo - Smart AC Control",
-  "version": "1.1.18",
+  "version": "2.0.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/nitaybz/homebridge-sensibo-ac.git"
@@ -14,6 +14,7 @@
     "homebridge-sensibo",
     "sensibo",
     "sensibo-sky",
+    "sensibo-air",
     "sensibo-ac",
     "smart-ac",
     "category-climate"
@@ -26,9 +27,10 @@
     "homebridge": ">=0.4.4"
   },
   "dependencies": {
+    "axios": "^0.20.0",
     "fakegato-history": "^0.5.6",
-    "node-fetch": "^2.6.0",
-    "node-persist": "^3.0.5"
+    "node-persist": "^3.0.5",
+    "qs": "^6.9.4"
   },
   "devDependencies": {
     "eslint": "^7.1.0"
@@ -39,16 +41,16 @@
   },
   "funding": [
     {
-      "type" : "paypal",
-      "url" : "https://paypal.me/nitaybz"
+      "type": "paypal",
+      "url": "https://paypal.me/nitaybz"
     },
     {
-      "type" : "patreon",
-      "url" : "https://www.patreon.com/nitaybz"
+      "type": "patreon",
+      "url": "https://www.patreon.com/nitaybz"
     },
     {
-      "type" : "kofi",
-      "url" : "https://ko-fi.com/nitaybz"
+      "type": "kofi",
+      "url": "https://ko-fi.com/nitaybz"
     }
   ]
 }

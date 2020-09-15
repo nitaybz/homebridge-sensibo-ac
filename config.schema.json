@@ -13,11 +13,23 @@
                 "const": "SensiboAC",
                 "readOnly": true
             },
-            "apiKey": {
-                "title": "API Key",
-                "description": "Your Sensibo api key from https://home.sensibo.com/me/api",
+            "username": {
+                "title": "Username",
+                "description": "Your Sensibo account username/email",
                 "type": "string",
-                "required": true
+                "required": false
+            },
+            "password": {
+                "title": "Password",
+                "description": "Your Sensibo account password",
+                "type": "string",
+                "required": false
+            },
+            "apiKey": {
+                "title": "API-Key (NOT required - use username and password)",
+                "description": "Your Sensibo API-key",
+                "type": "string",
+                "required": false
             },
             "disableFan": {
                 "title": "Disable Fan Accessory",
@@ -57,6 +69,13 @@
             "enableHistoryStorage": {
                 "title": "Enable History Storage",
                 "description": "Records all temperature & humidity measurements history to be viewable in the Eve app",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
+            "disableHorizontalSwing": {
+                "title": "Disable Horizontal Swing (Switch)",
+                "description": "Disable horizontal swing control (via extra switch)",
                 "type": "boolean",
                 "default": false,
                 "required": false

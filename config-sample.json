@@ -10,13 +10,15 @@
   "platforms": [
     {
       "platform": "SensiboAC",
-      "apiKey": "*************",
+      "username": "******@*******.**",
+      "password": "*******",
       "disableFan": false,
       "disableDry": false,
       "enableSyncButton": true,
       "enableOccupancySensor": true,
       "enableClimateReactSwitch": true,
       "enableHistoryStorage": true,
+      "disableHorizontalSwing": false,
       "externalHumiditySensor": false,
       "debug": false
     }
