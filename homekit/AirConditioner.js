@@ -86,7 +86,7 @@ class AirConditioner {
 		else
 			this.removeDryService()
 
-		if ((this.capabilities.COOL && this.capabilities.COOL.horizontalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.horizontalSwing) && !this.disableHorizontalSwing)
+		if (((this.capabilities.COOL && this.capabilities.COOL.horizontalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.horizontalSwing)) && !this.disableHorizontalSwing)
 			this.addHorizontalSwingSwitch()
 		else
 			this.removeHorizontalSwingSwitch()
