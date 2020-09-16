@@ -318,7 +318,7 @@ class AirConditioner {
 		let SyncButtonService = this.accessory.getService(this.name + ' Sync')
 		if (SyncButtonService) {
 			// remove service
-			this.log.easyDebug(`Removing Horizontal Swing Switch Service from the ${this.roomName}`)
+			this.log.easyDebug(`Removing Sync Button Switch Service from the ${this.roomName}`)
 			this.accessory.removeService(SyncButtonService)
 		}
 
