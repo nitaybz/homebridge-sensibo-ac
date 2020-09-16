@@ -346,6 +346,12 @@ class AirConditioner {
 				if (this.capabilities[this.state.mode].fanSpeeds)
 					this.updateValue('HeaterCoolerService', 'RotationSpeed', this.state.fanSpeed)
 
+				// update filter characteristics for HeaterCoolerService
+				if (this.filterService) {
+					this.updateValue('HeaterCoolerService', 'FilterChangeIndication', Characteristic.FilterChangeIndication[this.state.filterChange])
+					this.updateValue('HeaterCoolerService', 'FilterLifeLevel', this.state.filterLifeLevel)
+				}
+
 				// set proper target and current state of HeaterCoolerService
 				if (this.state.mode === 'COOL') {
 					this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.COOL)

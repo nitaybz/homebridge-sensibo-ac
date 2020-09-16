@@ -135,7 +135,12 @@ module.exports = {
 
 		if (device.filtersCleaning) {
 			state.filterChange = device.filtersCleaning.shouldCleanFilters ? 'CHANGE_FILTER' : 'FILTER_OK'
-			state.filterLifeLevel =  100 - Math.floor(device.filtersCleaning.acOnSecondsSinceLastFiltersClean/device.filtersCleaning.filtersCleanSecondsThreshold*100)
+			const acOnSecondsSinceLastFiltersClean = device.filtersCleaning.acOnSecondsSinceLastFiltersClean
+			const filtersCleanSecondsThreshold = device.filtersCleaning.filtersCleanSecondsThreshold
+			if (acOnSecondsSinceLastFiltersClean > filtersCleanSecondsThreshold)
+				state.filterLifeLevel = 0
+			else
+				state.filterLifeLevel =  100 - Math.floor(acOnSecondsSinceLastFiltersClean/filtersCleanSecondsThreshold*100)
 		}
 
 		const modeCapabilities = device.remoteCapabilities.modes[device.acState.mode]
