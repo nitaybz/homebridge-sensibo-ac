@@ -25,7 +25,7 @@ module.exports = (platform) => {
 				}
 
 				// Add Sync Button if enabled
-				if (platform.enableSyncButton) {
+				if (platform.enableSyncButton && !platform.syncButtonInAccessory) {
 					const syncButton = new SyncButton(airConditioner, platform)
 					platform.activeAccessories.push(syncButton)
 				}
@@ -94,7 +94,7 @@ module.exports = (platform) => {
 
 				case 'SyncButton':
 					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities)
-					if (!deviceExists || !platform.enableSyncButton)
+					if (!deviceExists || !platform.enableSyncButton || platform.syncButtonInAccessory)
 						accessoriesToRemove.push(accessory)
 					break
 

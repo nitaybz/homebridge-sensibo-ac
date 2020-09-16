@@ -15,6 +15,7 @@
       "disableFan": false,
       "disableDry": false,
       "enableSyncButton": true,
+      "syncButtonInAccessory": false,
       "enableOccupancySensor": true,
       "enableClimateReactSwitch": true,
       "enableHistoryStorage": true,

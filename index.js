@@ -44,7 +44,8 @@ class SensiboACPlatform {
 
 		this.externalHumiditySensor = config['externalHumiditySensor'] || false
 		this.enableOccupancySensor = config['enableOccupancySensor'] || false
-		this.enableSyncButton= config['enableSyncButton'] || false
+		this.enableSyncButton = config['enableSyncButton'] || false
+		this.syncButtonInAccessory = config['syncButtonInAccessory'] || false
 		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
 		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
 

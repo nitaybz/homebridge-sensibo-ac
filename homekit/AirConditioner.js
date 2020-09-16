@@ -29,6 +29,7 @@ class AirConditioner {
 		this.disableFan = platform.disableFan
 		this.disableDry = platform.disableDry
 		this.disableHorizontalSwing = platform.disableHorizontalSwing
+		this.syncButtonInAccessory = platform.syncButtonInAccessory
 		this.filterService = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device)
 
@@ -90,6 +91,12 @@ class AirConditioner {
 			this.addHorizontalSwingSwitch()
 		else
 			this.removeHorizontalSwingSwitch()
+
+
+		if (this.syncButtonInAccessory)
+			this.addSyncButtonService()
+		else
+			this.removeSyncButtonService()
 	}
 
 	addHeaterCoolerService() {
@@ -284,6 +291,35 @@ class AirConditioner {
 			// remove service
 			this.log.easyDebug(`Removing Horizontal Swing Switch Service from the ${this.roomName}`)
 			this.accessory.removeService(HorizontalSwingSwitch)
+		}
+
+	}
+
+	addSyncButtonService() {
+		this.log.easyDebug(`Adding Sync Button Switch Service in the ${this.roomName}`)
+
+		this.SyncButtonService = this.accessory.getService(this.name + ' Sync')
+		if (!this.SyncButtonService)
+			this.SyncButtonService = this.accessory.addService(Service.Switch, this.name + ' Sync', 'SyncButton')
+
+
+		this.SyncButtonService.getCharacteristic(Characteristic.On)
+			.on('get', (callback) => { callback(null, false) })
+			.on('set', (state, callback) => {
+				this.stateManager.set.SyncState(state, callback)
+				setTimeout(() => {
+					this.SyncButtonService.getCharacteristic(Characteristic.On).updateValue(0)
+				}, 1000)
+			})
+
+	}
+
+	removeSyncButtonService() {
+		let SyncButtonService = this.accessory.getService(this.name + ' Sync')
+		if (SyncButtonService) {
+			// remove service
+			this.log.easyDebug(`Removing Horizontal Swing Switch Service from the ${this.roomName}`)
+			this.accessory.removeService(SyncButtonService)
 		}
 
 	}

@@ -74,6 +74,7 @@ If you don't use HOOBS or Homebridge UI, or if you want to know more about the p
         "disableFan": false,
         "disableDry": false,
         "enableSyncButton": true,
+        "syncButtonInAccessory": false,
         "enableOccupancySensor": true,
         "enableClimateReactSwitch": true,
         "enableHistoryStorage": true,
@@ -97,6 +98,7 @@ If you don't use HOOBS or Homebridge UI, or if you want to know more about the p
 | `disableDry`               |  When set to `true`, it will disable the DRY accessory        |          |  `false` |  Boolean |
 | `disableHorizontalSwing`   |  Disable horizontal swing control (via extra switch)          |          |  `false` |  Boolean |
 | `enableSyncButton`         |  Adding a switch to quickly toggle the state of the AC without sending commands to the AC.   |          |  `false` |  Boolean  |
+| `syncButtonInAccessory`         |  When set to `true`, it will remove the extra AC Sync switch if it exists and will show \"AC Sync Button\" attached as a service to the Same AC Accessory (works only when `enableSyncButton` is set to true)   |          |  `false` |  Boolean  |
 | `enableOccupancySensor`    |  Adding occupancy sensor to represent the state of someone at home   |         |  `false` |  Boolean  |
 | `enableClimateReactSwitch` |  Adding a switch to quickly enable/disable climate react.     |          |  `false` |  Boolean  |
 | `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app  |         |  `false` |   Boolean |
@@ -159,6 +161,10 @@ When enabled, this feature creates a new switch accessory in HomeKit. The new sw
 
 **To enable the extra "AC Sync" switch**, add 
 `"enableSyncButton": true` to your config.
+
+**To attach the "AC Sync" button as a service to the AC accessory instead of a separate switch**, add 
+`"syncButtonInAccessory": true` to your config.
+
 
 ### Occupancy Sensor
 Enabling this feature will add **Occupancy Sensor** to HomeKit, representing the Home/Away state of the geofence feature in Sensibo app.

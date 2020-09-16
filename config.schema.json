@@ -52,6 +52,13 @@
                 "default": false,
                 "required": false
             },
+            "syncButtonInAccessory": {
+                "title": "Sync Button in AC Accessory",
+                "description": "Enabling it will remove the extra AC Sync switch if it exists and will show \"AC Sync Button\" attached as a service to the Same AC Accessory (works only when `enableSyncButton` is set to true)",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
             "enableOccupancySensor": {
                 "title": "Enable Occupancy Sensor",
                 "description": "Adding occupancy sensor to represent the state of someone at home/away",
