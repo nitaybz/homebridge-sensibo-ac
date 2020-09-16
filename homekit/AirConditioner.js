@@ -339,7 +339,7 @@ class AirConditioner {
 
 
 				// update horizontal swing for HeaterCoolerService
-				if (this.capabilities[this.state.mode].horizontalSwing)
+				if (this.HorizontalSwingSwitch)
 					this.updateValue('HorizontalSwingSwitch', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
 
 				// update fanSpeed for HeaterCoolerService
