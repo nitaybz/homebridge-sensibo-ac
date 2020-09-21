@@ -155,6 +155,28 @@ class AirConditioner {
 				.on('set', this.stateManager.set.HeatingThresholdTemperature)
 		}
 
+		if (this.capabilities.AUTO && !this.capabilities.COOL && this.capabilities.AUTO.temperatures) {
+			this.HeaterCoolerService.getCharacteristic(Characteristic.CoolingThresholdTemperature)
+				.setProps({
+					minValue: this.capabilities.AUTO.temperatures[CELSIUS_UNIT].min,
+					maxValue: this.capabilities.AUTO.temperatures[CELSIUS_UNIT].max,
+					minStep: this.usesFahrenheit ? 0.1 : 1
+				})
+				.on('get', this.stateManager.get.HeatingThresholdTemperature)
+				.on('set', this.stateManager.set.HeatingThresholdTemperature)
+
+		}
+
+		if (this.capabilities.AUTO && !this.capabilities.HEAT && this.capabilities.AUTO.temperatures) {
+			this.HeaterCoolerService.getCharacteristic(Characteristic.HeatingThresholdTemperature)
+				.setProps({
+					minValue: this.capabilities.AUTO.temperatures[CELSIUS_UNIT].min,
+					maxValue: this.capabilities.AUTO.temperatures[CELSIUS_UNIT].max,
+					minStep: this.usesFahrenheit ? 0.1 : 1
+				})
+				.on('get', this.stateManager.get.HeatingThresholdTemperature)
+				.on('set', this.stateManager.set.HeatingThresholdTemperature)
+		}
 
 		this.HeaterCoolerService.getCharacteristic(Characteristic.TemperatureDisplayUnits)
 			.on('get', this.stateManager.get.TemperatureDisplayUnits)
