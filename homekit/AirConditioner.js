@@ -162,8 +162,8 @@ class AirConditioner {
 					maxValue: this.capabilities.AUTO.temperatures[CELSIUS_UNIT].max,
 					minStep: this.usesFahrenheit ? 0.1 : 1
 				})
-				.on('get', this.stateManager.get.HeatingThresholdTemperature)
-				.on('set', this.stateManager.set.HeatingThresholdTemperature)
+				.on('get', this.stateManager.get.CoolingThresholdTemperature)
+				.on('set', this.stateManager.set.CoolingThresholdTemperature)
 
 		}
 
