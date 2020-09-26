@@ -62,7 +62,6 @@ class SensiboACPlatform {
 		this.setProcessing = false
 		this.pollingTimeout = null
 		this.processingState = false
-		this.refreshTimeout = null
 		this.pollingInterval = requestedInterval - this.refreshDelay
 
 		// define debug method to output debug logs when enabled in the config
@@ -86,6 +85,9 @@ class SensiboACPlatform {
 
 
 			this.cachedState = await this.storage.getItem('state') || this.emptyState
+			if (!this.cachedState.devices)
+				this.cachedState = this.emptyState
+				
 			this.sensiboApi = await SensiboApi(this)
 
 			try {
