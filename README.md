@@ -1,6 +1,5 @@
-<p align="center">
-  <img src="branding/hoobs_homebridge_sensibo.svg" width="700px">
-</p>
+<img src="branding/sensibo_homebridge.png" width="500px">
+
 
 
 # homebridge-sensibo-ac
@@ -40,9 +39,9 @@ check with: `node -v` & `homebridge -V` and update if needed
 
 # Installation
 
-This plugin is [HOOBS](https://hoobs.org/?ref=10876) certified and Homebridge verified and can be easily installed and configured through their UI.
+This plugin is Homebridge verified and HOOBS certified and can be easily installed and configured through their UI.
 
-If you don't use HOOBS or Homebridge UI, or if you want to know more about the plugin features and options, keep reading...
+If you don't use Homebridge UI or HOOBS, or if you want to know more about the plugin features and options, keep reading...
 
 1. Install homebridge using: `sudo npm install -g homebridge --unsafe-perm`
 2. Install this plugin using: `sudo npm install -g homebridge-sensibo-ac`
