@@ -98,11 +98,16 @@ module.exports = (device, platform) => {
 					await sensiboApi.setDeviceState(device.id, sensiboNewState)
 				} catch(err) {
 					log(`ERROR setting ${prop} to ${value}`)
+					setTimeout(() => {
+						platform.setProcessing = false
+						platform.refreshState()
+					}, 1000)
 					return
 				}
-				
-				device.updateHomeKit()
-				platform.setProcessing = false
+				setTimeout(() => {
+					device.updateHomeKit()
+					platform.setProcessing = false
+				}, 500)
 
 			}, setTimeoutDelay)
 
