@@ -7,12 +7,6 @@
     "schema": {
         "type": "object",
         "properties": {
-            "platform": {
-                "title": "Platform",
-                "type": "string",
-                "const": "SensiboAC",
-                "readOnly": true
-            },
             "username": {
                 "title": "Username",
                 "description": "Your Sensibo account username/email",
