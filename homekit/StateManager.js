@@ -321,19 +321,9 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
-				if (mode !== 'AUTO') {
-					device.state.targetTemperature = temp
-					log.easyDebug(device.name + ' -> Setting Mode to: COOL')
-					device.state.mode = 'COOL'
-				} else {
-					if (device.state.targetTemperature !== temp) {
-						setTimeout(() => {
-							device.state.targetTemperature = temp
-							log.easyDebug(device.name + ' -> Setting Mode to: AUTO')
-							device.state.mode = 'AUTO'
-						},100)
-					}
-				}
+				device.state.targetTemperature = temp
+				log.easyDebug(device.name + ' -> Setting Mode to: ' + mode)
+				device.state.mode = mode
 				callback()
 			},
 		
@@ -347,19 +337,9 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
-				if (mode !== 'AUTO') {
-					device.state.targetTemperature = temp
-					log.easyDebug(device.name + ' -> Setting Mode to: HEAT')
-					device.state.mode = 'HEAT'
-				} else {
-					if (device.state.targetTemperature !== temp) {
-						setTimeout(() => {
-							device.state.targetTemperature = temp
-							log.easyDebug(device.name + ' -> Setting Mode to: AUTO')
-							device.state.mode = 'AUTO'
-						},100)
-					}
-				}
+				device.state.targetTemperature = temp
+				log.easyDebug(device.name + ' -> Setting Mode to: ' + mode)
+				device.state.mode = mode
 				callback()
 			},
 		
