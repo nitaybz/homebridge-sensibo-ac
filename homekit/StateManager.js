@@ -62,7 +62,7 @@ module.exports = (device, platform) => {
 		
 				log.easyDebug(device.name, '(GET) - Target HeaterCooler State is:', active ? mode : 'OFF')
 				if (!active || mode === 'FAN' || mode === 'DRY')
-					callback(null, null)
+					callback()
 				else
 					callback(null, Characteristic.TargetHeaterCoolerState[mode])
 			},
@@ -120,16 +120,11 @@ module.exports = (device, platform) => {
 			},
 
 			ACRotationSpeed: (callback) => {
-				const active = device.state.active
-				const mode = device.state.mode
 				const fanSpeed = device.state.fanSpeed
 
 				log.easyDebug(device.name, '(GET) - AC Rotation Speed is:', fanSpeed + '%')
 
-				if (!active || mode === 'FAN' || mode === 'DRY')
-					callback(null, null)
-				else
-					callback(null, fanSpeed)
+				callback(null, fanSpeed)
 			},
 
 			// FILTER
@@ -174,16 +169,10 @@ module.exports = (device, platform) => {
 			},
 
 			FanRotationSpeed: (callback) => {
-				const active = device.state.active
-				const mode = device.state.mode
 				const fanSpeed = device.state.fanSpeed
 
 				log.easyDebug(device.name, '(GET) - Fan Rotation Speed is:', fanSpeed + '%')
-
-				if (!active || mode !== 'FAN')
-					callback(null, null)
-				else
-					callback(null, fanSpeed)
+				callback(null, fanSpeed)
 			},
 
 			// DEHUMIDIFIER
@@ -218,16 +207,10 @@ module.exports = (device, platform) => {
 			},
 
 			DryRotationSpeed: (callback) => {
-				const active = device.state.active
-				const mode = device.state.mode
 				const fanSpeed = device.state.fanSpeed
 
 				log.easyDebug(device.name, '(GET) - Dry Rotation Speed is:', fanSpeed + '%')
-
-				if (!active || mode !== 'DRY')
-					callback(null, null)
-				else
-					callback(null, fanSpeed)
+				callback(null, fanSpeed)
 			},
 
 			DrySwing: (callback) => {
