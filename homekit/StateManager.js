@@ -62,8 +62,8 @@ module.exports = (device, platform) => {
 		
 				log.easyDebug(device.name, '(GET) - Target HeaterCooler State is:', active ? mode : 'OFF')
 				if (!active || mode === 'FAN' || mode === 'DRY') {
-					const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
-					callback(null, lastMode || 'COOL')
+					const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).valuenp
+					callback(null, lastMode)
 				} else
 					callback(null, Characteristic.TargetHeaterCoolerState[mode])
 			},
