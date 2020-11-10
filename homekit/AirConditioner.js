@@ -121,8 +121,8 @@ class AirConditioner {
 	
 		this.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState)
 			.setProps({validValues: props})
+			.on('get', this.stateManager.get.TargetHeaterCoolerState)
 			.on('set', this.stateManager.set.TargetHeaterCoolerState)
-			// .on('get', this.stateManager.get.TargetHeaterCoolerState)
 
 
 		this.HeaterCoolerService.getCharacteristic(Characteristic.CurrentTemperature)
