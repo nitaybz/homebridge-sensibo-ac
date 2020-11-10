@@ -1,7 +1,7 @@
 {
   "name": "homebridge-sensibo-ac",
   "description": "Homebridge plugin for Sensibo - Smart AC Control",
-  "version": "2.0.13",
+  "version": "2.0.14",
   "repository": {
     "type": "git",
     "url": "git://github.com/nitaybz/homebridge-sensibo-ac.git"
