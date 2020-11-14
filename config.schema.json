@@ -92,9 +92,7 @@
                 "title": "Device locations to include",
                 "description": "Device location IDs to include when discovering Sensibo devices (leave empty for all locations)",
                 "type": "array",
-                "required": false,
                 "items": {
-                  "title": "Location ID",
                   "type": "string"
                 }
             },
@@ -102,9 +100,7 @@
                 "title": "Device locations to exclude",
                 "description": "Device location IDs to exclude when discovering Sensibo devices (leave empty for all locations)",
                 "type": "array",
-                "required": false,
                 "items": {
-                  "title": "Location ID",
                   "type": "string"
                 }
             },
