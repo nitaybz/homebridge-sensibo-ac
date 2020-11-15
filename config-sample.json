@@ -22,7 +22,6 @@
       "disableHorizontalSwing": false,
       "externalHumiditySensor": false,
       "locationsToInclude": [],
-      "locationsToExclude": [],
       "debug": false
     }
   ],

@@ -80,7 +80,6 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "disableHorizontalSwing": false,
         "externalHumiditySensor": false,
         "locationsToInclude": [],
-        "locationsToExclude": [],
         "debug": false
     }
 ]
@@ -104,7 +103,6 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 | `enableClimateReactSwitch` |  Adding a switch to quickly enable/disable climate react.     |          |  `false` |  Boolean  |
 | `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app  |         |  `false` |   Boolean |
 | `locationsToInclude`       |  Device location IDs to include when discovering Sensibo devices (leave empty for all locations)        |          |  - |  String[]  |
-| `locationsToExclude`       |  Device location IDs to exclude when discovering Sensibo devices (leave empty for all locations)        |          |  - |  String[]  |
 | `debug`       |  When set to `true`, the plugin will produce extra logs for debugging purposes        |          |  `false` |  Boolean  |
 
 

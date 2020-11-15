@@ -38,7 +38,6 @@ module.exports = async function (platform) {
 				
 			const allDevices = await apiRequest('get', path + '?' + queryString)
 			return allDevices.filter(device => platform.locationsToInclude.length === 0 || platform.locationsToInclude.includes(device.location.id))
-				.filter(device => platform.locationsToExclude.length === 0 || !platform.locationsToExclude.includes(device.location.id))
 		},
 	
 		getDevicesStates: async () => {
