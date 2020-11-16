@@ -66,7 +66,6 @@ class RoomSensor {
 			.setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
 			.setCharacteristic(Characteristic.Model, this.model)
 			.setCharacteristic(Characteristic.SerialNumber, this.serial)
-			.setCharacteristic(Characteristic.AppMatchingIdentifier, this.appId)
 
 		this.addMotionSensor()
 		this.addTemperatureSensor()
