@@ -21,6 +21,7 @@
       "enableHistoryStorage": true,
       "disableHorizontalSwing": false,
       "externalHumiditySensor": false,
+      "locationsToInclude": [],
       "debug": false
     }
   ],

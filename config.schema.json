@@ -88,6 +88,14 @@
                 "default": false,
                 "required": false
             },
+            "locationsToInclude": {
+                "title": "Device locations to include",
+                "description": "Device location IDs to include when discovering Sensibo devices (leave empty for all locations)",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+            },
             "debug": {
                 "title": "Enable Debug Logs",
                 "description": "When checked, the plugin will produce extra logs for debugging purposes",
