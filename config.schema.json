@@ -90,7 +90,7 @@
             },
             "locationsToInclude": {
                 "title": "Device locations to include",
-                "description": "Device location IDs to include when discovering Sensibo devices (leave empty for all locations)",
+                "description": "Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)",
                 "type": "array",
                 "items": {
                   "type": "string"

@@ -37,7 +37,7 @@ module.exports = async function (platform) {
 			const queryString = 'fields=id,acState,measurements,remoteCapabilities,room,temperatureUnit,productModel,location,occupancy,smartMode,motionSensors,filtersCleaning,serial'
 				
 			const allDevices = await apiRequest('get', path + '?' + queryString)
-			return allDevices.filter(device => platform.locationsToInclude.length === 0 || platform.locationsToInclude.includes(device.location.id))
+			return allDevices.filter(device => platform.locationsToInclude.length === 0 || platform.locationsToInclude.includes(device.location.id) || platform.locationsToInclude.includes(device.location.name))
 		},
 	
 		getDevicesStates: async () => {
