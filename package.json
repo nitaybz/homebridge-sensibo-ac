@@ -27,7 +27,7 @@
     "homebridge": ">=0.4.4"
   },
   "dependencies": {
-    "axios": "^0.20.0",
+    "axios": "^0.21.1",
     "fakegato-history": "^0.5.6",
     "node-persist": "^3.0.5",
     "qs": "^6.9.4"
