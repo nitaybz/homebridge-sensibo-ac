@@ -319,7 +319,7 @@ class AirConditioner {
 	addSyncButtonService() {
 		this.log.easyDebug(`Adding Sync Button Switch Service in the ${this.roomName}`)
 
-		this.SyncButtonService = this.accessory.getService(this.name + ' Sync')
+		this.SyncButtonService = this.accessory.getService('SyncButton')
 		if (!this.SyncButtonService)
 			this.SyncButtonService = this.accessory.addService(Service.Switch, this.name + ' Sync', 'SyncButton')
 
@@ -336,7 +336,7 @@ class AirConditioner {
 	}
 
 	removeSyncButtonService() {
-		let SyncButtonService = this.accessory.getService(this.name + ' Sync')
+		let SyncButtonService = this.accessory.getService('SyncButton')
 		if (SyncButtonService) {
 			// remove service
 			this.log.easyDebug(`Removing Sync Button Switch Service from the ${this.roomName}`)
