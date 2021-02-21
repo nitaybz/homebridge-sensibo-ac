@@ -105,6 +105,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 | `enableClimateReactSwitch` |  Adding a switch to quickly enable/disable climate react.     |          |  `false` |  Boolean  |
 | `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app  |         |  `false` |   Boolean |
 | `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)        |          |  - |  String[]  |
+| `allowRepeatedCommands`  |  Allow the plugin to send the same state command again      |          |  `false` |  Boolean  |
 | `debug`       |  When set to `true`, the plugin will produce extra logs for debugging purposes        |          |  `false` |  Boolean  |
 
 

@@ -103,6 +103,13 @@
                   "type": "string"
                 }
             },
+            "allowRepeatedCommands": {
+                "title": "Allow Repeated Commands",
+                "description": "Allow the plugin to send the same state command again",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
             "debug": {
                 "title": "Enable Debug Logs",
                 "description": "When checked, the plugin will produce extra logs for debugging purposes",

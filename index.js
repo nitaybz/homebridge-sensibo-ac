@@ -49,6 +49,7 @@ class SensiboACPlatform {
 		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
 		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
 		this.disableLightSwitch = config['disableLightSwitch'] || false
+		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
 
 		this.persistPath = path.join(this.api.user.persistPath(), '/../sensibo-persist')
 		this.emptyState = {devices:{}, sensors:{} ,occupancy: {}}
