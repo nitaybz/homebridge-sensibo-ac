@@ -117,6 +117,12 @@ module.exports = {
 				capabilities[mode].horizontalSwing = true
 			}
 
+
+			// set horizontal swing
+			if (modeCapabilities.light) {
+				capabilities[mode].light = true
+			}
+
 		}
 
 		return capabilities
@@ -130,7 +136,8 @@ module.exports = {
 			targetTemperature: device.acState.temperatureUnit === 'C' ? device.acState.targetTemperature : toCelsius(device.acState.targetTemperature),
 			currentTemperature: device.measurements.temperature,
 			relativeHumidity: device.measurements.humidity,
-			smartMode: device.smartMode ? device.smartMode.enabled : false
+			smartMode: device.smartMode ? device.smartMode.enabled : false,
+			light: device.acState.light && device.acState.light === 'on' 
 		}
 
 		if (device.filtersCleaning) {
@@ -198,6 +205,9 @@ module.exports = {
 
 		if ('fanSpeeds' in device.capabilities[state.mode])
 			acState.fanLevel = HKToFanLevel(state.fanSpeed, device.capabilities[state.mode].fanSpeeds)
+
+		if ('light' in device.capabilities[state.mode])
+			acState.light = state.light ? 'on' : 'off'
 
 		return acState
 	}

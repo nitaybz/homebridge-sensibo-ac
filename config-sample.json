@@ -20,6 +20,7 @@
       "enableClimateReactSwitch": true,
       "enableHistoryStorage": true,
       "disableHorizontalSwing": false,
+      "disableLightSwitch": false,
       "externalHumiditySensor": false,
       "locationsToInclude": [],
       "debug": false

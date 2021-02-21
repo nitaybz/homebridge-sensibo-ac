@@ -23,7 +23,6 @@ class SensiboACPlatform {
 		this.name = config['name'] || PLATFORM_NAME
 		this.disableFan = config['disableFan'] || false
 		this.disableDry = config['disableDry'] || false
-		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
 		this.enableHistoryStorage = config['enableHistoryStorage'] || false
 		this.locationsToInclude = config['locationsToInclude'] || []
 		this.debug = config['debug'] || false
@@ -49,6 +48,7 @@ class SensiboACPlatform {
 		this.syncButtonInAccessory = config['syncButtonInAccessory'] || false
 		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
 		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
+		this.disableLightSwitch = config['disableLightSwitch'] || false
 
 		this.persistPath = path.join(this.api.user.persistPath(), '/../sensibo-persist')
 		this.emptyState = {devices:{}, sensors:{} ,occupancy: {}}

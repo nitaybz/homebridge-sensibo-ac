@@ -29,6 +29,7 @@ class AirConditioner {
 		this.disableFan = platform.disableFan
 		this.disableDry = platform.disableDry
 		this.disableHorizontalSwing = platform.disableHorizontalSwing
+		this.disableLightSwitch = platform.disableLightSwitch
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
 		this.filterService = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device)
@@ -96,6 +97,12 @@ class AirConditioner {
 			this.addSyncButtonService()
 		else
 			this.removeSyncButtonService()
+
+
+		if (((this.capabilities.COOL && this.capabilities.COOL.light) || (this.capabilities.HEAT && this.capabilities.HEAT.light)) && !this.disableLightSwitch)
+			this.addLightSwitch()
+		else
+			this.removeLightSwitch()
 	}
 
 	addHeaterCoolerService() {
@@ -316,6 +323,29 @@ class AirConditioner {
 
 	}
 
+	addLightSwitch() {
+		this.log.easyDebug(`Adding AC Light Service in the ${this.roomName}`)
+
+		this.LightSwitch = this.accessory.getService(this.roomName + ' AC Light')
+		if (!this.LightSwitch)
+			this.LightSwitch = this.accessory.addService(Service.Lightbulb, this.roomName + ' AC Light', 'LightSwitch')
+
+		this.LightSwitch.getCharacteristic(Characteristic.On)
+			.on('get', this.stateManager.get.LightSwitch)
+			.on('set', this.stateManager.set.LightSwitch)
+
+	}
+
+	removeLightSwitch() {
+		let LightSwitch = this.accessory.getService(this.roomName + ' AC Light')
+		if (LightSwitch) {
+			// remove service
+			this.log.easyDebug(`Removing AC Light Service from the ${this.roomName}`)
+			this.accessory.removeService(LightSwitch)
+		}
+
+	}
+
 	addSyncButtonService() {
 		this.log.easyDebug(`Adding Sync Button Switch Service in the ${this.roomName}`)
 
@@ -398,6 +428,10 @@ class AirConditioner {
 				// update horizontal swing for HeaterCoolerService
 				if (this.HorizontalSwingSwitch)
 					this.updateValue('HorizontalSwingSwitch', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
+
+				// update light switch for HeaterCoolerService
+				if (this.LightSwitch)
+					this.updateValue('LightSwitch', 'On', this.state.light)
 
 				// update fanSpeed for HeaterCoolerService
 				if (this.capabilities[this.state.mode].fanSpeeds)

@@ -81,6 +81,13 @@
                 "default": false,
                 "required": false
             },
+            "disableLightSwitch": {
+                "title": "Disable AC Light Switch",
+                "description": "Disable the Light service to control the AC Light (via extra light bulb)",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
             "externalHumiditySensor": {
                 "title": "Enable External Humidity Sensor",
                 "description": "Creates an external sensor outside of the accessory that shows relative humidity",

@@ -249,6 +249,15 @@ module.exports = (device, platform) => {
 
 			},
 
+			// AC LIGHT
+
+			LightSwitch: (callback) => {
+				const light = device.state.light
+				log.easyDebug(device.name, '(GET) - Light is', light ? 'ON' : 'OFF')
+
+				callback(null, light)
+			},
+
 			// CLIMATE REACT
 
 			ClimateReact: (callback) => {
@@ -450,6 +459,14 @@ module.exports = (device, platform) => {
 				device.state.horizontalSwing = state
 				callback()
 
+			},
+
+			// AC LIGHT
+
+			LightSwitch: (state, callback) => {
+				log.easyDebug(device.name + ' -> Setting AC Light to', state ? 'ON' : 'OFF')
+				device.state.light = state
+				callback()
 			},
 
 			// AC SYNC BUTTON

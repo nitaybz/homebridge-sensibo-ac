@@ -78,6 +78,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "enableClimateReactSwitch": true,
         "enableHistoryStorage": true,
         "disableHorizontalSwing": false,
+        "disableLightSwitch: false,
         "externalHumiditySensor": false,
         "locationsToInclude": [],
         "debug": false
@@ -97,6 +98,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 | `disableFan`               |  When set to `true`, it will disable the FAN accessory        |          |  `false` |  Boolean |
 | `disableDry`               |  When set to `true`, it will disable the DRY accessory        |          |  `false` |  Boolean |
 | `disableHorizontalSwing`   |  Disable horizontal swing control (via extra switch)          |          |  `false` |  Boolean |
+| `disableLightSwitch` |  Disable the Light service to control the AC Light (via extra light bulb)  |          |  `false` |  Boolean |
 | `enableSyncButton`         |  Adding a switch to quickly toggle the state of the AC without sending commands to the AC.   |          |  `false` |  Boolean  |
 | `syncButtonInAccessory`         |  When set to `true`, it will remove the extra AC Sync switch if it exists and will show \"AC Sync Button\" attached as a service to the Same AC Accessory (works only when `enableSyncButton` is set to true)   |          |  `false` |  Boolean  |
 | `enableOccupancySensor`    |  Adding occupancy sensor to represent the state of someone at home   |         |  `false` |  Boolean  |
