@@ -1,4 +1,5 @@
-const axios = require('axios')
+const axiosLib = require('axios');
+let axios = axiosLib.create();
 const qs = require('qs')
 const version = require('./../package.json').version
 
