@@ -160,7 +160,7 @@ module.exports = {
 			state.horizontalSwing = device.acState.horizontalSwing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
 
 		if (modeCapabilities.fanLevels && modeCapabilities.fanLevels.length)
-			state.fanSpeed = fanLevelToHK(device.acState.fanLevel, modeCapabilities.fanLevels)
+			state.fanSpeed = fanLevelToHK(device.acState.fanLevel, modeCapabilities.fanLevels) || 0
 
 		return state
 	},
