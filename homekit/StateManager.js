@@ -87,7 +87,7 @@ module.exports = (device, platform) => {
 			},
 
 			CurrentTemperature: (callback) => {
-				const currentTemp = sanitize(device.HeaterCoolerService, 'CurrentTemperature', device.state.currentTemperature)
+				const currentTemp = device.state.currentTemperature
 				
 
 				if (device.usesFahrenheit)
