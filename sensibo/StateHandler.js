@@ -20,7 +20,10 @@ module.exports = (device, platform) => {
 			if (prop === 'update')
 				return (state) => {
 					if (!platform.setProcessing) {
-						Object.keys(state).forEach(key => { target[key] = state[key] })
+						Object.keys(state).forEach(key => { 
+							if (state[key] !== null)
+								target[key] = state[key] 
+						})
 						device.updateHomeKit()
 					}
 				}

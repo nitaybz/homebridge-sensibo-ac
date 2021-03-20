@@ -20,6 +20,24 @@ module.exports = (device, platform) => {
 	Characteristic = platform.api.hap.Characteristic
 	const log = platform.log
 
+	const sanitize = function (service, characteristic, value) {
+		
+		const minAllowed = service.getCharacteristic(Characteristic[characteristic]).props.minValue
+		const maxAllowed = service.getCharacteristic(Characteristic[characteristic]).props.maxValue
+		const validValues = service.getCharacteristic(Characteristic[characteristic]).props.validValues
+		const currentValue = service.getCharacteristic(Characteristic[characteristic]).value
+
+		if (value !== 0 && (typeof value === 'undefined' || !value))
+			return currentValue
+		if (validValues && !validValues.includes(value))
+			return currentValue
+		if (minAllowed && value < minAllowed)
+			return currentValue
+		if (maxAllowed && value > maxAllowed)
+			return currentValue
+		return value
+	}
+
 	return {
 
 		get: {
@@ -65,11 +83,13 @@ module.exports = (device, platform) => {
 					const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 					callback(null, lastMode)
 				} else
-					callback(null, Characteristic.TargetHeaterCoolerState[mode])
+					callback(null, sanitize(device.HeaterCoolerService, 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState[mode]))
 			},
 
 			CurrentTemperature: (callback) => {
-				const currentTemp = device.state.currentTemperature
+				const currentTemp = sanitize(device.HeaterCoolerService, 'CurrentTemperature', device.state.currentTemperature)
+				
+
 				if (device.usesFahrenheit)
 					log.easyDebug(device.name, '(GET) - Current Temperature is:', toFahrenheit(currentTemp) + 'ºF')
 				else
@@ -79,7 +99,7 @@ module.exports = (device, platform) => {
 			},
 
 			CoolingThresholdTemperature: (callback) => {
-				const targetTemp = device.state.targetTemperature
+				let targetTemp = sanitize(device.HeaterCoolerService, 'CoolingThresholdTemperature', device.state.targetTemperature)
 
 				if (device.usesFahrenheit)
 					log.easyDebug(device.name, '(GET) - Target Cooling Temperature is:', toFahrenheit(targetTemp) + 'ºF')
@@ -90,7 +110,7 @@ module.exports = (device, platform) => {
 			},
 			
 			HeatingThresholdTemperature: (callback) => {
-				const targetTemp = device.state.targetTemperature
+				let targetTemp = sanitize(device.HeaterCoolerService, 'HeatingThresholdTemperature', device.state.targetTemperature)
 
 				if (device.usesFahrenheit)
 					log.easyDebug(device.name, '(GET) - Target Heating Temperature is:', toFahrenheit(targetTemp) + 'ºF')

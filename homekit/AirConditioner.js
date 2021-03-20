@@ -526,7 +526,23 @@ class AirConditioner {
 	}
 
 	updateValue (serviceName, characteristicName, newValue) {
-		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
+		if (newValue !== 0 && (typeof newValue === 'undefined' || !newValue)) {
+			this.log.easyDebug(`${this.roomName} - WRONG VALUE -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
+			return
+		}
+		const minAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.minValue
+		const maxAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.maxValue
+		const validValues = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.validValues
+		const currentValue = this[serviceName].getCharacteristic(Characteristic[characteristicName]).value
+
+		if (validValues && !validValues.includes(newValue))
+			newValue = currentValue
+		if (minAllowed && newValue < minAllowed)
+			newValue = currentValue
+		else if (maxAllowed && newValue > maxAllowed)
+			newValue = currentValue
+
+		if (currentValue !== newValue) {
 			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
 			this.log.easyDebug(`${this.roomName} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
 		}

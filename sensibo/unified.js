@@ -133,7 +133,7 @@ module.exports = {
 		const state = {
 			active: device.acState.on,
 			mode: device.acState.mode.toUpperCase(),
-			targetTemperature: device.acState.temperatureUnit === 'C' ? device.acState.targetTemperature : toCelsius(device.acState.targetTemperature),
+			targetTemperature: !device.acState.targetTemperature ? null : device.acState.temperatureUnit === 'C' ? device.acState.targetTemperature : toCelsius(device.acState.targetTemperature),
 			currentTemperature: device.measurements.temperature,
 			relativeHumidity: device.measurements.humidity,
 			smartMode: device.smartMode ? device.smartMode.enabled : false,
