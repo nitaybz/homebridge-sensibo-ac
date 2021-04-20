@@ -95,6 +95,14 @@
                 "default": false,
                 "required": false
             },
+            "devicesToExclude": {
+                "title": "Devices to Exclude (Name/ID/Serial)",
+                "description": "Add devices identifier (Name, ID from logs or serial from Home app) to exclude from homebridge",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+            },
             "locationsToInclude": {
                 "title": "Device locations to include",
                 "description": "Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)",

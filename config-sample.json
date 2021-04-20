@@ -22,6 +22,7 @@
       "disableHorizontalSwing": false,
       "disableLightSwitch": false,
       "externalHumiditySensor": false,
+      "devicesToExclude": [],
       "locationsToInclude": [],
       "debug": false
     }

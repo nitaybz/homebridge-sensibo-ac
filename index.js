@@ -25,6 +25,7 @@ class SensiboACPlatform {
 		this.disableDry = config['disableDry'] || false
 		this.enableHistoryStorage = config['enableHistoryStorage'] || false
 		this.locationsToInclude = config['locationsToInclude'] || []
+		this.devicesToExclude = config['devicesToExclude'] | []
 		this.debug = config['debug'] || false
 		this.PLUGIN_NAME = PLUGIN_NAME
 		this.PLATFORM_NAME = PLATFORM_NAME
