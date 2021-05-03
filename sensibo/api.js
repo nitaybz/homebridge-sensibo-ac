@@ -151,7 +151,7 @@ function getToken(username, password, storage) {
 			scope: 'read+write'
 		}
 		data = qs.stringify(data, { encode: false })
-		const url = `https://home.sensibo.com/o/token/?integration=${integrationName}`
+		const url = `https://home.sensibo.com/o/token/`
 
 		axios.post(url, data)
 			.then(async response => {
