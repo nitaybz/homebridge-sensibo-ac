@@ -17,13 +17,13 @@ module.exports = async function (platform) {
 			apiKey: platform.apiKey
 		}
 	} else {
-		axios.defaults.params = {
-			integration: integrationName
-		}
 		try {
 			const token = await getToken(platform.username, platform.password, platform.storage)
 			axios.defaults.headers = {
 				'Authorization': 'Bearer ' + token
+			}
+			axios.defaults.params = {
+				integration: integrationName
 			}
 		} catch (err) {
 			log('The plugin was NOT able to find stored token or acquire one from Sensibo API ---> it will not be able to set or get the state !!')
