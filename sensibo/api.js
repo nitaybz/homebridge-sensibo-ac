@@ -147,7 +147,7 @@ function getToken(username, password, storage) {
 	// eslint-disable-next-line no-async-promise-executor
 	return new Promise(async (resolve, reject) => {
 		let token = await storage.getItem('token')
-		if (token && new Date().getTime() < token.expirationDate) {
+		if (token && token.username && token.username === username && new Date().getTime() < token.expirationDate) {
 			log.easyDebug('Found valid token in storage')
 			resolve(token.key)
 			return
@@ -167,6 +167,7 @@ function getToken(username, password, storage) {
 			.then(async response => {
 				if (response.data.access_token) {
 					const tokenObj = {
+						username: username,
 						key: response.data.access_token,
 						expirationDate: new Date().getTime() + response.data.expires_in*1000
 					}
