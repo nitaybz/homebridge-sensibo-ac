@@ -109,6 +109,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 | `devicesToExclude`       |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge        |          |  - |  String[]  |
 | `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)        |          |  - |  String[]  |
 | `allowRepeatedCommands`  |  Allow the plugin to send the same state command again      |          |  `false` |  Boolean  |
+| `ignoreHomeKitDevices`  |  Automatically ignore, skip or remove HomeKit supported devices             |          |  `false` |  Boolean  |
 | `debug`       |  When set to `true`, the plugin will produce extra logs for debugging purposes        |          |  `false` |  Boolean  |
 
 
@@ -127,6 +128,7 @@ In practice:
 - Modes "FAN" and "DRY" (dehumidifier) will create their own accessories only if you have this ability inside Sensibo app.
 - Fan Speed ("Rotation Speed" in Home app) And Swing ("Oscillate" in Home app) will show in the accessory settings, but only if you have this capability in Sensibo app.
 - "Horizontal" Swing capability in Sensibo app will show up as a normal switch in HomeKit (because there is no other way to control horizontal swing at the moment)
+- **NEW! -**  use `"ignoreHomeKitDevices": true` to automatically ignore, skip or remove HomeKit supported devices like Sensibo Air and Sensibo Pure.
 
 ### State Polling
 

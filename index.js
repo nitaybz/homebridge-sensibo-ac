@@ -51,6 +51,7 @@ class SensiboACPlatform {
 		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
 		this.disableLightSwitch = config['disableLightSwitch'] || false
 		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
+		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
 
 		this.persistPath = path.join(this.api.user.persistPath(), '/../sensibo-persist')
 		this.emptyState = {devices:{}, sensors:{} ,occupancy: {}}

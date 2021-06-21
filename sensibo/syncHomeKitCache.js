@@ -10,6 +10,9 @@ module.exports = (platform) => {
 	return () => {
 		platform.devices.forEach(device => {
 
+			if (platform.ignoreHomeKitDevices && device.homekitSupported)
+				return
+
 			if (!device.remoteCapabilities)
 				return
 
