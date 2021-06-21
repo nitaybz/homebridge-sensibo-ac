@@ -425,8 +425,9 @@ module.exports = (device, platform) => {
 					log.easyDebug(device.name + ' -> Setting Pure Rotation Speed:', speed + '%')
 					device.state.fanSpeed = speed
 					device.state.active = true
-				} else 
+				} else {
 					device.state.active = false
+				}
 
 				callback()
 			},

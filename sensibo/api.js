@@ -79,7 +79,7 @@ module.exports = async function (platform) {
 	
 
 		enableDisablePureBoost: async (deviceId, enabled) => {
-			const path = `/pods/${deviceId}/pureBoostConfig`
+			const path = `/pods/${deviceId}/pureboost`
 			const json = {
 				'enabled': enabled
 			}
