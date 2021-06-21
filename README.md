@@ -96,6 +96,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 | `platform`                 | always "SensiboAC"                                            |     ✓    |     -    |  String  |
 | `username`                 | Your Sensibo account username/email                           |     ✓    |     -    |  String  |
 | `password`                 | Your Sensibo account password                                 |     ✓    |     -    |  String  |
+| `apiKey`                   | Your Sensibo account API key (can be used instead of username/password)  |          |     -    |  String  |
 | `disableFan`               |  When set to `true`, it will disable the FAN accessory        |          |  `false` |  Boolean |
 | `disableDry`               |  When set to `true`, it will disable the DRY accessory        |          |  `false` |  Boolean |
 | `disableHorizontalSwing`   |  Disable horizontal swing control (via extra switch)          |          |  `false` |  Boolean |

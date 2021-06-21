@@ -20,8 +20,8 @@
                 "required": false
             },
             "apiKey": {
-                "title": "API-Key (NOT required - use username and password)",
-                "description": "Your Sensibo API-key",
+                "title": "API-Key (can be used instead of username/password)",
+                "description": "Your Sensibo API-key (from https://home.sensibo.com/me/api)",
                 "type": "string",
                 "required": false
             },
