@@ -35,7 +35,7 @@ module.exports = async function (platform) {
 	
 		getAllDevices: async () => {
 			const path = '/users/me/pods'
-			const queryString = 'fields=id,acState,measurements,remoteCapabilities,room,temperatureUnit,productModel,location,occupancy,smartMode,motionSensors,filtersCleaning,serial'
+			const queryString = 'fields=id,acState,measurements,remoteCapabilities,room,temperatureUnit,productModel,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig'
 				
 			const allDevices = await apiRequest('get', path + '?' + queryString)
 			return allDevices.filter(device => (platform.locationsToInclude.length === 0 || platform.locationsToInclude.includes(device.location.id) || platform.locationsToInclude.includes(device.location.name))
@@ -44,7 +44,7 @@ module.exports = async function (platform) {
 	
 		getDevicesStates: async () => {
 			const path = '/users/me/pods'
-			const queryString = 'fields=id,acState,measurements,motionSensors,location,occupancy,smartMode,motionSensors,filtersCleaning,serial'
+			const queryString = 'fields=id,acState,measurements,motionSensors,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig'
 
 			return await apiRequest('get', path + '?' + queryString)
 		},
@@ -77,6 +77,16 @@ module.exports = async function (platform) {
 			return await apiRequest('put', path, json)
 		},
 	
+
+		enableDisablePureBoost: async (deviceId, enabled) => {
+			const path = `/pods/${deviceId}/pureBoostConfig`
+			const json = {
+				'enabled': enabled
+			}
+
+			return await apiRequest('put', path, json)
+		},
+
 		setDevicePropertyState: async (deviceId, property, value) => {
 			const path = `/pods/${deviceId}/acStates/${property}`
 			const json = {

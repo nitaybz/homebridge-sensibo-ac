@@ -1,4 +1,5 @@
 const AirConditioner = require('./../homekit/AirConditioner')
+const AirPurifier = require('./../homekit/AirPurifier')
 const RoomSensor = require('./../homekit/RoomSensor')
 const HumiditySensor = require('./../homekit/HumiditySensor')
 const SyncButton = require('./../homekit/SyncButton')
@@ -11,32 +12,43 @@ module.exports = (platform) => {
 
 			if (!device.remoteCapabilities)
 				return
+
+			if (device.productModel.includes('sky')) {
 			
-			// Add AirConditioner
-			const airConditionerIsNew = !platform.activeAccessories.find(accessory => accessory.type === 'AirConditioner' && accessory.id === device.id)
-			if (airConditionerIsNew) {
-				const airConditioner = new AirConditioner(device, platform)
-				platform.activeAccessories.push(airConditioner)
-
-				// Add external Humidity Sensor if enabled
-				if (platform.externalHumiditySensor) {
-					const humiditySensor = new HumiditySensor(airConditioner, platform)
-					platform.activeAccessories.push(humiditySensor)
+				// Add AirConditioner
+				const airConditionerIsNew = !platform.activeAccessories.find(accessory => accessory.type === 'AirConditioner' && accessory.id === device.id)
+				if (airConditionerIsNew) {
+					const airConditioner = new AirConditioner(device, platform)
+					platform.activeAccessories.push(airConditioner)
+	
+					// Add external Humidity Sensor if enabled
+					if (platform.externalHumiditySensor) {
+						const humiditySensor = new HumiditySensor(airConditioner, platform)
+						platform.activeAccessories.push(humiditySensor)
+					}
+	
+					// Add Sync Button if enabled
+					if (platform.enableSyncButton && !platform.syncButtonInAccessory) {
+						const syncButton = new SyncButton(airConditioner, platform)
+						platform.activeAccessories.push(syncButton)
+					}
+	
+					// Add Climate React Switch if enabled
+					if (platform.enableClimateReactSwitch) {
+						const climateReactSwitch = new ClimateReactSwitch(airConditioner, platform)
+						platform.activeAccessories.push(climateReactSwitch)
+					}
 				}
-
-				// Add Sync Button if enabled
-				if (platform.enableSyncButton && !platform.syncButtonInAccessory) {
-					const syncButton = new SyncButton(airConditioner, platform)
-					platform.activeAccessories.push(syncButton)
-				}
-
-				// Add Climate React Switch if enabled
-				if (platform.enableClimateReactSwitch) {
-					const climateReactSwitch = new ClimateReactSwitch(airConditioner, platform)
-					platform.activeAccessories.push(climateReactSwitch)
+			} else if (device.productModel ==='pure') {
+			
+				// Add AirConditioner
+				const airPurifierIsNew = !platform.activeAccessories.find(accessory => accessory.type === 'AirPurifier' && accessory.id === device.id)
+				if (airPurifierIsNew) {
+					const airPurifier = new AirPurifier(device, platform)
+					platform.activeAccessories.push(airPurifier)
 				}
 			}
-
+	
 			// Add Sensibo Room Sensors if exists
 			if (device.motionSensors && Array.isArray(device.motionSensors)) {
 				device.motionSensors.forEach(sensor => {
@@ -70,7 +82,13 @@ module.exports = (platform) => {
 			let deviceExists, sensorExists, locationExists
 			switch(accessory.context.type) {
 				case 'AirConditioner':
-					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities)
+					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel.includes('sky'))
+					if (!deviceExists)
+						accessoriesToRemove.push(accessory)
+					break
+
+				case 'AirPurifier':
+					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel === 'pure')
 					if (!deviceExists)
 						accessoriesToRemove.push(accessory)
 					break

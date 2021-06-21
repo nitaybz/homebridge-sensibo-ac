@@ -10,9 +10,9 @@
 [![certified-hoobs-plugin](https://badgen.net/badge/HOOBS/Certified/yellow)](https://plugins.hoobs.org?ref=10876) [![hoobs-support](https://badgen.net/badge/HOOBS/Support/yellow)](https://support.hoobs.org?ref=10876)
 
 
-[Homebridge](https://github.com/nfarina/homebridge) plugin for Sensibo - Smart AC Controller
+[Homebridge](https://github.com/nfarina/homebridge) plugin for Sensibo - Smart AC Controller and Air Purifier
 
-<img src="branding/products.jpg" width="400px">
+<img src="branding/products.jpg" width="500px">
 
 ### Requirements
 
@@ -36,6 +36,7 @@ check with: `node -v` & `homebridge -V` and update if needed
 - **Enable/Disable Climate React** - allows you to quickly enable/disable your climate react setup in Sensibo app (it is not possible to change settings, on/off only).
 - **Filter Cleaning Indication** - If this feature is available in your Sensibo account (via plus), a HomeKit representation of the Filter status will appear in Home app.
 - **History Storage** - This feature will remember temperature and humidity measurements and will present them in Eve app as a graph.
+- **Pure Support (Air Purifier)** control (including it's own fan speed and boost control) in a new separate accessory.
 
 # Installation
 

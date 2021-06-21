@@ -54,6 +54,24 @@ module.exports = (device, platform) => {
 				}
 			},
 
+			PureActive: (callback) => {
+				const active = device.state.active
+				log.easyDebug(`${device.name} (GET) - Pure Active State: ${active}`)
+				callback(null, active ? 1 : 0)
+			},
+
+			CurrentAirPurifierState: (callback) => {
+				const active = device.state.active
+				log.easyDebug(`${device.name} (GET) - Pure Current State: ${active ? 'PURIFYING_AIR' : 'INACTIVE'}`)
+				callback(null, active ? 2 : 0)
+			},
+
+			TargetAirPurifierState: (callback) => {
+				const pureBoost = device.state.pureBoost
+				log.easyDebug(`${device.name} (GET) - Pure Target State (Boost): ${pureBoost ? 'AUTO' : 'MANUAL'}`)
+				callback(null, pureBoost ? 1 : 0)
+			},
+
 			CurrentHeaterCoolerState: (callback) => {
 				const active = device.state.active
 				const mode = device.state.mode
@@ -144,6 +162,15 @@ module.exports = (device, platform) => {
 				const fanSpeed = device.state.fanSpeed
 
 				log.easyDebug(device.name, '(GET) - AC Rotation Speed is:', fanSpeed + '%')
+
+				callback(null, fanSpeed)
+			},
+
+
+			PureRotationSpeed: (callback) => {
+				const fanSpeed = device.state.fanSpeed
+
+				log.easyDebug(device.name, '(GET) - Pure Rotation Speed is:', fanSpeed + '%')
 
 				callback(null, fanSpeed)
 			},
@@ -314,6 +341,14 @@ module.exports = (device, platform) => {
 
 				callback()
 			},
+
+
+			PureActive: (state, callback) => {
+				state = !!state
+				log.easyDebug(device.name + ' -> Setting Pure state Active:', state)
+				device.state.active = state
+				callback()
+			},
 		
 		
 			TargetHeaterCoolerState: (state, callback) => {
@@ -380,6 +415,18 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name + ' -> Setting Mode to', mode)
 				device.state.active = true
 				device.state.mode = mode
+
+				callback()
+			},
+
+
+			PureRotationSpeed: (speed, callback) => {
+				if (speed) {
+					log.easyDebug(device.name + ' -> Setting Pure Rotation Speed:', speed + '%')
+					device.state.fanSpeed = speed
+					device.state.active = true
+				} else 
+					device.state.active = false
 
 				callback()
 			},
@@ -504,6 +551,14 @@ module.exports = (device, platform) => {
 			ClimateReact: (state, callback) => {
 				log.easyDebug(device.name + ' -> Setting Climate React Switch to', state)
 				device.state.smartMode = state
+				callback()
+			},
+
+			// PURE BOOST
+
+			TargetAirPurifierState: (state, callback) => {
+				log.easyDebug(device.name + ' -> Setting Target AirPurifier State (PURE BOOST) to', state ? 'enabled' : 'disabled')
+				device.state.pureBoost = state
 				callback()
 			} 
 		}

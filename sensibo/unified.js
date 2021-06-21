@@ -49,7 +49,7 @@ module.exports = {
 			appId: 'com.sensibo.Sensibo',
 			roomName: device.room.name,
 			temperatureUnit: device.temperatureUnit,
-			filterService: device.filtersCleaning ? true : false
+			filterService: device.filtersCleaning ? true : false,
 		}
 	},
 
@@ -136,8 +136,9 @@ module.exports = {
 			targetTemperature: !device.acState.targetTemperature ? null : device.acState.temperatureUnit === 'C' ? device.acState.targetTemperature : toCelsius(device.acState.targetTemperature),
 			currentTemperature: device.measurements.temperature,
 			relativeHumidity: device.measurements.humidity,
-			smartMode: device.smartMode ? device.smartMode.enabled : false,
-			light: device.acState.light && device.acState.light === 'on' 
+			smartMode: device.smartMode && device.smartMode.enabled,
+			light: device.acState.light && device.acState.light !== 'off',
+			pureBoost: device.pureBoostConfig && device.pureBoostConfig.enabled
 		}
 
 		if (device.filtersCleaning) {

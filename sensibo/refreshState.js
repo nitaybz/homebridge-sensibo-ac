@@ -28,6 +28,7 @@ module.exports = (platform) => {
 				const handledLocations = []
 				platform.devices.forEach(device => {
 					const airConditioner = platform.activeAccessories.find(accessory => accessory.type === 'AirConditioner' && accessory.id === device.id)
+					const airPurifier = platform.activeAccessories.find(accessory => accessory.type === 'AirPurifier' && accessory.id === device.id)
 
 					if (airConditioner) {
 						// Update AC state in cache + HomeKit
@@ -43,6 +44,11 @@ module.exports = (platform) => {
 						if (climateReactSwitch)
 							climateReactSwitch.updateHomeKit()
 					}
+
+					// Update Pure state in cache + HomeKit
+					if (airPurifier)
+						airPurifier.state.update(unified.acState(device))
+
 
 					// Update Room Sensor state in cache + HomeKit
 					if (device.motionSensors && Array.isArray(device.motionSensors)) {

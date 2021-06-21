@@ -75,6 +75,20 @@ module.exports = (device, platform) => {
 					platform.refreshState()
 				return
 			}
+
+
+			// Send Reset Filter command and update value
+			if (prop === 'pureBoost') {
+				try {
+					sensiboApi.enableDisablePureBoost(device.id, value)
+				} catch(err) {
+					log('Error occurred! -> Pure Boost state did not change')
+				}
+				
+				if (!platform.setProcessing)
+					platform.refreshState()
+				return
+			}
 	
 
 			platform.setProcessing = true
