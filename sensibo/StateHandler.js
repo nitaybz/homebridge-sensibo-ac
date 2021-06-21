@@ -107,8 +107,8 @@ module.exports = (device, platform) => {
 				}
 		
 				const sensiboNewState = unified.sensiboFormattedState(device, state)
-				log(device.name, ' -> Setting New State:')
-				log(JSON.stringify(sensiboNewState, null, 2))
+				log.easyDebug(device.name, ' -> Setting New State:')
+				log.easyDebug(JSON.stringify(sensiboNewState, null, 2))
 				
 				try {
 					// send state command to Sensibo
