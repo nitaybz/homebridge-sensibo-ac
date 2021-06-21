@@ -558,8 +558,9 @@ module.exports = (device, platform) => {
 			// PURE BOOST
 
 			TargetAirPurifierState: (state, callback) => {
-				log.easyDebug(device.name + ' -> Setting Target AirPurifier State (PURE BOOST) to', state ? 'enabled' : 'disabled')
-				device.state.pureBoost = state
+				const pureBoost = !!state
+				log.easyDebug(device.name + ' -> Setting Target AirPurifier State (PURE BOOST) to', pureBoost ? 'enabled' : 'disabled')
+				device.state.pureBoost = pureBoost
 				callback()
 			} 
 		}
