@@ -166,6 +166,23 @@ module.exports = {
 		return state
 	},
 
+	airQualityState: device => {
+		switch (device.measurements.pm25) {
+			case 2:
+				return {
+					airQuality: 'FAIR'
+				}
+			case 3:
+				return {
+					airQuality: 'POOR'
+				}
+			default:
+				return {
+					airQuality: 'EXCELLENT'
+				}
+		}
+	},
+
 
 	sensorState: sensor => {
 

@@ -5,6 +5,7 @@ const HumiditySensor = require('./../homekit/HumiditySensor')
 const SyncButton = require('./../homekit/SyncButton')
 const ClimateReactSwitch = require('./../homekit/ClimateReactSwitch')
 const OccupancySensor = require('./../homekit/OccupancySensor')
+const AirQualitySensor = require('./../homekit/AirQualitySensor')
 
 module.exports = (platform) => {
 	return () => {
@@ -49,6 +50,9 @@ module.exports = (platform) => {
 				if (airPurifierIsNew) {
 					const airPurifier = new AirPurifier(device, platform)
 					platform.activeAccessories.push(airPurifier)
+
+					const airQualitySensor = new AirQualitySensor(device, platform)
+					platform.activeAccessories.push(airQualitySensor)
 				}
 			}
 	
@@ -91,6 +95,12 @@ module.exports = (platform) => {
 					break
 
 				case 'AirPurifier':
+					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel === 'pure')
+					if (!deviceExists)
+						accessoriesToRemove.push(accessory)
+					break
+
+				case 'AirQualitySensor':
 					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel === 'pure')
 					if (!deviceExists)
 						accessoriesToRemove.push(accessory)

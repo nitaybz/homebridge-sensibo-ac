@@ -29,6 +29,7 @@ module.exports = (platform) => {
 				platform.devices.forEach(device => {
 					const airConditioner = platform.activeAccessories.find(accessory => accessory.type === 'AirConditioner' && accessory.id === device.id)
 					const airPurifier = platform.activeAccessories.find(accessory => accessory.type === 'AirPurifier' && accessory.id === device.id)
+					const airQualitySensor = platform.activeAccessories.find(accessory => accessory.type === 'AirQualitySensor' && accessory.id === device.id)
 
 					if (airConditioner) {
 						// Update AC state in cache + HomeKit
@@ -46,8 +47,10 @@ module.exports = (platform) => {
 					}
 
 					// Update Pure state in cache + HomeKit
-					if (airPurifier)
+					if (airPurifier) {
 						airPurifier.state.update(unified.acState(device))
+						airQualitySensor.state.update(unified.acState(device))
+					}
 
 
 					// Update Room Sensor state in cache + HomeKit

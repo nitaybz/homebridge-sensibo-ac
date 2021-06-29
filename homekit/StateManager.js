@@ -319,7 +319,16 @@ module.exports = (device, platform) => {
 				const occupancy = device.state.occupancy
 				log.easyDebug(device.name, '(GET) - is:', occupancy)
 				callback(null, Characteristic.OccupancyDetected[occupancy])
-			}
+			},
+
+
+			// Air Quality
+
+			AirQuality: (callback) => {
+				const airQuality = device.state.airQuality
+				log.easyDebug(device.name, '(GET) - Air Quality is:', airQuality)
+				callback(null, Characteristic.AirQuality[airQuality])
+			},
 
 		
 		},
