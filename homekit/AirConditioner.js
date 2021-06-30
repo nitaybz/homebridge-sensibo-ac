@@ -526,7 +526,7 @@ class AirConditioner {
 	}
 
 	updateValue (serviceName, characteristicName, newValue) {
-		if (newValue !== 0 && (typeof newValue === 'undefined' || !newValue)) {
+		if (newValue !== 0 && newValue !== false && (typeof newValue === 'undefined' || !newValue)) {
 			this.log.easyDebug(`${this.roomName} - WRONG VALUE -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
 			return
 		}
