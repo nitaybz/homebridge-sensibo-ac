@@ -44,7 +44,7 @@ module.exports = async function (platform) {
 	
 		getDevicesStates: async () => {
 			const path = '/users/me/pods'
-			const queryString = 'fields=id,acState,measurements,motionSensors,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig,homekitSupported'
+			const queryString = 'fields=id,acState,measurements,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig,homekitSupported'
 
 			return await apiRequest('get', path + '?' + queryString)
 		},

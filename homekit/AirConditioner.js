@@ -71,8 +71,6 @@ class AirConditioner {
 			.setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
 			.setCharacteristic(Characteristic.Model, this.model)
 			.setCharacteristic(Characteristic.SerialNumber, this.serial)
-			
-			
 
 		this.addHeaterCoolerService()
 
@@ -187,6 +185,7 @@ class AirConditioner {
 		this.HeaterCoolerService.getCharacteristic(Characteristic.TemperatureDisplayUnits)
 			.on('get', this.stateManager.get.TemperatureDisplayUnits)
 
+		//TODO check on this warning...
 		this.HeaterCoolerService.getCharacteristic(Characteristic.CurrentRelativeHumidity)
 			.on('get', this.stateManager.get.CurrentRelativeHumidity)
 
@@ -203,6 +202,7 @@ class AirConditioner {
 				.on('set', this.stateManager.set.ACRotationSpeed)
 		}
 
+		//TODO check on this warning...
 		if (this.filterService) {
 			this.HeaterCoolerService.getCharacteristic(Characteristic.FilterChangeIndication)
 				.on('get', this.stateManager.get.FilterChangeIndication)
@@ -423,7 +423,6 @@ class AirConditioner {
 				// update swing for HeaterCoolerService
 				if (this.capabilities[this.state.mode].swing)
 					this.updateValue('HeaterCoolerService', 'SwingMode', Characteristic.SwingMode[this.state.swing])
-
 
 				// update horizontal swing for HeaterCoolerService
 				if (this.HorizontalSwingSwitch)
