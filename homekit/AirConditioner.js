@@ -56,7 +56,7 @@ class AirConditioner {
 		}
 
 		if (platform.enableHistoryStorage) {
-			const FakeGatoHistoryService = require("fakegato-history")(this.api)
+			const FakeGatoHistoryService = require('fakegato-history')(this.api)
 			this.loggingService = new FakeGatoHistoryService('weather', this.accessory, { storage: 'fs', path: platform.persistPath })
 		}
 
@@ -409,115 +409,115 @@ class AirConditioner {
 		}
 
 		switch (this.state.mode) {
-			case 'COOL':
-			case 'HEAT':
-			case 'AUTO':
+		case 'COOL':
+		case 'HEAT':
+		case 'AUTO':
 
-				// turn on HeaterCoolerService
-				this.updateValue('HeaterCoolerService', 'Active', 1)
+			// turn on HeaterCoolerService
+			this.updateValue('HeaterCoolerService', 'Active', 1)
 
-				// update temperatures for HeaterCoolerService
-				this.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', this.state.targetTemperature)
-				this.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.state.targetTemperature)
+			// update temperatures for HeaterCoolerService
+			this.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', this.state.targetTemperature)
+			this.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.state.targetTemperature)
 
-				// update swing for HeaterCoolerService
-				if (this.capabilities[this.state.mode].swing)
-					this.updateValue('HeaterCoolerService', 'SwingMode', Characteristic.SwingMode[this.state.swing])
+			// update swing for HeaterCoolerService
+			if (this.capabilities[this.state.mode].swing)
+				this.updateValue('HeaterCoolerService', 'SwingMode', Characteristic.SwingMode[this.state.swing])
 
-				// update horizontal swing for HeaterCoolerService
-				if (this.HorizontalSwingSwitch)
-					this.updateValue('HorizontalSwingSwitch', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
+			// update horizontal swing for HeaterCoolerService
+			if (this.HorizontalSwingSwitch)
+				this.updateValue('HorizontalSwingSwitch', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
 
-				// update light switch for HeaterCoolerService
-				if (this.LightSwitch)
-					this.updateValue('LightSwitch', 'On', this.state.light)
+			// update light switch for HeaterCoolerService
+			if (this.LightSwitch)
+				this.updateValue('LightSwitch', 'On', this.state.light)
 
-				// update fanSpeed for HeaterCoolerService
-				if (this.capabilities[this.state.mode].fanSpeeds)
-					this.updateValue('HeaterCoolerService', 'RotationSpeed', this.state.fanSpeed)
+			// update fanSpeed for HeaterCoolerService
+			if (this.capabilities[this.state.mode].fanSpeeds)
+				this.updateValue('HeaterCoolerService', 'RotationSpeed', this.state.fanSpeed)
 
-				// update filter characteristics for HeaterCoolerService
-				if (this.filterService) {
-					this.updateValue('HeaterCoolerService', 'FilterChangeIndication', Characteristic.FilterChangeIndication[this.state.filterChange])
-					this.updateValue('HeaterCoolerService', 'FilterLifeLevel', this.state.filterLifeLevel)
-				}
+			// update filter characteristics for HeaterCoolerService
+			if (this.filterService) {
+				this.updateValue('HeaterCoolerService', 'FilterChangeIndication', Characteristic.FilterChangeIndication[this.state.filterChange])
+				this.updateValue('HeaterCoolerService', 'FilterLifeLevel', this.state.filterLifeLevel)
+			}
 
-				// set proper target and current state of HeaterCoolerService
-				if (this.state.mode === 'COOL') {
-					this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.COOL)
+			// set proper target and current state of HeaterCoolerService
+			if (this.state.mode === 'COOL') {
+				this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.COOL)
+				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.COOLING)
+			} else if (this.state.mode === 'HEAT') {
+				this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.HEAT)
+				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)
+			} else if (this.state.mode === 'AUTO') {
+				this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.AUTO)
+				if (this.state.currentTemperature > this.state.targetTemperature)
 					this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.COOLING)
-				} else if (this.state.mode === 'HEAT') {
-					this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.HEAT)
+				else
 					this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)
-				} else if (this.state.mode === 'AUTO') {
-					this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.AUTO)
-					if (this.state.currentTemperature > this.state.targetTemperature)
-						this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.COOLING)
-					else
-						this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)
-				}
+			}
 
-				// turn off FanService
-				if (this.FanService)
-					this.updateValue('FanService', 'Active', 0)
+			// turn off FanService
+			if (this.FanService)
+				this.updateValue('FanService', 'Active', 0)
 
-				// turn off DryService
-				if (this.DryService) {
-					this.updateValue('DryService', 'Active', 0)
-					this.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
-				}
-				break
-			case 'FAN':
-				if (this.FanService) {
+			// turn off DryService
+			if (this.DryService) {
+				this.updateValue('DryService', 'Active', 0)
+				this.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
+			}
+			break
+		case 'FAN':
+			if (this.FanService) {
 
-					// turn on FanService
-					this.updateValue('FanService', 'Active', 1)
+				// turn on FanService
+				this.updateValue('FanService', 'Active', 1)
 
-					// update swing for FanService
-					if (this.capabilities.FAN.swing)
-						this.updateValue('FanService', 'SwingMode', Characteristic.SwingMode[this.state.swing])
+				// update swing for FanService
+				if (this.capabilities.FAN.swing)
+					this.updateValue('FanService', 'SwingMode', Characteristic.SwingMode[this.state.swing])
 
-					// update fanSpeed for FanService
-					if (this.capabilities.FAN.fanSpeeds)
-						this.updateValue('FanService', 'RotationSpeed', this.state.fanSpeed)
-				}
+				// update fanSpeed for FanService
+				if (this.capabilities.FAN.fanSpeeds)
+					this.updateValue('FanService', 'RotationSpeed', this.state.fanSpeed)
+			}
 
-				// turn off HeaterCoolerService
-				this.updateValue('HeaterCoolerService', 'Active', 0)
-				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
+			// turn off HeaterCoolerService
+			this.updateValue('HeaterCoolerService', 'Active', 0)
+			this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
 
-				// turn off DryService
-				if (this.DryService) {
-					this.updateValue('DryService', 'Active', 0)
-					this.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
-				}
+			// turn off DryService
+			if (this.DryService) {
+				this.updateValue('DryService', 'Active', 0)
+				this.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
+			}
 
-				break
-			case 'DRY':
-				if (this.DryService) {
+			break
+		case 'DRY':
+			if (this.DryService) {
 
-					// turn on FanService
-					this.updateValue('DryService', 'Active', 1)
-					this.updateValue('DryService', 'CurrentHumidifierDehumidifierState', Characteristic.CurrentHumidifierDehumidifierState.DEHUMIDIFYING)
+				// turn on FanService
+				this.updateValue('DryService', 'Active', 1)
+				this.updateValue('DryService', 'CurrentHumidifierDehumidifierState', Characteristic.CurrentHumidifierDehumidifierState.DEHUMIDIFYING)
 
-					// update swing for FanService
-					if (this.capabilities.DRY.swing)
-						this.updateValue('DryService', 'SwingMode', Characteristic.SwingMode[this.state.swing])
+				// update swing for FanService
+				if (this.capabilities.DRY.swing)
+					this.updateValue('DryService', 'SwingMode', Characteristic.SwingMode[this.state.swing])
 
-					// update fanSpeed for FanService
-					if (this.capabilities.DRY.fanSpeeds)
-						this.updateValue('DryService', 'RotationSpeed', this.state.fanSpeed)
-				}
+				// update fanSpeed for FanService
+				if (this.capabilities.DRY.fanSpeeds)
+					this.updateValue('DryService', 'RotationSpeed', this.state.fanSpeed)
+			}
 
-				// turn off HeaterCoolerService
-				this.updateValue('HeaterCoolerService', 'Active', 0)
-				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
+			// turn off HeaterCoolerService
+			this.updateValue('HeaterCoolerService', 'Active', 0)
+			this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
 
-				// turn off FanService
-				if (this.FanService)
-					this.updateValue('FanService', 'Active', 0)
+			// turn off FanService
+			if (this.FanService)
+				this.updateValue('FanService', 'Active', 0)
 
-				break
+			break
 		}
 
 		// cache last state to storage

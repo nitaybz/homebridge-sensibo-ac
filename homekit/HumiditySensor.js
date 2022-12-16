@@ -35,7 +35,7 @@ class HumiditySensor {
 		}
 
 		if (platform.enableHistoryStorage) {
-			const FakeGatoHistoryService = require("fakegato-history")(this.api)
+			const FakeGatoHistoryService = require('fakegato-history')(this.api)
 			this.loggingService = new FakeGatoHistoryService('weather', this.accessory, { storage: 'fs', path: platform.persistPath })
 		}
 

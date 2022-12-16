@@ -165,7 +165,7 @@ module.exports = {
 	airQualityState: device => {
 		const state = {}
 
-		state.airQuality = device.measurements?.pm25 ?? 0;
+		state.airQuality = device.measurements?.pm25 ?? 0
 
 		if (device.measurements?.tvoc && device.measurements.tvoc > 0) {
 			state.VOCDensity = device.measurements.tvoc * 0.0409 * 100

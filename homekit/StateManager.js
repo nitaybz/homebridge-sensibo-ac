@@ -6,12 +6,12 @@ function toFahrenheit(value) {
 
 function characteristicToMode(characteristic) {
 	switch (characteristic) {
-		case Characteristic.TargetHeaterCoolerState.COOL:
-			return 'COOL'
-		case Characteristic.TargetHeaterCoolerState.HEAT:
-			return 'HEAT'
-		case Characteristic.TargetHeaterCoolerState.AUTO:
-			return 'AUTO'
+	case Characteristic.TargetHeaterCoolerState.COOL:
+		return 'COOL'
+	case Characteristic.TargetHeaterCoolerState.HEAT:
+		return 'HEAT'
+	case Characteristic.TargetHeaterCoolerState.AUTO:
+		return 'AUTO'
 	}
 
 }

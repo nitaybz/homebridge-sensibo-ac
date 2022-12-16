@@ -1,5 +1,5 @@
-const axiosLib = require('axios');
-let axios = axiosLib.create();
+const axiosLib = require('axios')
+let axios = axiosLib.create()
 const qs = require('qs')
 const version = require('./../package.json').version
 
@@ -161,7 +161,7 @@ function getToken(username, password, storage) {
 			scope: 'read+write'
 		}
 		data = qs.stringify(data, { encode: false })
-		const url = `https://home.sensibo.com/o/token/`
+		const url = 'https://home.sensibo.com/o/token/'
 
 		axios.post(url, data)
 			.then(async response => {

@@ -127,11 +127,11 @@ class AirQualitySensor {
 		const currentValue = this[serviceName].getCharacteristic(Characteristic[characteristicName]).value
 
 		// if (validValues && !validValues.includes(newValue))
-			// newValue = currentValue
+		// newValue = currentValue
 		// if (minAllowed && newValue < minAllowed)
-			// newValue = currentValue
+		// newValue = currentValue
 		// else if (maxAllowed && newValue > maxAllowed)
-			// newValue = currentValue
+		// newValue = currentValue
 
 		if (currentValue !== newValue) {
 			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
