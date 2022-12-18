@@ -1,7 +1,7 @@
 {
   "name": "homebridge-sensibo-ac",
   "description": "Homebridge plugin for Sensibo - Smart AC Control",
-  "version": "2.2.0",
+  "version": "2.3.1",
   "repository": {
     "type": "git",
     "url": "git://github.com/nitaybz/homebridge-sensibo-ac.git"
@@ -15,6 +15,8 @@
     "sensibo",
     "sensibo-sky",
     "sensibo-air",
+    "sensibo-airq",
+    "sensibo-air-plus",
     "sensibo-ac",
     "smart-ac",
     "category-climate"
