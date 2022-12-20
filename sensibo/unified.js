@@ -33,7 +33,6 @@ function toFahrenheit(value) {
 	return Math.round((value * 1.8) + 32)
 }
 
-
 function toCelsius(value) {
 	return (value - 32) / 1.8
 }
@@ -43,11 +42,11 @@ module.exports = {
 	deviceInformation: device => {
 		return {
 			id: device.id,
-			model: device.productModel,
+			model: device.productModel ?? device.model,
 			serial: device.serial,
 			manufacturer: 'Sensibo Inc.',
 			appId: 'com.sensibo.Sensibo',
-			roomName: device.room.name,
+			roomName: device.room?.name ?? device.roomName,
 			temperatureUnit: device.temperatureUnit,
 			filterService: device.filtersCleaning ? true : false,
 		}
@@ -81,7 +80,7 @@ module.exports = {
 			capabilities[mode] = {}
 
 			// set temperatures min & max
-			if (['COOL', 'HEAT', 'AUTO'].includes(mode) && modeCapabilities.temperatures && modeCapabilities.temperatures.C) {
+			if (['COOL', 'HEAT', 'AUTO', 'DRY'].includes(mode) && modeCapabilities.temperatures && modeCapabilities.temperatures.C) {
 				capabilities[mode].temperatures = {
 					C: {
 						min: modeCapabilities.temperatures.C.values[0],
@@ -103,7 +102,6 @@ module.exports = {
 					capabilities[mode].autoFanSpeed = true
 				else
 					capabilities[mode].autoFanSpeed = false
-				
 			}
 
 			// set swing
@@ -111,14 +109,12 @@ module.exports = {
 				capabilities[mode].swing = true
 			}
 
-
 			// set horizontal swing
 			if (modeCapabilities.horizontalSwing && modeCapabilities.horizontalSwing.includes('rangeFull')) {
 				capabilities[mode].horizontalSwing = true
 			}
 
-
-			// set horizontal swing
+			// set light
 			if (modeCapabilities.light) {
 				capabilities[mode].light = true
 			}
@@ -167,22 +163,35 @@ module.exports = {
 	},
 
 	airQualityState: device => {
-		switch (device.measurements.pm25) {
-			case 2:
-				return {
-					airQuality: 'FAIR'
-				}
-			case 3:
-				return {
-					airQuality: 'POOR'
-				}
-			default:
-				return {
-					airQuality: 'EXCELLENT'
-				}
-		}
-	},
+		const state = {}
 
+		state.airQuality = device.measurements?.pm25 ?? 0
+
+		if (device.measurements?.tvoc && device.measurements.tvoc > 0) {
+			state.VOCDensity = device.measurements.tvoc * 0.0409 * 100
+
+			if (state.airQuality !== 0) {
+				// don't overwrite it
+			} else if (device.measurements.tvoc > 1500) {
+				state.airQuality = 5
+			} else if (device.measurements.tvoc > 1000) {
+				state.airQuality = 4
+			} else if (device.measurements.tvoc > 500) {
+				state.airQuality = 3
+			} else if (device.measurements.tvoc > 250) {
+				state.airQuality = 2
+			} else {
+				state.airQuality = 1
+			}
+		}
+
+		if (device.measurements?.co2 && device.measurements.co2 > 0) {
+			state.carbonDioxideLevel = device.measurements.co2
+			state.carbonDioxideDetected = device.measurements.co2 > 1000 ? 1 : 0
+		}
+
+		return state
+	},
 
 	sensorState: sensor => {
 
@@ -216,7 +225,6 @@ module.exports = {
 
 		if ('swing' in device.capabilities[state.mode])
 			acState.swing = state.swing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
-
 
 		if ('horizontalSwing' in device.capabilities[state.mode])
 			acState.horizontalSwing = state.horizontalSwing ==='SWING_ENABLED' ? 'rangeFull' : 'stopped'

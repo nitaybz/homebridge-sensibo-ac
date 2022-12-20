@@ -128,7 +128,7 @@ module.exports = (device, platform) => {
 
 			}, setTimeoutDelay)
 
-			return true;
+			return true
 		}
 	}
 }

@@ -17,9 +17,8 @@ module.exports = (platform) => {
 			if (!device.remoteCapabilities)
 				return
 
-			if (device.productModel.includes('sky')) {
-			
-				// Add AirConditioner
+			// Add AirConditioner
+			if (['sky','air','airq'].includes(device.productModel)) {
 				const airConditionerIsNew = !platform.activeAccessories.find(accessory => accessory.type === 'AirConditioner' && accessory.id === device.id)
 				if (airConditionerIsNew) {
 					const airConditioner = new AirConditioner(device, platform)
@@ -29,6 +28,16 @@ module.exports = (platform) => {
 					if (platform.externalHumiditySensor) {
 						const humiditySensor = new HumiditySensor(airConditioner, platform)
 						platform.activeAccessories.push(humiditySensor)
+					}
+
+					// Add external Air Quality Sensor if enabled and available
+					// TODO add externalAirQualitySensor option??
+					// e.g. if (['airq'].includes(device.productModel) && platform.externalAirQualitySensor) {
+					if (['airq'].includes(device.productModel)) {
+						// TODO check for a better way to do this
+						airConditioner.measurements = device.measurements
+						const airQualitySensor = new AirQualitySensor(airConditioner, platform)
+						platform.activeAccessories.push(airQualitySensor)
 					}
 	
 					// Add Sync Button if enabled
@@ -43,9 +52,10 @@ module.exports = (platform) => {
 						platform.activeAccessories.push(climateReactSwitch)
 					}
 				}
-			} else if (device.productModel ==='pure') {
+			}
 			
-				// Add AirConditioner
+			// Add AirPurifier
+			if (['pure'].includes(device.productModel)) {
 				const airPurifierIsNew = !platform.activeAccessories.find(accessory => accessory.type === 'AirPurifier' && accessory.id === device.id)
 				if (airPurifierIsNew) {
 					const airPurifier = new AirPurifier(device, platform)
@@ -88,60 +98,60 @@ module.exports = (platform) => {
 
 			let deviceExists, sensorExists, locationExists
 			switch(accessory.context.type) {
-				case 'AirConditioner':
-					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel.includes('sky'))
-					if (!deviceExists)
-						accessoriesToRemove.push(accessory)
-					break
+			case 'AirConditioner':
+				deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && ['sky','air','airq'].includes(device.productModel))
+				if (!deviceExists)
+					accessoriesToRemove.push(accessory)
+				break
 
-				case 'AirPurifier':
-					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel === 'pure')
-					if (!deviceExists)
-						accessoriesToRemove.push(accessory)
-					break
+			case 'AirPurifier':
+				deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel === 'pure')
+				if (!deviceExists)
+					accessoriesToRemove.push(accessory)
+				break
 
-				case 'AirQualitySensor':
-					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel === 'pure')
-					if (!deviceExists)
-						accessoriesToRemove.push(accessory)
-					break
+			case 'AirQualitySensor':
+				deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && ['pure','airq'].includes(device.productModel))
+				if (!deviceExists)
+					accessoriesToRemove.push(accessory)
+				break
 
-				case 'RoomSensor':
-					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId)
-					if (!deviceExists || !Array.isArray(deviceExists.motionSensors))
+			case 'RoomSensor':
+				deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId)
+				if (!deviceExists || !Array.isArray(deviceExists.motionSensors))
+					accessoriesToRemove.push(accessory)
+				else {
+					sensorExists = deviceExists.motionSensors.find(sensor => sensor.id === accessory.context.sensorId)
+					if (!sensorExists)
 						accessoriesToRemove.push(accessory)
-					else {
-						sensorExists = deviceExists.motionSensors.find(sensor => sensor.id === accessory.context.sensorId)
-						if (!sensorExists)
-							accessoriesToRemove.push(accessory)
-					}
-					break
+				}
+				break
 
-				case 'HumiditySensor':
-					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities)
-					if (!deviceExists || !platform.externalHumiditySensor)
-						accessoriesToRemove.push(accessory)
-					break
+			case 'HumiditySensor':
+				deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities)
+				if (!deviceExists || !platform.externalHumiditySensor)
+					accessoriesToRemove.push(accessory)
+				break
 
-				case 'SyncButton':
-					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities)
-					if (!deviceExists || !platform.enableSyncButton || platform.syncButtonInAccessory)
-						accessoriesToRemove.push(accessory)
-					break
+			case 'SyncButton':
+				deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities)
+				if (!deviceExists || !platform.enableSyncButton || platform.syncButtonInAccessory)
+					accessoriesToRemove.push(accessory)
+				break
 
-				case 'ClimateReact':
-					deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities)
-					if (!deviceExists || !platform.enableClimateReactSwitch)
-						accessoriesToRemove.push(accessory)
-					break
+			case 'ClimateReact':
+				deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities)
+				if (!deviceExists || !platform.enableClimateReactSwitch)
+					accessoriesToRemove.push(accessory)
+				break
 
-				case 'OccupancySensor':
-					locationExists = platform.devices.find(device => device.location.id === accessory.context.locationId)
-					if (!locationExists || !platform.enableOccupancySensor) {
-						accessoriesToRemove.push(accessory)
-						platform.locations = platform.locations.filter(location => location !== accessory.context.locationId)
-					}
-					break
+			case 'OccupancySensor':
+				locationExists = platform.devices.find(device => device.location.id === accessory.context.locationId)
+				if (!locationExists || !platform.enableOccupancySensor) {
+					accessoriesToRemove.push(accessory)
+					platform.locations = platform.locations.filter(location => location !== accessory.context.locationId)
+				}
+				break
 			}
 		})
 

@@ -6,12 +6,12 @@ function toFahrenheit(value) {
 
 function characteristicToMode(characteristic) {
 	switch (characteristic) {
-		case Characteristic.TargetHeaterCoolerState.COOL:
-			return 'COOL'
-		case Characteristic.TargetHeaterCoolerState.HEAT:
-			return 'HEAT'
-		case Characteristic.TargetHeaterCoolerState.AUTO:
-			return 'AUTO'
+	case Characteristic.TargetHeaterCoolerState.COOL:
+		return 'COOL'
+	case Characteristic.TargetHeaterCoolerState.HEAT:
+		return 'HEAT'
+	case Characteristic.TargetHeaterCoolerState.AUTO:
+		return 'AUTO'
 	}
 
 }
@@ -321,16 +321,31 @@ module.exports = (device, platform) => {
 				callback(null, Characteristic.OccupancyDetected[occupancy])
 			},
 
-
 			// Air Quality
 
 			AirQuality: (callback) => {
 				const airQuality = device.state.airQuality
 				log.easyDebug(device.name, '(GET) - Air Quality is:', airQuality)
-				callback(null, Characteristic.AirQuality[airQuality])
+				callback(null, airQuality)
 			},
 
-		
+			VOCDensity: (callback) => {
+				const VOCDensity = device.state.VOCDensity
+				log.easyDebug(device.name, '(GET) - Volatile Organic Compound Density is:', VOCDensity)
+				callback(null, VOCDensity)
+			},
+
+			CarbonDioxideDetected: (callback) => {
+				const carbonDioxideDetected = device.state.carbonDioxideDetected
+				log.easyDebug(device.name, '(GET) - Carbon Dioxide Detected is:', carbonDioxideDetected)
+				callback(null, carbonDioxideDetected)
+			},
+
+			CarbonDioxideLevel: (callback) => {
+				const carbonDioxideLevel = device.state.carbonDioxideLevel
+				log.easyDebug(device.name, '(GET) - Carbon Dioxide Level is:', carbonDioxideLevel)
+				callback(null, carbonDioxideLevel)
+			},
 		},
 	
 		set: {

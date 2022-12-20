@@ -49,9 +49,12 @@ module.exports = (platform) => {
 					// Update Pure state in cache + HomeKit
 					if (airPurifier) {
 						airPurifier.state.update(unified.acState(device))
-						airQualitySensor.state.update(unified.acState(device))
 					}
 
+					// Update Air Quality Sensor state in cache + HomeKit
+					if (airQualitySensor) {
+						airQualitySensor.state.update(unified.airQualityState(device))
+					}
 
 					// Update Room Sensor state in cache + HomeKit
 					if (device.motionSensors && Array.isArray(device.motionSensors)) {
