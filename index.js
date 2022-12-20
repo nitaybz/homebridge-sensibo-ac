@@ -54,7 +54,7 @@ class SensiboACPlatform {
 		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
 
 		this.persistPath = path.join(this.api.user.persistPath(), '/../sensibo-persist')
-		this.emptyState = {devices:{}, sensors:{} ,occupancy: {}}
+		this.emptyState = {devices:{}, sensors:{}, occupancy: {}}
 		this.CELSIUS_UNIT = 'C'
 		this.FAHRENHEIT_UNIT = 'F'
 		const requestedInterval = 90000 // Sensibo interval is hardcoded (requested by the brand)
