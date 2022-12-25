@@ -18,7 +18,8 @@ module.exports = (platform) => {
 				return
 
 			// Add AirConditioner
-			if (['sky','skyplus','air','airq'].includes(device.productModel)) {
+			// TODO clean up productModel if condition
+			if (['sky','skyv2','skyplus','air','airq'].includes(device.productModel) || device.productModel.includes('air') || device.productModel.includes('sky')) {
 				const airConditionerIsNew = !platform.activeAccessories.find(accessory => accessory.type === 'AirConditioner' && accessory.id === device.id)
 				if (airConditionerIsNew) {
 					const airConditioner = new AirConditioner(device, platform)
@@ -99,7 +100,8 @@ module.exports = (platform) => {
 			let deviceExists, sensorExists, locationExists
 			switch(accessory.context.type) {
 			case 'AirConditioner':
-				deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && ['sky','skyplus','air','airq'].includes(device.productModel))
+				// TODO clean up productModel matching
+				deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities && (['sky','skyv2','skyplus','air','airq'].includes(device.productModel) || device.productModel.includes('air') || device.productModel.includes('sky') ))
 				if (!deviceExists)
 					accessoriesToRemove.push(accessory)
 				break
