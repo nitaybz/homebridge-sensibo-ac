@@ -79,7 +79,6 @@ class AirConditioner {
 		else
 			this.removeFanService()
 
-
 		if (this.capabilities.DRY && !this.disableDry)
 			this.addDryService()
 		else
@@ -90,12 +89,10 @@ class AirConditioner {
 		else
 			this.removeHorizontalSwingSwitch()
 
-
 		if (this.syncButtonInAccessory)
 			this.addSyncButtonService()
 		else
 			this.removeSyncButtonService()
-
 
 		if (((this.capabilities.COOL && this.capabilities.COOL.light) || (this.capabilities.HEAT && this.capabilities.HEAT.light)) && !this.disableLightSwitch)
 			this.addLightSwitch()
@@ -104,7 +101,7 @@ class AirConditioner {
 	}
 
 	addHeaterCoolerService() {
-		this.log.easyDebug(`Adding HeaterCooler Service in the ${this.roomName}`)
+		this.log.easyDebug(`Adding HeaterCoolerService in the ${this.roomName}`)
 		this.HeaterCoolerService = this.accessory.getService(Service.HeaterCooler)
 		if (!this.HeaterCoolerService)
 			this.HeaterCoolerService = this.accessory.addService(Service.HeaterCooler, this.name, 'HeaterCooler')
@@ -119,9 +116,9 @@ class AirConditioner {
 
 		const props = []
 
+		if (this.capabilities.AUTO) props.push(Characteristic.TargetHeaterCoolerState.AUTO)
 		if (this.capabilities.COOL) props.push(Characteristic.TargetHeaterCoolerState.COOL)
 		if (this.capabilities.HEAT) props.push(Characteristic.TargetHeaterCoolerState.HEAT)
-		if (this.capabilities.AUTO) props.push(Characteristic.TargetHeaterCoolerState.AUTO)
 	
 		this.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState)
 			.setProps({validValues: props})
@@ -189,7 +186,6 @@ class AirConditioner {
 		this.HeaterCoolerService.getCharacteristic(Characteristic.CurrentRelativeHumidity)
 			.on('get', this.stateManager.get.CurrentRelativeHumidity)
 
-
 		if ((this.capabilities.COOL && this.capabilities.COOL.swing) || (this.capabilities.HEAT && this.capabilities.HEAT.swing)) {
 			this.HeaterCoolerService.getCharacteristic(Characteristic.SwingMode)
 				.on('get', this.stateManager.get.ACSwing)
@@ -217,7 +213,7 @@ class AirConditioner {
 	}
 
 	addFanService() {
-		this.log.easyDebug(`Adding Fan Service in the ${this.roomName}`)
+		this.log.easyDebug(`Adding FanService in the ${this.roomName}`)
 
 		this.FanService = this.accessory.getService(Service.Fanv2)
 		if (!this.FanService)
@@ -245,13 +241,13 @@ class AirConditioner {
 		let FanService = this.accessory.getService(Service.Fanv2)
 		if (FanService) {
 			// remove service
-			this.log.easyDebug(`Removing Fan Service from the ${this.roomName}`)
+			this.log.easyDebug(`Removing FanService from the ${this.roomName}`)
 			this.accessory.removeService(FanService)
 		}
 	}
 	
 	addDryService() {
-		this.log.easyDebug(`Adding Dehumidifier Service in the ${this.roomName}`)
+		this.log.easyDebug(`Adding DehumidifierService in the ${this.roomName}`)
 
 		this.DryService = this.accessory.getService(Service.HumidifierDehumidifier)
 		if (!this.DryService)
@@ -295,13 +291,13 @@ class AirConditioner {
 		let DryService = this.accessory.getService(Service.HumidifierDehumidifier)
 		if (DryService) {
 			// remove service
-			this.log.easyDebug(`Removing Dehumidifier Service from the ${this.roomName}`)
+			this.log.easyDebug(`Removing DehumidifierService from the ${this.roomName}`)
 			this.accessory.removeService(DryService)
 		}
 	}
 
 	addHorizontalSwingSwitch() {
-		this.log.easyDebug(`Adding Horizontal Swing Switch Service in the ${this.roomName}`)
+		this.log.easyDebug(`Adding HorizontalSwingSwitchService in the ${this.roomName}`)
 
 		this.HorizontalSwingSwitch = this.accessory.getService(this.roomName + ' Horizontal Swing')
 		if (!this.HorizontalSwingSwitch)
@@ -317,14 +313,14 @@ class AirConditioner {
 		let HorizontalSwingSwitch = this.accessory.getService(this.roomName + ' Horizontal Swing')
 		if (HorizontalSwingSwitch) {
 			// remove service
-			this.log.easyDebug(`Removing Horizontal Swing Switch Service from the ${this.roomName}`)
+			this.log.easyDebug(`Removing HorizontalSwingSwitchService from the ${this.roomName}`)
 			this.accessory.removeService(HorizontalSwingSwitch)
 		}
 
 	}
 
 	addLightSwitch() {
-		this.log.easyDebug(`Adding AC Light Service in the ${this.roomName}`)
+		this.log.easyDebug(`Adding LightSwitchService to the AC in the ${this.roomName}`)
 
 		this.LightSwitch = this.accessory.getService(this.roomName + ' AC Light')
 		if (!this.LightSwitch)
@@ -340,15 +336,15 @@ class AirConditioner {
 		let LightSwitch = this.accessory.getService(this.roomName + ' AC Light')
 		if (LightSwitch) {
 			// remove service
-			this.log.easyDebug(`Removing AC Light Service from the ${this.roomName}`)
+			this.log.easyDebug(`Removing LightSwitchService from the AC in the ${this.roomName}`)
 			this.accessory.removeService(LightSwitch)
 		}
 
 	}
 
 	addSyncButtonService() {
-		this.log.easyDebug(`Adding Sync Button Switch Service in the ${this.roomName}`)
-
+		this.log.easyDebug(`Adding SyncButtonSwitchService in the ${this.roomName}`)
+		
 		this.SyncButtonService = this.accessory.getService('SyncButton')
 		if (!this.SyncButtonService)
 			this.SyncButtonService = this.accessory.addService(Service.Switch, this.name + ' Sync', 'SyncButton')
@@ -369,7 +365,7 @@ class AirConditioner {
 		let SyncButtonService = this.accessory.getService('SyncButton')
 		if (SyncButtonService) {
 			// remove service
-			this.log.easyDebug(`Removing Sync Button Switch Service from the ${this.roomName}`)
+			this.log.easyDebug(`Removing SyncButtonSwitchService from the ${this.roomName}`)
 			this.accessory.removeService(SyncButtonService)
 		}
 

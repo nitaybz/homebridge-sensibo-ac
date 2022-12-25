@@ -69,11 +69,11 @@ class AirQualitySensor {
 	}
 
 	addAirQualitySensor() {
-		this.log.easyDebug(`Adding Air Quality Sensor in the ${this.roomName}`)
+		this.log.easyDebug(`Adding AirQualitySensorService in the ${this.roomName}`)
 		this.AirQualitySensor = this.accessory.getService(Service.AirQualitySensor)
 
 		if (!this.AirQualitySensor)
-			this.AirQualitySensor = this.accessory.addService(Service.AirQualitySensor, this.name, 'AirQualitySensorService')
+			this.AirQualitySensor = this.accessory.addService(Service.AirQualitySensor, this.name, 'AirQualitySensor')
 
 		this.AirQualitySensor.getCharacteristic(Characteristic.AirQuality)
 			.on('get', this.stateManager.get.AirQuality)
@@ -83,11 +83,11 @@ class AirQualitySensor {
 	}
 
 	addCarbonDioxideSensor() {
-		this.log.easyDebug(`Adding CarbonDioxideSensor Service in the ${this.roomName}`)
+		this.log.easyDebug(`Adding CarbonDioxideSensorService in the ${this.roomName}`)
 		this.CarbonDioxideSensor = this.accessory.getService(Service.CarbonDioxideSensor)
 
 		if (!this.CarbonDioxideSensor)
-			this.CarbonDioxideSensor = this.accessory.addService(Service.CarbonDioxideSensor, this.name, 'CarbonDioxideSensorService')
+			this.CarbonDioxideSensor = this.accessory.addService(Service.CarbonDioxideSensor, this.name, 'CarbonDioxideSensor')
 
 		this.CarbonDioxideSensor.getCharacteristic(Characteristic.CarbonDioxideDetected)
 			.on('get', this.stateManager.get.CarbonDioxideDetected)
@@ -97,10 +97,10 @@ class AirQualitySensor {
 	}
 
 	updateHomeKit() {
-		this.updateValue('AirQualitySensor', 'AirQuality', this.state.airQuality)
-		this.updateValue('AirQualitySensor', 'VOCDensity', this.state.VOCDensity)
-		this.updateValue('CarbonDioxideSensor', 'CarbonDioxideDetected', this.state.carbonDioxideDetected)
-		this.updateValue('CarbonDioxideSensor', 'CarbonDioxideLevel', this.state.carbonDioxideLevel)
+		this.updateValue('AirQualitySensorService', 'AirQuality', this.state.airQuality)
+		this.updateValue('AirQualitySensorService', 'VOCDensity', this.state.VOCDensity)
+		this.updateValue('CarbonDioxideSensorService', 'CarbonDioxideDetected', this.state.carbonDioxideDetected)
+		this.updateValue('CarbonDioxideSensorService', 'CarbonDioxideLevel', this.state.carbonDioxideLevel)
 
 		// cache last state to storage
 		this.storage.setItem('state', this.cachedState)

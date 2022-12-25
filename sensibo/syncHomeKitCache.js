@@ -11,11 +11,15 @@ module.exports = (platform) => {
 	return () => {
 		platform.devices.forEach(device => {
 
-			if (platform.ignoreHomeKitDevices && device.homekitSupported)
-				return
+			if (platform.ignoreHomeKitDevices && device.homekitSupported) {
+				platform.log.easyDebug(`Ignoring Homekit supported device: ${device.id}`)
+				return				
+			}
 
-			if (!device.remoteCapabilities)
+			if (!device.remoteCapabilities) {
+				platform.log.easyDebug(`Ignoring as no remote capabilities available device: ${device.id}`)
 				return
+			}
 
 			// Add AirConditioner
 			if (['sky','skyplus','air','airq'].includes(device.productModel)) {

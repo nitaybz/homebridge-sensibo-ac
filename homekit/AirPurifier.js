@@ -63,8 +63,6 @@ class AirPurifier {
 			.setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
 			.setCharacteristic(Characteristic.Model, this.model)
 			.setCharacteristic(Characteristic.SerialNumber, this.serial)
-			
-			
 
 		this.addAirPurifierService()
 
@@ -75,10 +73,10 @@ class AirPurifier {
 	}
 
 	addAirPurifierService() {
-		this.log.easyDebug(`Adding AirPurifier Service in the ${this.roomName}`)
+		this.log.easyDebug(`Adding AirPurifierService in the ${this.roomName}`)
 		this.AirPurifierService = this.accessory.getService(Service.AirPurifier)
 		if (!this.AirPurifierService)
-			this.AirPurifierService = this.accessory.addService(Service.AirPurifier, this.name, 'AirPurifier')
+			this.AirPurifierService = this.accessory.addService(Service.AirPurifier, this.name, this.type)
 
 		this.AirPurifierService.getCharacteristic(Characteristic.Active)
 			.on('get', this.stateManager.get.PureActive)
@@ -105,11 +103,10 @@ class AirPurifier {
 			this.AirPurifierService.getCharacteristic(Characteristic.ResetFilterIndication)
 				.on('set', this.stateManager.set.ResetFilterIndication)
 		}
-
 	}
 
 	addLightSwitch() {
-		this.log.easyDebug(`Adding Pure Light Service in the ${this.roomName}`)
+		this.log.easyDebug(`Adding PureLightSwitchService in the ${this.roomName}`)
 
 		this.LightSwitch = this.accessory.getService(this.roomName + ' Pure Light')
 		if (!this.LightSwitch)
@@ -118,7 +115,6 @@ class AirPurifier {
 		this.LightSwitch.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.LightSwitch)
 			.on('set', this.stateManager.set.LightSwitch)
-
 	}
 
 	removeLightSwitch() {
@@ -128,7 +124,6 @@ class AirPurifier {
 			this.log.easyDebug(`Removing Pure Light Service from the ${this.roomName}`)
 			this.accessory.removeService(LightSwitch)
 		}
-
 	}
 
 	updateHomeKit() {
@@ -152,7 +147,6 @@ class AirPurifier {
 			// update fanSpeed for AirPurifierService
 			this.updateValue('AirPurifierService', 'RotationSpeed', this.state.fanSpeed)
 		}
-		
 
 		this.updateValue('AirPurifierService', 'TargetAirPurifierState', this.state.pureBoost ? 1 : 0)
 				
@@ -164,7 +158,7 @@ class AirPurifier {
 
 		// update light switch for AirPurifierService
 		if (this.LightSwitch)
-			this.updateValue('LightSwitch', 'On', this.state.light)
+			this.updateValue('PureLightSwitch', 'On', this.state.light)
 
 		// cache last state to storage
 		this.storage.setItem('state', this.cachedState)
@@ -193,7 +187,6 @@ class AirPurifier {
 		}
 	}
 
-	
 }
 
 

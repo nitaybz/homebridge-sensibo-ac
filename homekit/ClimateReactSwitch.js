@@ -51,7 +51,7 @@ class ClimateReactSwitch {
 
 	
 	addClimateReactService() {
-		this.log.easyDebug(`Adding Climate React Switch Service in the ${this.roomName}`)
+		this.log.easyDebug(`Adding ClimateReactService in the ${this.roomName}`)
 
 		this.ClimateReactService = this.accessory.getService(Service.Switch)
 		if (!this.ClimateReactService)
