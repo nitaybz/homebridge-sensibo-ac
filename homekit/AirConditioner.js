@@ -29,6 +29,7 @@ class AirConditioner {
 		this.disableFan = platform.disableFan
 		this.disableDry = platform.disableDry
 		this.disableHorizontalSwing = platform.disableHorizontalSwing
+		this.disableVerticalSwing = platform.disableVerticalSwing
 		this.disableLightSwitch = platform.disableLightSwitch
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
 		this.filterService = deviceInfo.filterService
@@ -186,7 +187,8 @@ class AirConditioner {
 		this.HeaterCoolerService.getCharacteristic(Characteristic.CurrentRelativeHumidity)
 			.on('get', this.stateManager.get.CurrentRelativeHumidity)
 
-		if ((this.capabilities.COOL && this.capabilities.COOL.swing) || (this.capabilities.HEAT && this.capabilities.HEAT.swing)) {
+
+		if (!this.disableVerticalSwing && ((this.capabilities.COOL && this.capabilities.COOL.swing) || (this.capabilities.HEAT && this.capabilities.HEAT.swing))) {
 			this.HeaterCoolerService.getCharacteristic(Characteristic.SwingMode)
 				.on('get', this.stateManager.get.ACSwing)
 				.on('set', this.stateManager.set.ACSwing)
@@ -223,7 +225,7 @@ class AirConditioner {
 			.on('get', this.stateManager.get.FanActive)
 			.on('set', this.stateManager.set.FanActive)
 
-		if (this.capabilities.FAN.swing) {
+		if (!this.disableVerticalSwing && this.capabilities.FAN.swing) {
 			this.FanService.getCharacteristic(Characteristic.SwingMode)
 				.on('get', this.stateManager.get.FanSwing)
 				.on('set', this.stateManager.set.FanSwing)
@@ -273,7 +275,7 @@ class AirConditioner {
 			.on('get', this.stateManager.get.TargetHumidifierDehumidifierState)
 			.on('set', this.stateManager.set.TargetHumidifierDehumidifierState)
 
-		if (this.capabilities.DRY.swing) {
+		if (!this.disableVerticalSwing && this.capabilities.DRY.swing) {
 			this.DryService.getCharacteristic(Characteristic.SwingMode)
 				.on('get', this.stateManager.get.DrySwing)
 				.on('set', this.stateManager.set.DrySwing)
@@ -417,7 +419,7 @@ class AirConditioner {
 			this.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.state.targetTemperature)
 
 			// update swing for HeaterCoolerService
-			if (this.capabilities[this.state.mode].swing)
+			if (!this.disableVerticalSwing && this.capabilities[this.state.mode].swing)
 				this.updateValue('HeaterCoolerService', 'SwingMode', Characteristic.SwingMode[this.state.swing])
 
 			// update horizontal swing for HeaterCoolerService
@@ -470,7 +472,7 @@ class AirConditioner {
 				this.updateValue('FanService', 'Active', 1)
 
 				// update swing for FanService
-				if (this.capabilities.FAN.swing)
+				if (!this.disableVerticalSwing && this.capabilities.FAN.swing)
 					this.updateValue('FanService', 'SwingMode', Characteristic.SwingMode[this.state.swing])
 
 				// update fanSpeed for FanService
@@ -497,7 +499,7 @@ class AirConditioner {
 				this.updateValue('DryService', 'CurrentHumidifierDehumidifierState', Characteristic.CurrentHumidifierDehumidifierState.DEHUMIDIFYING)
 
 				// update swing for FanService
-				if (this.capabilities.DRY.swing)
+				if (!this.disableVerticalSwing && this.capabilities.DRY.swing)
 					this.updateValue('DryService', 'SwingMode', Characteristic.SwingMode[this.state.swing])
 
 				// update fanSpeed for FanService

@@ -114,6 +114,8 @@ module.exports = {
 				capabilities[mode].horizontalSwing = true
 			}
 
+			// TODO unify how swing works with 3D
+
 			// set light
 			if (modeCapabilities.light) {
 				capabilities[mode].light = true
@@ -151,7 +153,6 @@ module.exports = {
 
 		if (modeCapabilities.swing && modeCapabilities.swing.includes('rangeFull'))
 			state.swing = device.acState.swing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
-
 
 		if (modeCapabilities.horizontalSwing && modeCapabilities.horizontalSwing.includes('rangeFull'))
 			state.horizontalSwing = device.acState.horizontalSwing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'

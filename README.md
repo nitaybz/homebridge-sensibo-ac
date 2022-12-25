@@ -79,6 +79,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "enableClimateReactSwitch": true,
         "enableHistoryStorage": true,
         "disableHorizontalSwing": false,
+        "disableVerticalSwing": false,
         "disableLightSwitch: false,
         "externalHumiditySensor": false,
         "locationsToInclude": [],
@@ -93,13 +94,14 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 
 |             Parameter            |                       Description                       | Required |  Default |   type   |
 | -------------------------------- | ------------------------------------------------------- |:--------:|:--------:|:--------:|
-| `platform`                 | always "SensiboAC"                                            |     ✓    |     -    |  String  |
-| `username`                 | Your Sensibo account username/email                           |     ✓    |     -    |  String  |
-| `password`                 | Your Sensibo account password                                 |     ✓    |     -    |  String  |
-| `apiKey`                   | Your Sensibo account API key (can be used instead of username/password)  |          |     -    |  String  |
+| `platform`                 |  always "SensiboAC"                                           |     ✓    |     -    |  String  |
+| `username`                 |  Your Sensibo account username/email                          |     ✓    |     -    |  String  |
+| `password`                 |  Your Sensibo account password                                |     ✓    |     -    |  String  |
+| `apiKey`                   |  Your Sensibo account API key (can be used instead of username/password) |          |     -    |  String  |
 | `disableFan`               |  When set to `true`, it will disable the FAN accessory        |          |  `false` |  Boolean |
 | `disableDry`               |  When set to `true`, it will disable the DRY accessory        |          |  `false` |  Boolean |
 | `disableHorizontalSwing`   |  Disable horizontal swing control (via extra switch)          |          |  `false` |  Boolean |
+| `disableVerticalSwing`     |  Disable Vertical swing control (via extra switch)            |          |  `false` |  Boolean |
 | `disableLightSwitch` |  Disable the Light service to control the AC Light (via extra light bulb)  |          |  `false` |  Boolean |
 | `enableSyncButton`         |  Adding a switch to quickly toggle the state of the AC without sending commands to the AC.   |          |  `false` |  Boolean  |
 | `syncButtonInAccessory`         |  When set to `true`, it will remove the extra AC Sync switch if it exists and will show \"AC Sync Button\" attached as a service to the Same AC Accessory (works only when `enableSyncButton` is set to true)   |          |  `false` |  Boolean  |
@@ -128,7 +130,7 @@ In practice:
 - Modes "FAN" and "DRY" (dehumidifier) will create their own accessories only if you have this ability inside Sensibo app.
 - Fan Speed ("Rotation Speed" in Home app) And Swing ("Oscillate" in Home app) will show in the accessory settings, but only if you have this capability in Sensibo app.
 - "Horizontal" Swing capability in Sensibo app will show up as a normal switch in HomeKit (because there is no other way to control horizontal swing at the moment)
-- **NEW! -**  use `"ignoreHomeKitDevices": true` to automatically ignore, skip or remove HomeKit supported devices like Sensibo Air and Sensibo Pure.
+- **NEW!** use `"ignoreHomeKitDevices": true` to automatically ignore, skip or remove HomeKit supported devices like Sensibo Air and Sensibo Pure.
 
 ### State Polling
 
@@ -152,7 +154,12 @@ To disable the extra dehumidifier accessory, add `"disableDry": true` to your co
 ### Horizontal Swing
 
 If your Sensibo app has **Horizontal Swing** control, this plugin will create extra switch accessory in HomeKit to control it.
-To disable the extra horizontal swing  switch accessory, add `"disableHorizontalSwing": true` to your config.
+To disable the extra horizontal swing switch accessory, add `"disableHorizontalSwing": true` to your config.
+
+### Vertical Swing
+
+If your Sensibo app has **Vertical Swing** control, this setting will create extra switch accessory in HomeKit to control it.
+To disable the extra vertical swing switch accessory, add `"disableVerticalSwing": true` to your config.
 
 ### AC Sync Button
 
@@ -165,7 +172,7 @@ It allows you to quickly toggle the state in Sensibo and Home app without changi
 
 When enabled, this feature creates a new switch accessory in HomeKit. The new switch is stateless, which means that when clicked, it turns back OFF after 1 second. behind the scenes, the plugin changes the state of the device from ON to OFF or the other way around, depends on the current state of the device. all of that, without sending actual commands to the AC! so you can relax while you test this button :)
 
-\* *it is extra necessary if your AC has the same command for ON and  OFF because it can go out of sync easily.*
+\* *it is extra necessary if your AC has the same command for ON and OFF because it can go out of sync easily.*
 
 
 **To enable the extra "AC Sync" switch**, add 
