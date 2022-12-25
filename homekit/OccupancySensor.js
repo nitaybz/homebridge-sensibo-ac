@@ -61,7 +61,7 @@ class OccupancySensor {
 	}
 
 	addOccupancySensor() {
-		this.log.easyDebug(`Adding ${this.locationName} Occupancy Sensor Service`)
+		this.log.easyDebug(`Adding OccupancySensorService in the ${this.locationName}`)
 		this.OccupancySensorService = this.accessory.getService(Service.OccupancySensor)
 		if (!this.OccupancySensorService)
 			this.OccupancySensorService = this.accessory.addService(Service.OccupancySensor, this.name, this.type)

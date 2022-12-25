@@ -56,7 +56,7 @@ class HumiditySensor {
 	}
 
 	addHumiditySensorService() {
-		this.log.easyDebug(`Adding Humidity Sensor Service in the ${this.roomName}`)
+		this.log.easyDebug(`Adding HumiditySensorService in the ${this.roomName}`)
 		this.HumiditySensorService = this.accessory.getService(Service.HumiditySensor)
 		if (!this.HumiditySensorService)
 			this.HumiditySensorService = this.accessory.addService(Service.HumiditySensor, this.name, this.type)
