@@ -6,13 +6,9 @@ const storage = require('node-persist')
 const PLUGIN_NAME = 'homebridge-sensibo-ac'
 const PLATFORM_NAME = 'SensiboAC'
 
-module.exports = (api) => {
-	api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, SensiboACPlatform)
-}
-
 class SensiboACPlatform {
-	constructor(log, config, api) {
 
+	constructor(log, config, api) {
 		this.cachedAccessories = []
 		this.activeAccessories = []
 		this.log = log
@@ -31,15 +27,16 @@ class SensiboACPlatform {
 		this.PLATFORM_NAME = PLATFORM_NAME
 
 		// ~~~~~~~~~~~~~~~~~~~~~ Sensibo Specials ~~~~~~~~~~~~~~~~~~~~~ //
-		
+
 		this.apiKey = config['apiKey']
 		this.username = config['username']
 		this.password = config['password']
-		
+
 		if (!this.apiKey && !(this.username && this.password)) {
 			this.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  --  ERROR  --  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
 			this.log('Can\'t start homebridge-sensibo-ac plugin without username and password or API key !!\n')
 			this.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
+
 			return
 		}
 
@@ -55,10 +52,15 @@ class SensiboACPlatform {
 		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
 
 		this.persistPath = path.join(this.api.user.persistPath(), '/../sensibo-persist')
-		this.emptyState = {devices:{}, sensors:{}, occupancy: {}}
+		this.emptyState = {
+			devices:{},
+			sensors:{},
+			occupancy: {}
+		}
 		this.CELSIUS_UNIT = 'C'
 		this.FAHRENHEIT_UNIT = 'F'
 		const requestedInterval = 90000 // Sensibo interval is hardcoded (requested by the brand)
+
 		this.refreshDelay = 5000
 		this.locations = []
 
@@ -75,24 +77,24 @@ class SensiboACPlatform {
 				this.log(content.reduce((previous, current) => {
 					return previous + ' ' + current
 				}))
-			} else
+			} else {
 				this.log.debug(content.reduce((previous, current) => {
 					return previous + ' ' + current
 				}))
+			}
 		}
-		
-		this.api.on('didFinishLaunching', async () => {
 
+		this.api.on('didFinishLaunching', async () => {
 			await this.storage.init({
 				dir: this.persistPath,
 				forgiveParseErrors: true
 			})
 
-
 			this.cachedState = await this.storage.getItem('state') || this.emptyState
-			if (!this.cachedState.devices)
+			if (!this.cachedState.devices) {
 				this.cachedState = this.emptyState
-				
+			}
+
 			this.sensiboApi = await SensiboApi(this)
 
 			try {
@@ -102,18 +104,21 @@ class SensiboACPlatform {
 				this.log('ERR:', err)
 				this.devices = await this.storage.getItem('devices') || []
 			}
-			
+
 			this.syncHomeKitCache()
 
-			if (this.pollingInterval)
+			if (this.pollingInterval) {
 				this.pollingTimeout = setTimeout(this.refreshState, this.pollingInterval)
-			
+			}
 		})
-
 	}
 
 	configureAccessory(accessory) {
 		this.cachedAccessories.push(accessory)
 	}
 
+}
+
+module.exports = (api) => {
+	api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, SensiboACPlatform)
 }

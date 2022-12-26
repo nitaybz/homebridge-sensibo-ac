@@ -1,11 +1,11 @@
 let Characteristic, Service
 
 class ClimateReactSwitch {
-	constructor(airConditioner, platform) {
 
+	constructor(airConditioner, platform) {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
-		
+
 		this.log = airConditioner.log
 		this.api = airConditioner.api
 		this.id = airConditioner.id
@@ -13,7 +13,7 @@ class ClimateReactSwitch {
 		this.serial = airConditioner.serial + '_CR'
 		this.manufacturer = airConditioner.manufacturer
 		this.roomName = airConditioner.roomName
-		this.name = this.roomName + ' Climate React' 
+		this.name = this.roomName + ' Climate React'
 		this.type = 'ClimateReact'
 		this.displayName = this.name
 		this.state = airConditioner.state
@@ -21,7 +21,9 @@ class ClimateReactSwitch {
 		this.stateManager = airConditioner.stateManager
 
 		this.UUID = this.api.hap.uuid.generate(this.id + '_CR')
-		this.accessory = platform.cachedAccessories.find(accessory => accessory.UUID === this.UUID)
+		this.accessory = platform.cachedAccessories.find(accessory => {
+			return accessory.UUID === this.UUID
+		})
 
 		if (!this.accessory) {
 			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
@@ -38,8 +40,9 @@ class ClimateReactSwitch {
 
 		let informationService = this.accessory.getService(Service.AccessoryInformation)
 
-		if (!informationService)
+		if (!informationService) {
 			informationService = this.accessory.addService(Service.AccessoryInformation)
+		}
 
 		informationService
 			.setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
@@ -49,19 +52,17 @@ class ClimateReactSwitch {
 		this.addClimateReactService()
 	}
 
-	
 	addClimateReactService() {
 		this.log.easyDebug(`Adding ClimateReactService in the ${this.roomName}`)
 
 		this.ClimateReactService = this.accessory.getService(Service.Switch)
-		if (!this.ClimateReactService)
+		if (!this.ClimateReactService) {
 			this.ClimateReactService = this.accessory.addService(Service.Switch, this.name, this.type)
+		}
 
-			
 		this.ClimateReactService.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.ClimateReact)
 			.on('set', this.stateManager.set.ClimateReact)
-
 	}
 
 	updateHomeKit() {
@@ -76,8 +77,6 @@ class ClimateReactSwitch {
 		}
 	}
 
-	
 }
-
 
 module.exports = ClimateReactSwitch

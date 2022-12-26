@@ -2,13 +2,13 @@ const unified = require('../sensibo/unified')
 let Characteristic, Service
 
 class AirQualitySensor {
-	constructor(device, platform) {
 
+	constructor(device, platform) {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
 
 		const deviceInfo = unified.deviceInformation(device)
-		
+
 		this.log = platform.log
 		this.api = platform.api
 		this.storage = platform.storage
@@ -19,19 +19,22 @@ class AirQualitySensor {
 		this.serial = deviceInfo.serial
 		this.manufacturer = deviceInfo.manufacturer
 		this.roomName = deviceInfo.roomName
-		this.name = this.roomName + ' Air Quality' 
+		this.name = this.roomName + ' Air Quality'
 		this.type = 'AirQualitySensor'
 		this.displayName = this.name
 
 		this.state = this.cachedState.devices[this.id] = unified.airQualityState(device)
-		
+
 		const StateHandler = require('../sensibo/StateHandler')(this, platform)
+
 		this.state = new Proxy(this.state, StateHandler)
 
 		this.stateManager = require('./StateManager')(this, platform)
 
 		this.UUID = this.api.hap.uuid.generate(this.id + '_airQuality')
-		this.accessory = platform.cachedAccessories.find(accessory => accessory.UUID === this.UUID)
+		this.accessory = platform.cachedAccessories.find(accessory => {
+			return accessory.UUID === this.UUID
+		})
 
 		if (!this.accessory) {
 			this.log.easyDebug(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
@@ -53,14 +56,15 @@ class AirQualitySensor {
 
 		let informationService = this.accessory.getService(Service.AccessoryInformation)
 
-		if (!informationService)
+		if (!informationService) {
 			informationService = this.accessory.addService(Service.AccessoryInformation)
+		}
 
 		informationService
 			.setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
 			.setCharacteristic(Characteristic.Model, this.model)
 			.setCharacteristic(Characteristic.SerialNumber, this.serial)
-			
+
 		this.addAirQualitySensor()
 
 		if (this.model === 'airq') {
@@ -72,28 +76,28 @@ class AirQualitySensor {
 		this.log.easyDebug(`Adding AirQualitySensorService in the ${this.roomName}`)
 		this.AirQualitySensor = this.accessory.getService(Service.AirQualitySensor)
 
-		if (!this.AirQualitySensor)
+		if (!this.AirQualitySensor) {
 			this.AirQualitySensor = this.accessory.addService(Service.AirQualitySensor, this.name, 'AirQualitySensor')
+		}
 
 		this.AirQualitySensor.getCharacteristic(Characteristic.AirQuality)
 			.on('get', this.stateManager.get.AirQuality)
 		this.AirQualitySensor.getCharacteristic(Characteristic.VOCDensity)
 			.on('get', this.stateManager.get.VOCDensity)
-
 	}
 
 	addCarbonDioxideSensor() {
 		this.log.easyDebug(`Adding CarbonDioxideSensorService in the ${this.roomName}`)
 		this.CarbonDioxideSensor = this.accessory.getService(Service.CarbonDioxideSensor)
 
-		if (!this.CarbonDioxideSensor)
+		if (!this.CarbonDioxideSensor) {
 			this.CarbonDioxideSensor = this.accessory.addService(Service.CarbonDioxideSensor, this.name, 'CarbonDioxideSensor')
+		}
 
 		this.CarbonDioxideSensor.getCharacteristic(Characteristic.CarbonDioxideDetected)
 			.on('get', this.stateManager.get.CarbonDioxideDetected)
 		this.CarbonDioxideSensor.getCharacteristic(Characteristic.CarbonDioxideLevel)
 			.on('get', this.stateManager.get.CarbonDioxideLevel)
-
 	}
 
 	updateHomeKit() {
@@ -109,16 +113,20 @@ class AirQualitySensor {
 	updateValue (serviceName, characteristicName, newValue) {
 		this.log.easyDebug(`${this.roomName} - entered updateValue -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
 		const characteristic = this[serviceName]?.getCharacteristic(Characteristic[characteristicName])
+
 		if (typeof characteristic === 'undefined') {
 			this.log.easyDebug(`${this.roomName} - service or characteristic undefined -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
+
 			return
 		}
 		if (newValue !== 0 && newValue !== false && (typeof newValue === 'undefined' || !newValue)) {
 			this.log.easyDebug(`${this.roomName} - WRONG VALUE -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
+
 			return
 		}
 		if (newValue === undefined || newValue === null) {
 			this.log.easyDebug(`${this.roomName} - Undefined/null value -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
+
 			return
 		}
 		// const minAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.minValue
@@ -139,8 +147,6 @@ class AirQualitySensor {
 		}
 	}
 
-	
 }
-
 
 module.exports = AirQualitySensor
