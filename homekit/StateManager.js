@@ -346,6 +346,11 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(GET) - Carbon Dioxide Level is:', carbonDioxideLevel)
 				callback(null, carbonDioxideLevel)
 			},
+
+			SyncButton: (callback) => {
+				log.easyDebug(device.name, '(GET) - Sync Button pressed, no state')
+				callback(null, false)
+			}
 		},
 	
 		set: {
@@ -563,7 +568,7 @@ module.exports = (device, platform) => {
 
 			// AC SYNC BUTTON
 
-			SyncState: (state, callback) => {
+			SyncButton: (state, callback) => {
 				if (state) {
 					log.easyDebug(device.name + ' -> Syncing AC State => Setting ' + (device.state.active ? 'OFF' : 'ON') + ' state without sending commands')
 					device.state.syncState()

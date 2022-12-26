@@ -353,9 +353,10 @@ class AirConditioner {
 
 
 		this.SyncButtonService.getCharacteristic(Characteristic.On)
-			.on('get', (callback) => { callback(null, false) })
+			.on('get', this.stateManager.get.SyncButton)
+			// TODO see if below annoymous function can be moved to StateManager.js
 			.on('set', (state, callback) => {
-				this.stateManager.set.SyncState(state, callback)
+				this.stateManager.set.SyncButton(state, callback)
 				setTimeout(() => {
 					this.SyncButtonService.getCharacteristic(Characteristic.On).updateValue(0)
 				}, 1000)

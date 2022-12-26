@@ -32,6 +32,7 @@ module.exports = (device, platform) => {
 			if (prop === 'syncState')
 				return async() => {
 					try {
+						log.easyDebug(`syncState - syncing ${device.name}`)
 						await sensiboApi.syncDeviceState(device.id, !target.active)
 						target.active = !target.active
 						device.updateHomeKit()
@@ -55,6 +56,7 @@ module.exports = (device, platform) => {
 			// Send Reset Filter command and update value
 			if (prop === 'filterChange') {
 				try {
+					log.easyDebug(`filterChange - updating ${device.name}`)
 					sensiboApi.resetFilterIndicator(device.id)
 				} catch(err) {
 					log('Error occurred! -> Could not reset filter indicator')
