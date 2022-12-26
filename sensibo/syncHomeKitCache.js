@@ -52,7 +52,7 @@ module.exports = (platform) => {
 						platform.activeAccessories.push(airQualitySensor)
 					}
 
-					// Add Sync Button if enabled
+					// Add separate Sync Button if enabled
 					if (platform.enableSyncButton && !platform.syncButtonInAccessory) {
 						const syncButton = new SyncButton(airConditioner, platform)
 
