@@ -86,6 +86,7 @@ module.exports = {
 			capabilities[mode] = {}
 
 			// set temperatures min & max
+			// TODO Check on min and max calcs
 			if (['COOL', 'HEAT', 'AUTO', 'DRY'].includes(mode) && modeCapabilities.temperatures && modeCapabilities.temperatures.C) {
 				capabilities[mode].temperatures = {
 					C: {

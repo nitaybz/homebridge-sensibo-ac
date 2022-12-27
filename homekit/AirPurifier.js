@@ -114,12 +114,12 @@ class AirPurifier {
 	addLightSwitch() {
 		this.log.easyDebug(`Adding PureLightSwitchService in the ${this.roomName}`)
 
-		this.LightSwitch = this.accessory.getService(this.roomName + ' Pure Light')
-		if (!this.LightSwitch) {
-			this.LightSwitch = this.accessory.addService(Service.Lightbulb, this.roomName + ' Pure Light', 'PureLightSwitch')
+		this.PureLightSwitchService = this.accessory.getService(this.roomName + ' Pure Light')
+		if (!this.PureLightSwitchService) {
+			this.PureLightSwitchService = this.accessory.addService(Service.Lightbulb, this.roomName + ' Pure Light', 'PureLightSwitch')
 		}
 
-		this.LightSwitch.getCharacteristic(Characteristic.On)
+		this.PureLightSwitchService.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.LightSwitch)
 			.on('set', this.stateManager.set.LightSwitch)
 	}
@@ -165,8 +165,8 @@ class AirPurifier {
 		}
 
 		// update light switch for AirPurifierService
-		if (this.LightSwitch) {
-			this.updateValue('PureLightSwitch', 'On', this.state.light)
+		if (this.PureLightSwitchService) {
+			this.updateValue('PureLightSwitchService', 'On', this.state.light)
 		}
 
 		// cache last state to storage

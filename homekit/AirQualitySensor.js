@@ -74,29 +74,29 @@ class AirQualitySensor {
 
 	addAirQualitySensor() {
 		this.log.easyDebug(`Adding AirQualitySensorService in the ${this.roomName}`)
-		this.AirQualitySensor = this.accessory.getService(Service.AirQualitySensor)
+		this.AirQualitySensorService = this.accessory.getService(Service.AirQualitySensor)
 
-		if (!this.AirQualitySensor) {
-			this.AirQualitySensor = this.accessory.addService(Service.AirQualitySensor, this.name, 'AirQualitySensor')
+		if (!this.AirQualitySensorService) {
+			this.AirQualitySensorService = this.accessory.addService(Service.AirQualitySensor, this.name, 'AirQualitySensor')
 		}
 
-		this.AirQualitySensor.getCharacteristic(Characteristic.AirQuality)
+		this.AirQualitySensorService.getCharacteristic(Characteristic.AirQuality)
 			.on('get', this.stateManager.get.AirQuality)
-		this.AirQualitySensor.getCharacteristic(Characteristic.VOCDensity)
+		this.AirQualitySensorService.getCharacteristic(Characteristic.VOCDensity)
 			.on('get', this.stateManager.get.VOCDensity)
 	}
 
 	addCarbonDioxideSensor() {
 		this.log.easyDebug(`Adding CarbonDioxideSensorService in the ${this.roomName}`)
-		this.CarbonDioxideSensor = this.accessory.getService(Service.CarbonDioxideSensor)
+		this.CarbonDioxideSensorService = this.accessory.getService(Service.CarbonDioxideSensor)
 
-		if (!this.CarbonDioxideSensor) {
-			this.CarbonDioxideSensor = this.accessory.addService(Service.CarbonDioxideSensor, this.name, 'CarbonDioxideSensor')
+		if (!this.CarbonDioxideSensorService) {
+			this.CarbonDioxideSensorService = this.accessory.addService(Service.CarbonDioxideSensor, this.name, 'CarbonDioxideSensor')
 		}
 
-		this.CarbonDioxideSensor.getCharacteristic(Characteristic.CarbonDioxideDetected)
+		this.CarbonDioxideSensorService.getCharacteristic(Characteristic.CarbonDioxideDetected)
 			.on('get', this.stateManager.get.CarbonDioxideDetected)
-		this.CarbonDioxideSensor.getCharacteristic(Characteristic.CarbonDioxideLevel)
+		this.CarbonDioxideSensorService.getCharacteristic(Characteristic.CarbonDioxideLevel)
 			.on('get', this.stateManager.get.CarbonDioxideLevel)
 	}
 
@@ -115,7 +115,7 @@ class AirQualitySensor {
 		const characteristic = this[serviceName]?.getCharacteristic(Characteristic[characteristicName])
 
 		if (typeof characteristic === 'undefined') {
-			this.log.easyDebug(`${this.roomName} - service or characteristic undefined -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
+			this.log.easyDebug(`${this.roomName} - characteristic undefined -> serviceName: ${serviceName} and characteristicName: ${characteristicName}`)
 
 			return
 		}
@@ -129,10 +129,12 @@ class AirQualitySensor {
 
 			return
 		}
+
 		// const minAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.minValue
 		// const maxAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.maxValue
 		// const validValues = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.validValues
-		const currentValue = this[serviceName].getCharacteristic(Characteristic[characteristicName]).value
+		// const currentValue = this[serviceName].getCharacteristic(Characteristic[characteristicName]).value
+		const currentValue = characteristic.value
 
 		// if (validValues && !validValues.includes(newValue))
 		// newValue = currentValue

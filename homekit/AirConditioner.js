@@ -49,7 +49,7 @@ class AirConditioner {
 		})
 
 		if (!this.accessory) {
-			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
+			this.log.easyDebug(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
 			this.accessory = new this.api.platformAccessory(this.name, this.UUID)
 			this.accessory.context.type = this.type
 			this.accessory.context.deviceId = this.id
@@ -317,12 +317,12 @@ class AirConditioner {
 	addHorizontalSwingSwitch() {
 		this.log.easyDebug(`Adding HorizontalSwingSwitchService in the ${this.roomName}`)
 
-		this.HorizontalSwingSwitch = this.accessory.getService(this.roomName + ' Horizontal Swing')
-		if (!this.HorizontalSwingSwitch) {
-			this.HorizontalSwingSwitch = this.accessory.addService(Service.Switch, this.roomName + ' Horizontal Swing', 'HorizontalSwingSwitch')
+		this.HorizontalSwingSwitchService = this.accessory.getService(this.roomName + ' Horizontal Swing')
+		if (!this.HorizontalSwingSwitchService) {
+			this.HorizontalSwingSwitchService = this.accessory.addService(Service.Switch, this.roomName + ' Horizontal Swing', 'HorizontalSwingSwitch')
 		}
 
-		this.HorizontalSwingSwitch.getCharacteristic(Characteristic.On)
+		this.HorizontalSwingSwitchService.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.HorizontalSwing)
 			.on('set', this.stateManager.set.HorizontalSwing)
 	}
@@ -340,12 +340,12 @@ class AirConditioner {
 	addLightSwitch() {
 		this.log.easyDebug(`Adding LightSwitchService to the AC in the ${this.roomName}`)
 
-		this.LightSwitch = this.accessory.getService(this.roomName + ' AC Light')
-		if (!this.LightSwitch) {
-			this.LightSwitch = this.accessory.addService(Service.Lightbulb, this.roomName + ' AC Light', 'LightSwitch')
+		this.LightSwitchService = this.accessory.getService(this.roomName + ' AC Light')
+		if (!this.LightSwitchService) {
+			this.LightSwitchService = this.accessory.addService(Service.Lightbulb, this.roomName + ' AC Light', 'LightSwitch')
 		}
 
-		this.LightSwitch.getCharacteristic(Characteristic.On)
+		this.LightSwitchService.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.LightSwitch)
 			.on('set', this.stateManager.set.LightSwitch)
 	}
@@ -402,6 +402,7 @@ class AirConditioner {
 		// update measurements
 		this.updateValue('HeaterCoolerService', 'CurrentTemperature', this.state.currentTemperature)
 		this.updateValue('HeaterCoolerService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
+
 		if (this.capabilities.DRY && !this.disableDry) {
 			this.updateValue('DryService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
 		}
@@ -441,13 +442,13 @@ class AirConditioner {
 			}
 
 			// update horizontal swing for HeaterCoolerService
-			if (this.HorizontalSwingSwitch) {
-				this.updateValue('HorizontalSwingSwitch', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
+			if (this.HorizontalSwingSwitchService) {
+				this.updateValue('HorizontalSwingSwitchService', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
 			}
 
 			// update light switch for HeaterCoolerService
-			if (this.LightSwitch) {
-				this.updateValue('LightSwitch', 'On', this.state.light)
+			if (this.LightSwitchService) {
+				this.updateValue('LightSwitchService', 'On', this.state.light)
 			}
 
 			// update fanSpeed for HeaterCoolerService
