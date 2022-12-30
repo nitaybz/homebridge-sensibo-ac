@@ -7,7 +7,20 @@ const integrationName = 'homebridge-sensibo-ac@' + version
 const baseURL = 'https://home.sensibo.com/api/v2'
 let log
 
-function apiRequest(method, url, data) {
+async function apiRequest(method, url, data) {
+	if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
+		log.easyDebug('apiReqest error: No API Token or Authorization Header found')
+
+		try {
+			const token = await getToken(this.username, this.password, this.storage)
+
+			axios.defaults.headers = { 'Authorization': 'Bearer ' + token }
+		} catch(err) {
+			log('apiRequest token error:', err.message || err)
+			throw err
+		}
+	}
+
 	return new Promise((resolve, reject) => {
 		log.easyDebug(`Creating ${method.toUpperCase()} request to Sensibo API --->`)
 		log.easyDebug(baseURL + url)
@@ -43,16 +56,25 @@ function apiRequest(method, url, data) {
 				}
 			})
 			.catch(err => {
-				log(`ERROR: ${err.message}`)
+				const errorContent = {}
+
+				errorContent.message = err.message
+				log(`ERROR: ${errorContent.message}`)
+
 				if (err.response) {
+					log.easyDebug('Error response:')
 					log.easyDebug(err.response.data)
+					errorContent.response = err.response.data
 				}
-				reject(err)
+
+				// log.easyDebug(err)
+				reject(errorContent)
 			})
 	})
 }
 
 function getToken(username, password, storage) {
+	// TODO: check on if the below is required
 	// eslint-disable-next-line no-async-promise-executor
 	return new Promise(async (resolve, reject) => {
 		const token = await storage.getItem('token')
@@ -69,10 +91,10 @@ function getToken(username, password, storage) {
 			password: password,
 			grant_type: 'password',
 			client_id: 'bcrEwCG2mZTvm1vFJOD51DNdJHEaRemMitH1gCWc',
-			scope: 'read+write'
+			scope: 'read write'
 		}
 
-		data = qs.stringify(data, { encode: false })
+		data = qs.stringify(data)
 		const url = 'https://home.sensibo.com/o/token/'
 
 		axios.post(url, data)
@@ -89,17 +111,27 @@ function getToken(username, password, storage) {
 					await storage.setItem('token', tokenObj)
 					resolve(tokenObj.key)
 				} else {
-					const error = `Could NOT complete the the token request -> ERROR: "${response.data}"`
+					const error = `Inner Could NOT complete the the token request -> ERROR: "${response.data}"`
 
 					log(error)
 					reject(error)
 				}
 			})
 			.catch(err => {
-				const error = `Could NOT complete the the token request -> ERROR: "${err.response.data.error_description || err.response.data.error}"`
+				const errorContent = {}
 
-				log(error)
-				reject(error)
+				errorContent.message = `Could NOT complete the the token request - ERROR: "${err.response.data.error_description || err.response.data.error}"`
+
+				log('getToken:', errorContent.message)
+
+				if (err.response) {
+					log.easyDebug('Error response:')
+					log.easyDebug(err.response.data)
+					errorContent.response = err.response.data
+				}
+
+				// log.easyDebug(err)
+				reject(errorContent)
 			})
 	})
 }
@@ -118,6 +150,10 @@ function removePrivateAddress(results) {
 
 module.exports = async function (platform) {
 	log = platform.log
+	// TODO: check on scope of these
+	this.username = platform.username
+	this.password = platform.password
+	this.storage = platform.storage
 
 	if (platform.apiKey) {
 		axios.defaults.params = {
@@ -141,11 +177,19 @@ module.exports = async function (platform) {
 		getAllDevices: async () => {
 			const path = '/users/me/pods'
 			const queryString = 'fields=id,acState,measurements,remoteCapabilities,room,temperatureUnit,productModel,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig,homekitSupported'
+			let allDevices
 
-			const allDevices = await apiRequest('get', path + '?' + queryString)
+			try {
+				allDevices = await apiRequest('get', path + '?' + queryString)
+			} catch(err) {
+				log('getAllDevices ERR:', err.message)
+				throw err
+			}
 
+			// TODO: can return an exception if "get" above fails...
 			return allDevices.filter(device => {
-				return (platform.locationsToInclude.length === 0 || platform.locationsToInclude.includes(device.location.id)
+				return (platform.locationsToInclude.length === 0
+								|| platform.locationsToInclude.includes(device.location.id)
 								|| platform.locationsToInclude.includes(device.location.name))
 							&& !platform.devicesToExclude.includes(device.id)
 							&& !platform.devicesToExclude.includes(device.serial)
