@@ -35,11 +35,27 @@
     "qs": "^6.9.4"
   },
   "devDependencies": {
-    "eslint": "^8.30.0"
+    "eslint": "^8.30.0",
+    "nodemon": "^2.0.20"
   },
   "scripts": {
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "watch": "nodemon"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "."
+    ],
+    "ext": "js",
+    "ignore": [
+      "node_modules"
+    ],
+    "exec": "npx homebridge -I -D",
+    "signal": "SIGTERM",
+    "env": {
+      "NODE_OPTIONS": "--trace-warnings"
+    }
   },
   "funding": [
     {
