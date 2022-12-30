@@ -15,31 +15,32 @@ function characteristicToMode(characteristic) {
 	}
 }
 
+function sanitize(service, characteristic, value) {
+	const minAllowed = service.getCharacteristic(Characteristic[characteristic]).props.minValue
+	const maxAllowed = service.getCharacteristic(Characteristic[characteristic]).props.maxValue
+	const validValues = service.getCharacteristic(Characteristic[characteristic]).props.validValues
+	const currentValue = service.getCharacteristic(Characteristic[characteristic]).value
+
+	if (value !== 0 && (typeof value === 'undefined' || !value)) {
+		return currentValue
+	}
+	if (validValues && !validValues.includes(value)) {
+		return currentValue
+	}
+	if (minAllowed && value < minAllowed) {
+		return currentValue
+	}
+	if (maxAllowed && value > maxAllowed) {
+		return currentValue
+	}
+
+	return value
+}
+
+// TODO: perhaps make this a class?
 module.exports = (device, platform) => {
 	Characteristic = platform.api.hap.Characteristic
 	const log = platform.log
-
-	const sanitize = function (service, characteristic, value) {
-		const minAllowed = service.getCharacteristic(Characteristic[characteristic]).props.minValue
-		const maxAllowed = service.getCharacteristic(Characteristic[characteristic]).props.maxValue
-		const validValues = service.getCharacteristic(Characteristic[characteristic]).props.validValues
-		const currentValue = service.getCharacteristic(Characteristic[characteristic]).value
-
-		if (value !== 0 && (typeof value === 'undefined' || !value)) {
-			return currentValue
-		}
-		if (validValues && !validValues.includes(value)) {
-			return currentValue
-		}
-		if (minAllowed && value < minAllowed) {
-			return currentValue
-		}
-		if (maxAllowed && value > maxAllowed) {
-			return currentValue
-		}
-
-		return value
-	}
 
 	return {
 
@@ -186,7 +187,6 @@ module.exports = (device, platform) => {
 			},
 
 			// FILTER
-
 			FilterChangeIndication: (callback) => {
 				const filterChange = device.state.filterChange
 
@@ -281,7 +281,6 @@ module.exports = (device, platform) => {
 			},
 
 			// ROOM SENSOR
-
 			MotionDetected: (callback) => {
 				const motionDetected = device.state.motionDetected
 
@@ -297,7 +296,6 @@ module.exports = (device, platform) => {
 			},
 
 			// HORIZONTAL SWING
-
 			HorizontalSwing: (callback) => {
 				const horizontalSwing = device.state.horizontalSwing
 
@@ -307,7 +305,6 @@ module.exports = (device, platform) => {
 			},
 
 			// AC LIGHT
-
 			LightSwitch: (callback) => {
 				const light = device.state.light
 
@@ -317,7 +314,6 @@ module.exports = (device, platform) => {
 			},
 
 			// CLIMATE REACT
-
 			ClimateReact: (callback) => {
 				const smartMode = device.state.smartMode
 
@@ -326,7 +322,6 @@ module.exports = (device, platform) => {
 			},
 
 			// OCCUPANCY SENSOR
-
 			OccupancyDetected: (callback) => {
 				const occupancy = device.state.occupancy
 
@@ -335,7 +330,6 @@ module.exports = (device, platform) => {
 			},
 
 			// Air Quality
-
 			AirQuality: (callback) => {
 				const airQuality = device.state.airQuality
 
@@ -371,7 +365,6 @@ module.exports = (device, platform) => {
 		},
 
 		set: {
-
 			ACActive: (state, callback) => {
 				state = !!state
 				log.easyDebug(device.name + ' -> Setting AC state Active:', state)
@@ -483,7 +476,6 @@ module.exports = (device, platform) => {
 			},
 
 			// FILTER
-
 			ResetFilterIndication: (value, callback) => {
 				log.easyDebug(device.name + ' -> Resetting Filter Indication !!')
 				device.state.filterChange = 0
@@ -492,7 +484,6 @@ module.exports = (device, platform) => {
 			},
 
 			// FAN
-
 			FanActive: (state, callback) => {
 				state = !!state
 				log.easyDebug(device.name + ' -> Setting Fan state Active:', state)
@@ -528,7 +519,6 @@ module.exports = (device, platform) => {
 			},
 
 			// DEHUMIDIFIER
-
 			DryActive: (state, callback) => {
 				state = !!state
 				log.easyDebug(device.name + ' -> Setting Dry state Active:', state)
@@ -571,7 +561,6 @@ module.exports = (device, platform) => {
 			},
 
 			// HORIZONTAL SWING
-
 			HorizontalSwing: (state, callback) => {
 				state = state ? 'SWING_ENABLED' : 'SWING_DISABLED'
 				log.easyDebug(device.name + ' -> Setting Horizontal Swing Swing:', state)
@@ -580,7 +569,6 @@ module.exports = (device, platform) => {
 			},
 
 			// AC LIGHT
-
 			LightSwitch: (state, callback) => {
 				log.easyDebug(device.name + ' -> Setting AC Light to', state ? 'ON' : 'OFF')
 				device.state.light = state
@@ -588,7 +576,6 @@ module.exports = (device, platform) => {
 			},
 
 			// AC SYNC BUTTON
-
 			SyncButton: (state, callback) => {
 				if (state) {
 					log.easyDebug(device.name + ' -> Syncing AC State => Setting ' + (device.state.active ? 'OFF' : 'ON') + ' state without sending commands')
@@ -598,7 +585,6 @@ module.exports = (device, platform) => {
 			},
 
 			// CLIMATE REACT
-
 			ClimateReact: (state, callback) => {
 				log.easyDebug(device.name + ' -> Setting Climate React Switch to', state)
 				device.state.smartMode = state
@@ -606,7 +592,6 @@ module.exports = (device, platform) => {
 			},
 
 			// PURE BOOST
-
 			TargetAirPurifierState: (state, callback) => {
 				const pureBoost = !!state
 

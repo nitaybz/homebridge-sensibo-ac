@@ -1,11 +1,11 @@
 const AirConditioner = require('./../homekit/AirConditioner')
 const AirPurifier = require('./../homekit/AirPurifier')
-const RoomSensor = require('./../homekit/RoomSensor')
-const HumiditySensor = require('./../homekit/HumiditySensor')
-const SyncButton = require('./../homekit/SyncButton')
-const ClimateReactSwitch = require('./../homekit/ClimateReactSwitch')
-const OccupancySensor = require('./../homekit/OccupancySensor')
 const AirQualitySensor = require('./../homekit/AirQualitySensor')
+const ClimateReactSwitch = require('./../homekit/ClimateReactSwitch')
+const HumiditySensor = require('./../homekit/HumiditySensor')
+const OccupancySensor = require('./../homekit/OccupancySensor')
+const RoomSensor = require('./../homekit/RoomSensor')
+const SyncButton = require('./../homekit/SyncButton')
 
 module.exports = (platform) => {
 	return () => {
@@ -23,7 +23,7 @@ module.exports = (platform) => {
 			}
 
 			// Add AirConditioner
-			// TODO clean up productModel if condition
+			// FIXME: clean up productModel if condition
 			if (['sky','skyv2','skyplus','air','airq'].includes(device.productModel) || device.productModel.includes('air') || device.productModel.includes('sky')) {
 				const airConditionerIsNew = !platform.activeAccessories.find(accessory => {
 					return accessory.type === 'AirConditioner' && accessory.id === device.id
@@ -42,10 +42,10 @@ module.exports = (platform) => {
 					}
 
 					// Add external Air Quality Sensor if enabled and available
-					// TODO add externalAirQualitySensor option??
+					// TODO: add externalAirQualitySensor option??
 					// e.g. if (['airq'].includes(device.productModel) && platform.externalAirQualitySensor) {
 					if (['airq'].includes(device.productModel)) {
-						// TODO check for a better way to do this
+						// TODO: check for a better way to do this
 						airConditioner.measurements = device.measurements
 						const airQualitySensor = new AirQualitySensor(airConditioner, platform)
 
@@ -122,7 +122,7 @@ module.exports = (platform) => {
 
 			switch(accessory.context.type) {
 			case 'AirConditioner':
-				// TODO clean up productModel matching
+				// FIXME: clean up productModel matching
 				deviceExists = platform.devices.find(device => {
 					return device.id === accessory.context.deviceId
 								&& device.remoteCapabilities

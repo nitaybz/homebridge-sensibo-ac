@@ -200,7 +200,7 @@ class AirConditioner {
 		this.HeaterCoolerService.getCharacteristic(Characteristic.TemperatureDisplayUnits)
 			.on('get', this.stateManager.get.TemperatureDisplayUnits)
 
-		//TODO check on this warning...
+		//TODO: check on this warning...
 		this.HeaterCoolerService.getCharacteristic(Characteristic.CurrentRelativeHumidity)
 			.on('get', this.stateManager.get.CurrentRelativeHumidity)
 
@@ -216,7 +216,7 @@ class AirConditioner {
 				.on('set', this.stateManager.set.ACRotationSpeed)
 		}
 
-		//TODO check on this warning...
+		//TODO: check on this warning...
 		if (this.filterService) {
 			this.HeaterCoolerService.getCharacteristic(Characteristic.FilterChangeIndication)
 				.on('get', this.stateManager.get.FilterChangeIndication)
@@ -370,7 +370,7 @@ class AirConditioner {
 
 		this.SyncButtonService.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.SyncButton)
-			// TODO see if below annoymous function can be moved to StateManager.js
+			// TODO: see if below annoymous function can be moved to StateManager.js
 			.on('set', (state, callback) => {
 				this.stateManager.set.SyncButton(state, callback)
 				setTimeout(() => {

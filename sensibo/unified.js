@@ -86,7 +86,7 @@ module.exports = {
 			capabilities[mode] = {}
 
 			// set temperatures min & max
-			// TODO Check on min and max calcs
+			// FIXME: Check on min and max calcs
 			if (['COOL', 'HEAT', 'AUTO', 'DRY'].includes(mode) && modeCapabilities.temperatures && modeCapabilities.temperatures.C) {
 				capabilities[mode].temperatures = {
 					C: {
@@ -122,7 +122,7 @@ module.exports = {
 				capabilities[mode].horizontalSwing = true
 			}
 
-			// TODO unify how swing works with 3D
+			// TODO: unify how swing works with 3D
 
 			// set light
 			if (modeCapabilities.light) {

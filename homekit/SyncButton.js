@@ -61,7 +61,7 @@ class SyncButton {
 
 		this.SyncButtonService.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.SyncButton)
-			// TODO see if below annoymous function can be moved to StateManager.js
+			// TODO: see if below annoymous function can be moved to StateManager.js
 			.on('set', (state, callback) => {
 				this.stateManager.set.SyncButton(state, callback)
 				setTimeout(() => {
