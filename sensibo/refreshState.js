@@ -31,25 +31,10 @@ module.exports = (platform) => {
 					const airConditioner = platform.activeAccessories.find(accessory => {
 						return accessory.type === 'AirConditioner' && accessory.id === device.id
 					})
-					const airPurifier = platform.activeAccessories.find(accessory => {
-						return accessory.type === 'AirPurifier' && accessory.id === device.id
-					})
-					const airQualitySensor = platform.activeAccessories.find(accessory => {
-						return accessory.type === 'AirQualitySensor' && accessory.id === device.id
-					})
 
 					if (airConditioner) {
 						// Update AC state in cache + HomeKit
 						airConditioner.state.update(unified.acState(device))
-
-						// Update Humidity Sensor state in HomeKit
-						const humiditySensor = platform.activeAccessories.find(accessory => {
-							return accessory.type === 'HumiditySensor' && accessory.id === device.id
-						})
-
-						if (humiditySensor) {
-							humiditySensor.updateHomeKit()
-						}
 
 						// Update Climate React Switch state in HomeKit
 						const climateReactSwitch = platform.activeAccessories.find(accessory => {
@@ -61,14 +46,31 @@ module.exports = (platform) => {
 						}
 					}
 
+					const airPurifier = platform.activeAccessories.find(accessory => {
+						return accessory.type === 'AirPurifier' && accessory.id === device.id
+					})
+
 					// Update Pure state in cache + HomeKit
 					if (airPurifier) {
 						airPurifier.state.update(unified.acState(device))
 					}
 
+					const airQualitySensor = platform.activeAccessories.find(accessory => {
+						return accessory.type === 'AirQualitySensor' && accessory.id === device.id
+					})
+
 					// Update Air Quality Sensor state in cache + HomeKit
 					if (airQualitySensor) {
 						airQualitySensor.state.update(unified.airQualityState(device))
+					}
+
+					// Update Humidity Sensor state in HomeKit
+					const humiditySensor = platform.activeAccessories.find(accessory => {
+						return accessory.type === 'HumiditySensor' && accessory.id === device.id
+					})
+
+					if (humiditySensor) {
+						humiditySensor.updateHomeKit()
 					}
 
 					// Update Room Sensor state in cache + HomeKit
@@ -106,7 +108,7 @@ module.exports = (platform) => {
 				// block new requests for extra 5 seconds
 				setTimeout(() => {
 					platform.processingState = false
-				}, 5000)
+				}, platform.refreshDelay)
 			}, platform.refreshDelay)
 		}
 	}

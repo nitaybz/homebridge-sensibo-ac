@@ -73,8 +73,11 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "platform": "SensiboAC",
         "apiKey": "***************",
         "allowRepeatedCommands": false,
+        "disableAirQuality": false,
+        "disableCarbonDioxide": false,
         "disableDry": false,
         "disableFan": false,
+        "disableHumidity": false,
         "disableHorizontalSwing": false,
         "disableVerticalSwing": false,
         "disableLightSwitch": false,
@@ -96,27 +99,31 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 
 *advanced details below
 
-|             Parameter            |                       Description                       | Required |  Default |   type   |
-| -------------------------------- | ------------------------------------------------------- |:--------:|:--------:|:--------:|
-| `platform`                 |  always "SensiboAC"                                           |     ✓    |     -    |  String  |
-| `username`                 |  Your Sensibo account username/email                          |     ✓    |     -    |  String  |
-| `password`                 |  Your Sensibo account password                                |     ✓    |     -    |  String  |
-| `apiKey`                   |  Your Sensibo account API key (can be used instead of username/password) |          |     -    |  String  |
-| `allowRepeatedCommands`  |  Allow the plugin to send the same state command again      |          |  `false` |  Boolean  |
-| `disableDry`               |  When set to `true`, it will disable the DRY accessory        |          |  `false` |  Boolean |
-| `disableFan`               |  When set to `true`, it will disable the FAN accessory        |          |  `false` |  Boolean |
-| `disableHorizontalSwing`   |  Disable horizontal swing control (via extra switch)          |          |  `false` |  Boolean |
-| `disableVerticalSwing`     |  Disable Vertical swing control (via extra switch)            |          |  `false` |  Boolean |
-| `disableLightSwitch` |  Disable the Light service to control the AC Light (via extra light bulb)  |          |  `false` |  Boolean |
-| `enableClimateReactSwitch` |  Adding a switch to quickly enable/disable climate react.     |          |  `false` |  Boolean  |
+|          Parameter         |                       Description                                | Required |  Default |   type   |
+| -------------------------- | ---------------------------------------------------------------- |:--------:|:--------:|:--------:|
+| `platform`                 |  always "SensiboAC"                                              |     ✓    |     -    |  String  |
+| `username`                 |  Your Sensibo account username/email                             |     ✓    |     -    |  String  |
+| `password`                 |  Your Sensibo account password                                   |     ✓    |     -    |  String  |
+| `apiKey`                   |  Your Sensibo account API key (can be used instead of username/password)    |          |     -    |  String  |
+| `allowRepeatedCommands`    |  Allow the plugin to send the same state command again           |          |  `false` |  Boolean |
+| `disableAirQuality`        |  When set to `true`, will remove Air Quality readings            |          |  `false` |  Boolean |
+| `disableCarbonDioxide`     |  When set to `true`, will remove Carbon Dioxide readings and warnings       |          |  `false` |  Boolean |
+| `disableDry`               |  When set to `true`, it will disable the DRY accessory           |          |  `false` |  Boolean |
+| `disableFan`               |  When set to `true`, it will disable the FAN accessory           |          |  `false` |  Boolean |
+| `disableHumidity`          |  When set to `true`, will remove Humidity readings               |          |  `false` |  Boolean |
+| `disableLightSwitch`       |  Disable the Light service to control the AC Light (via extra light bulb)   |          |  `false` |  Boolean |
+| `disableHorizontalSwing`   |  Disable horizontal swing control (via extra switch)             |          |  `false` |  Boolean |
+| `disableVerticalSwing`     |  Disable Vertical swing control (via extra switch)               |          |  `false` |  Boolean |
+| `enableClimateReactSwitch` |  Adding a switch to quickly enable/disable climate react.        |          |  `false` |  Boolean |
 | `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app  |         |  `false` |   Boolean |
-| `enableOccupancySensor`    |  Adding occupancy sensor to represent the state of someone at home   |         |  `false` |  Boolean  |
+| `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home         |          |  `false` |  Boolean  |
 | `enableSyncButton`         |  Adding a switch to quickly toggle the state of the AC without sending commands to the AC.   |          |  `false` |  Boolean  |
-| `syncButtonInAccessory`         |  When set to `true`, it will remove the extra AC Sync switch if it exists and will show \"AC Sync Button\" attached as a service to the Same AC Accessory (works only when `enableSyncButton` is set to true)   |          |  `false` |  Boolean  |
-| `devicesToExclude`       |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge        |          |  - |  String[]  |
-| `ignoreHomeKitDevices`  |  Automatically ignore, skip or remove HomeKit supported devices             |          |  `false` |  Boolean  |
+| `syncButtonInAccessory`    |  When set to `true`, it will remove the extra AC Sync switch if it exists and will show \"AC Sync Button\" attached as a service to the Same AC Accessory (works only when `enableSyncButton` is set to true)   |          |  `false` |  Boolean  |
+| `externalHumiditySensor`   |  Creates an additional Humidity sensor accessory                 |          |  `false` |  Boolean |
+| `devicesToExclude`         |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge        |          |  - |  String[]  |
+| `ignoreHomeKitDevices`     |  Automatically ignore, skip or remove HomeKit supported devices  |          |  `false` |  Boolean |
 | `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)        |          |  - |  String[]  |
-| `debug`       |  When set to `true`, the plugin will produce extra logs for debugging purposes        |          |  `false` |  Boolean  |
+| `debug`                    |  When set to `true`, the plugin will produce extra logs for debugging purposes         |          |  `false` |  Boolean  |
 
 ## Advanced Control
 

@@ -5,7 +5,6 @@ module.exports = (device, platform) => {
 	let setTimer = null
 	let preventTurningOff = false
 	const sensiboApi = platform.sensiboApi
-
 	const log = platform.log
 	// const state = device.state
 
@@ -130,6 +129,7 @@ module.exports = (device, platform) => {
 
 					return
 				}
+
 				setTimeout(() => {
 					device.updateHomeKit()
 					platform.setProcessing = false

@@ -17,14 +17,16 @@ module.exports = (platform) => {
 			}
 
 			if (!device.remoteCapabilities) {
-				platform.log.easyDebug(`Ignoring as no remote capabilities available device: ${device.id}`)
+				platform.log.easyDebug(`Ignoring as no remote capabilities available for device: ${device.id}`)
 
 				return
 			}
 
 			// Add AirConditioner
 			// FIXME: clean up productModel if condition
-			if (['sky','skyv2','skyplus','air','airq'].includes(device.productModel) || device.productModel.includes('air') || device.productModel.includes('sky')) {
+			if (['sky','skyv2','skyplus','air','airq'].includes(device.productModel)
+					|| device.productModel.includes('air')
+					|| device.productModel.includes('sky')) {
 				const airConditionerIsNew = !platform.activeAccessories.find(accessory => {
 					return accessory.type === 'AirConditioner' && accessory.id === device.id
 				})

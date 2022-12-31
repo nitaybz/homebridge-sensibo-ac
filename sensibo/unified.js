@@ -1,4 +1,3 @@
-
 function fanLevelToHK(value, fanLevels) {
 	if (value === 'auto') {
 		return 0
@@ -252,4 +251,5 @@ module.exports = {
 
 		return acState
 	}
+
 }

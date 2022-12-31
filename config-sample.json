@@ -1,29 +1,33 @@
 {
   "bridge": {
     "name": "Homebridge",
-    "username": "CD:22:3D:E3:CE:30",
+    "username": "AA:22:00:FF:55:EE",
     "port": 51826,
-    "pin": "031-45-154"
+    "pin": "012-45-789"
   },
 
   "description": "This is an example configuration for the sensibo-ac homebridge plugin",
   "platforms": [
     {
       "platform": "SensiboAC",
-      "username": "******@*******.**",
-      "password": "*******",
-      "disableFan": false,
+      "apiKey": "***************",
+      "allowRepeatedCommands": false,
+      "disableAirQuality": false,
+      "disableCarbonDioxide": false,
       "disableDry": false,
-      "enableSyncButton": true,
-      "syncButtonInAccessory": false,
-      "enableOccupancySensor": true,
-      "enableClimateReactSwitch": true,
-      "enableHistoryStorage": true,
+      "disableFan": false,
+      "disableHumidity": false,
+      "disableLightSwitch": false,
       "disableHorizontalSwing": false,
       "disableVerticalSwing": false,
-      "disableLightSwitch": false,
+      "enableClimateReactSwitch": false,
+      "enableHistoryStorage": false,
+      "enableOccupancySensor": false,
+      "enableSyncButton": false,
+      "syncButtonInAccessory": false,
       "externalHumiditySensor": false,
       "devicesToExclude": [],
+      "ignoreHomeKitDevices": false,
       "locationsToInclude": [],
       "debug": false
     }

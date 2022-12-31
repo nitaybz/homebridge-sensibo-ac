@@ -16,12 +16,6 @@ class SensiboACPlatform {
 		this.storage = storage
 		this.refreshState = refreshState(this)
 		this.syncHomeKitCache = syncHomeKitCache(this)
-		this.name = config['name'] || PLATFORM_NAME
-		this.disableFan = config['disableFan'] || false
-		this.disableDry = config['disableDry'] || false
-		this.enableHistoryStorage = config['enableHistoryStorage'] || false
-		this.locationsToInclude = config['locationsToInclude'] || []
-		this.devicesToExclude = config['devicesToExclude'] || []
 		this.debug = config['debug'] || false
 		this.PLUGIN_NAME = PLUGIN_NAME
 		this.PLATFORM_NAME = PLATFORM_NAME
@@ -40,16 +34,22 @@ class SensiboACPlatform {
 			return
 		}
 
-		this.externalHumiditySensor = config['externalHumiditySensor'] || false
+		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
+		this.devicesToExclude = config['devicesToExclude'] || []
+		this.disableDry = config['disableDry'] || false
+		this.disableFan = config['disableFan'] || false
+		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
+		this.disableLightSwitch = config['disableLightSwitch'] || false
+		this.disableVerticalSwing = config['disableVerticalSwing'] || false
+		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
+		this.enableHistoryStorage = config['enableHistoryStorage'] || false
 		this.enableOccupancySensor = config['enableOccupancySensor'] || false
 		this.enableSyncButton = config['enableSyncButton'] || false
-		this.syncButtonInAccessory = config['syncButtonInAccessory'] || false
-		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
-		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
-		this.disableVerticalSwing = config['disableVerticalSwing'] || false
-		this.disableLightSwitch = config['disableLightSwitch'] || false
-		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
+		this.externalHumiditySensor = config['externalHumiditySensor'] || false
 		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
+		this.locationsToInclude = config['locationsToInclude'] || []
+		this.name = config['name'] || PLATFORM_NAME
+		this.syncButtonInAccessory = config['syncButtonInAccessory'] || false
 
 		this.persistPath = path.join(this.api.user.persistPath(), '/../sensibo-persist')
 		this.emptyState = {
@@ -59,17 +59,17 @@ class SensiboACPlatform {
 		}
 		this.CELSIUS_UNIT = 'C'
 		this.FAHRENHEIT_UNIT = 'F'
-		const requestedInterval = 90000 // Sensibo interval is hardcoded (requested by the brand)
-
-		this.refreshDelay = 5000
 		this.locations = []
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
-		this.setProcessing = false
+		const requestedInterval = 90000 // Sensibo interval is hardcoded (requested by the brand)
+
+		this.refreshDelay = 5000
+		this.pollingInterval = requestedInterval - this.refreshDelay
 		this.pollingTimeout = null
 		this.processingState = false
-		this.pollingInterval = requestedInterval - this.refreshDelay
+		this.setProcessing = false
 
 		// define debug method to output debug logs when enabled in the config
 		this.log.easyDebug = (...content) => {
@@ -91,6 +91,7 @@ class SensiboACPlatform {
 			})
 
 			this.cachedState = await this.storage.getItem('state') || this.emptyState
+
 			if (!this.cachedState.devices) {
 				this.cachedState = this.emptyState
 			}
