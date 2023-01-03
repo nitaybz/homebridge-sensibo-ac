@@ -152,7 +152,7 @@ module.exports = {
 			if (acOnSecondsSinceLastFiltersClean > filtersCleanSecondsThreshold) {
 				state.filterLifeLevel = 0
 			} else {
-				state.filterLifeLevel =  100 - Math.floor(acOnSecondsSinceLastFiltersClean/filtersCleanSecondsThreshold*100)
+				state.filterLifeLevel = 100 - Math.floor(acOnSecondsSinceLastFiltersClean/filtersCleanSecondsThreshold*100)
 			}
 		}
 

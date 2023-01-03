@@ -137,7 +137,7 @@ function getToken(username, password, storage) {
 }
 
 function removePrivateAddress(results) {
-	return results.map(result =>  {
+	return results.map(result => {
 		result.location && (result.location = {
 			occupancy: result.location.occupancy,
 			name: result.location.name,
