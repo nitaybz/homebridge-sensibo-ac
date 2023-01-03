@@ -1,38 +1,38 @@
 {
-  "bridge": {
-    "name": "Homebridge",
-    "username": "AA:22:00:FF:55:EE",
-    "port": 51826,
-    "pin": "012-45-789"
-  },
+	"bridge": {
+		"name": "Homebridge",
+		"username": "AA:22:00:FF:55:EE",
+		"port": 51826,
+		"pin": "012-45-789"
+	},
 
-  "description": "This is an example configuration for the sensibo-ac homebridge plugin",
-  "platforms": [
-    {
-      "platform": "SensiboAC",
-      "apiKey": "***************",
-      "allowRepeatedCommands": false,
-      "disableAirQuality": false,
-      "disableCarbonDioxide": false,
-      "disableDry": false,
-      "disableFan": false,
-      "disableHumidity": false,
-      "disableLightSwitch": false,
-      "disableHorizontalSwing": false,
-      "disableVerticalSwing": false,
-      "enableClimateReactSwitch": false,
-      "enableHistoryStorage": false,
-      "enableOccupancySensor": false,
-      "enableSyncButton": false,
-      "syncButtonInAccessory": false,
-      "externalHumiditySensor": false,
-      "devicesToExclude": [],
-      "ignoreHomeKitDevices": false,
-      "locationsToInclude": [],
-      "debug": false
-    }
-  ],
+	"description": "This is an example configuration for the sensibo-ac homebridge plugin",
+	"platforms": [
+		{
+			"platform": "SensiboAC",
+			"apiKey": "***************",
+			"allowRepeatedCommands": false,
+			"disableAirQuality": false,
+			"disableCarbonDioxide": false,
+			"disableDry": false,
+			"disableFan": false,
+			"disableHumidity": false,
+			"disableLightSwitch": false,
+			"disableHorizontalSwing": false,
+			"disableVerticalSwing": false,
+			"enableClimateReactSwitch": false,
+			"enableHistoryStorage": false,
+			"enableOccupancySensor": false,
+			"enableSyncButton": false,
+			"syncButtonInAccessory": false,
+			"externalHumiditySensor": false,
+			"devicesToExclude": [],
+			"ignoreHomeKitDevices": false,
+			"locationsToInclude": [],
+			"debug": false
+		}
+	],
 
-  "accessories": [
-  ]
+	"accessories": [
+	]
 }
