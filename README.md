@@ -113,7 +113,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 | `disableHumidity`          |  When set to `true`, will remove Humidity readings               |          |  `false` |  Boolean |
 | `disableLightSwitch`       |  Disable the Light service to control the AC Light (via extra light bulb)   |          |  `false` |  Boolean |
 | `disableHorizontalSwing`   |  Disable horizontal swing control (via extra switch)             |          |  `false` |  Boolean |
-| `disableVerticalSwing`     |  Disable Vertical swing control (via extra switch)               |          |  `false` |  Boolean |
+| `disableVerticalSwing`     |  Disable Vertical swing control (removes option from accessory)  |          |  `false` |  Boolean |
 | `enableClimateReactSwitch` |  Adding a switch to quickly enable/disable climate react.        |          |  `false` |  Boolean |
 | `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app  |         |  `false` |   Boolean |
 | `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home         |          |  `false` |  Boolean  |

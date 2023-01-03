@@ -82,8 +82,8 @@
 				"required": false
 			},
 			"disableVerticalSwing": {
-				"title": "Disable Vertical Swing (Switch)",
-				"description": "Disable vertical swing control (via extra switch)",
+				"title": "Disable Vertical Swing",
+				"description": "Disable vertical swing control, removes the 'Oscillate' switch from the accessory details",
 				"type": "boolean",
 				"default": false,
 				"required": false
