@@ -111,17 +111,27 @@ module.exports = {
 				}
 			}
 
-			// set swing
-			if (modeCapabilities.swing && modeCapabilities.swing.includes('rangeFull')) {
-				capabilities[mode].swing = true
+			// set vertical swing
+			if (modeCapabilities.swing) {
+				if (modeCapabilities.swing.includes('both')) {
+					capabilities[mode].horizontalSwing = true
+					capabilities[mode].verticalSwing = true
+					capabilities[mode].threeDimensionalSwing = true
+				} else {
+					if (modeCapabilities.swing.includes('rangeFull')) {
+						capabilities[mode].verticalSwing = true
+					}
+
+					if (modeCapabilities.swing.includes('horizontal')) {
+						capabilities[mode].horizontalSwing = true
+					}
+				}
 			}
 
 			// set horizontal swing
-			if (modeCapabilities.horizontalSwing && modeCapabilities.horizontalSwing.includes('rangeFull')) {
+			if (!capabilities[mode].horizontalSwing && modeCapabilities.horizontalSwing && modeCapabilities.horizontalSwing.includes('rangeFull')) {
 				capabilities[mode].horizontalSwing = true
 			}
-
-			// TODO: unify how swing works with 3D
 
 			// set light
 			if (modeCapabilities.light) {
@@ -162,7 +172,7 @@ module.exports = {
 		const modeCapabilities = device.remoteCapabilities.modes[device.acState.mode]
 
 		if (modeCapabilities.swing && modeCapabilities.swing.includes('rangeFull')) {
-			state.swing = device.acState.swing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
+			state.verticalSwing = device.acState.verticalSwing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
 		}
 
 		if (modeCapabilities.horizontalSwing && modeCapabilities.horizontalSwing.includes('rangeFull')) {
@@ -237,12 +247,24 @@ module.exports = {
 			targetTemperature: device.usesFahrenheit ? toFahrenheit(state.targetTemperature) : state.targetTemperature
 		}
 
-		if ('swing' in device.capabilities[state.mode]) {
-			acState.swing = state.swing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
-		}
+		if ('threeDimensionalSwing' in device.capabilities[state.mode]) {
+			if ((state.horizontalSwing === 'SWING_ENABLED') && (state.verticalSwing === 'SWING_ENABLED')) {
+				acState.swing = 'both'
+			} else if (state.verticalSwing === 'SWING_ENABLED') {
+				acState.swing =  'rangeFull'
+			} else if (state.horizontalSwing === 'SWING_ENABLED') {
+				acState.swing = 'horizontal'
+			} else {
+				acState.swing = 'stopped'
+			}
+		} else {
+			if ('verticalSwing' in device.capabilities[state.mode]) {
+				acState.swing = state.verticalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+			}
 
-		if ('horizontalSwing' in device.capabilities[state.mode]) {
-			acState.horizontalSwing = state.horizontalSwing ==='SWING_ENABLED' ? 'rangeFull' : 'stopped'
+			if ('horizontalSwing' in device.capabilities[state.mode]) {
+				acState.horizontalSwing = state.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+			}
 		}
 
 		if ('fanSpeeds' in device.capabilities[state.mode]) {
