@@ -186,7 +186,7 @@ module.exports = async function (platform) {
 				throw err
 			}
 
-			// TODO: can return an exception if "get" above fails...
+			// TODO: the below will return an exception if above "get" fails... null check?
 			return allDevices.filter(device => {
 				return (platform.locationsToInclude.length === 0
 								|| platform.locationsToInclude.includes(device.location.id)

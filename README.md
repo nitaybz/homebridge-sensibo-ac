@@ -102,9 +102,9 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 |          Parameter         |                       Description                                | Required |  Default |   type   |
 | -------------------------- | ---------------------------------------------------------------- |:--------:|:--------:|:--------:|
 | `platform`                 |  always "SensiboAC"                                              |     ✓    |     -    |  String  |
-| `username`                 |  Your Sensibo account username/email                             |     ✓    |     -    |  String  |
-| `password`                 |  Your Sensibo account password                                   |     ✓    |     -    |  String  |
-| `apiKey`                   |  Your Sensibo account API key (can be used instead of username/password)    |          |     -    |  String  |
+| `username`                 |  Your Sensibo account username/email                             |     ✓*   |     -    |  String  |
+| `password`                 |  Your Sensibo account password                                   |     ✓*   |     -    |  String  |
+| `apiKey`                   |  Your Sensibo account API key (can be used instead of username/password)    |     ✓*   |     -    |  String  |
 | `allowRepeatedCommands`    |  Allow the plugin to send the same state command again           |          |  `false` |  Boolean |
 | `disableAirQuality`        |  When set to `true`, will remove Air Quality readings            |          |  `false` |  Boolean |
 | `disableCarbonDioxide`     |  When set to `true`, will remove Carbon Dioxide readings and warnings       |          |  `false` |  Boolean |
@@ -113,16 +113,16 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 | `disableHumidity`          |  When set to `true`, will remove Humidity readings               |          |  `false` |  Boolean |
 | `disableLightSwitch`       |  Disable the Light service to control the AC Light (via extra light bulb)   |          |  `false` |  Boolean |
 | `disableHorizontalSwing`   |  Disable horizontal swing control (via extra switch)             |          |  `false` |  Boolean |
-| `disableVerticalSwing`     |  Disable Vertical swing control (removes option from accessory)  |          |  `false` |  Boolean |
-| `enableClimateReactSwitch` |  Adding a switch to quickly enable/disable climate react.        |          |  `false` |  Boolean |
+| `disableVerticalSwing`     |  Disable vertical swing control (removes option from accessory)  |          |  `false` |  Boolean |
+| `enableClimateReactSwitch` |  Adds a switch to enable/disable Climate React                   |          |  `false` |  Boolean |
 | `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app  |         |  `false` |   Boolean |
 | `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home         |          |  `false` |  Boolean  |
-| `enableSyncButton`         |  Adding a switch to quickly toggle the state of the AC without sending commands to the AC.   |          |  `false` |  Boolean  |
-| `syncButtonInAccessory`    |  When set to `true`, it will remove the extra AC Sync switch if it exists and will show \"AC Sync Button\" attached as a service to the Same AC Accessory (works only when `enableSyncButton` is set to true)   |          |  `false` |  Boolean  |
+| `enableSyncButton`         |  When set to `true`, adds a standalone **AC Sync Switch** to toggle the state of the AC in Home app, without sending a command to the accessory  |          |  `false` |  Boolean  |
+| `syncButtonInAccessory`    |  When set to `true`, adds an **AC Sync Switch**, like `enableSyncButton` above, attached to the AC Accessory. It will also remove the standalone Sync Switch (if one exists)  |          |  `false` |  Boolean  |
 | `externalHumiditySensor`   |  Creates an additional Humidity sensor accessory                 |          |  `false` |  Boolean |
-| `devicesToExclude`         |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge        |          |  - |  String[]  |
+| `devicesToExclude`         |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge  |          |  - |  String[]  |
 | `ignoreHomeKitDevices`     |  Automatically ignore, skip or remove HomeKit supported devices  |          |  `false` |  Boolean |
-| `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)        |          |  - |  String[]  |
+| `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)  |          |  - |  String[]  |
 | `debug`                    |  When set to `true`, the plugin will produce extra logs for debugging purposes         |          |  `false` |  Boolean  |
 
 ## Advanced Control
@@ -146,17 +146,17 @@ In practice:
 The accessory state will be updated in the background every 90 seconds, this is hard coded and requested specifically by Sensibo company.
 The state will also refresh every time you open the "Home" app or any related HomeKit app.
 
-### Fan Mode
-
-If your Sensibo app can control your AC **FAN** mode, this plugin will create extra fan accessory in HomeKit to control the FAN mode of your device. It will also include all the fan speeds and swing possibilities you have for FAN mode.
-
-To disable the extra fan accessory, add `"disableFan": true` to your config.
-
 ### Dry Mode
 
 If your Sensibo app can control your AC **DRY** mode, the plugin will create extra dehumidifier accessory in HomeKit to control the DRY mode of your device. It will also include all the fan speeds and swing possibilities you have for DRY mode.
 
 To disable the extra dehumidifier accessory, add `"disableDry": true` to your config.
+
+### Fan Mode
+
+If your Sensibo app can control your AC **FAN** mode, this plugin will create extra fan accessory in HomeKit to control the FAN mode of your device. It will also include all the fan speeds and swing possibilities you have for FAN mode.
+
+To disable the extra fan accessory, add `"disableFan": true` to your config.
 
 ### Horizontal Swing
 
@@ -180,7 +180,7 @@ If you have ever found yourself struggling with the above, this feature is exact
 
 It allows you to quickly toggle the state in Sensibo and Home app without changing the real state of your device, this will help you to quickly sync between them.
 
-When enabled, this feature creates a new switch accessory in HomeKit. The new switch is stateless, which means that when clicked, it turns back OFF after 1 second. behind the scenes, the plugin changes the state of the device from ON to OFF or the other way around, depends on the current state of the device. all of that, without sending actual commands to the AC! so you can relax while you test this button :)
+When enabled, this feature creates a new switch accessory. The switch is stateless, which means that when clicked, it turns back OFF after 1 second. Behind the scenes, the plugin changes the state of the device from ON to OFF or the other way around, depending on the current state of the device, without sending actual commands to the AC.
 
 \* *This can be required if your AC has the same command for ON and OFF because it can go out of sync easily.*
 
@@ -210,9 +210,9 @@ To enable the extra **Climate React** switch, add `"enableClimateReactSwitch": t
 
 If you have the Filter Cleaning notifications feature in Sensibo (from Sensibo "Plus" subscription or via old account) it will appear in the AC settings in HomeKit in this form:
 
-1. **Filer Life Level** - Relative (0-100%) representation of the filter life level. calculated from the last time it was cleaned until the next time it should be clean
+1. **Filer Life Level** - Relative (0-100%) representation of the filter life level. Calculated from the last time it was cleaned until the next time it should be cleaned
 2. **Filter Change Indication** - Boolean state represent whether the filter should be cleaned or not (based on usage time).
-3. **Reset Filter Indication** - Stateless button appears only in Eve app that resets the counter of the filter life. normally you would click this button right after you cleaned the filters.
+3. **Reset Filter Indication** - Stateless button appears only in Eve app that resets the counter of the filter life. Normally you would click this button right after you cleaned the filters.
 
 ### History Storage
 
@@ -222,7 +222,7 @@ To enable the **history storage** feature, add `"enableHistoryStorage": true` to
 
 ### Fan speeds & "AUTO" speed
 
-Fan speed steps are determined by the steps you have available in the Sensibo app. Since HomeKit control over fan speed is with a slider between 0-100, the plugin converts the steps you have in the Sensibo app to values between 1 to 100, when 100 is highest and 1 is lowest. if "AUTO" speed is available in your setup, setting the fan speed to 0, should actually set it to "AUTO" speed.
+Fan speed steps are determined by the steps you have available in the Sensibo app. Since HomeKit control over fan speed is with a slider between 0-100, the plugin converts the steps you have in the Sensibo app to values between 1 to 100, when 100 is highest and 1 is lowest. If "AUTO" speed is available in your setup, setting the fan speed to 0, should actually set it to "AUTO" speed.
 
 ### Issues & Debug
 
@@ -236,7 +236,7 @@ Great thanks to Sensibo company and especially Omer Enbar, their CEO & CO-Founde
 
 ## Support homebridge-sensibo-ac
 
-**homebridge-sensibo-ac** is a free plugin under the GNU license. it was developed as a contribution to the homebridge/hoobs community with lots of love and thoughts.
+**homebridge-sensibo-ac** is a free plugin under the GNU license. It was developed as a contribution to the homebridge/hoobs community with lots of love and thoughts.
 
 Creating and maintaining Homebridge plugins consume a lot of time and effort and if you would like to share your appreciation, feel free to "Star" or donate.
 

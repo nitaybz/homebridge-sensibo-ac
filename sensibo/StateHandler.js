@@ -6,7 +6,6 @@ module.exports = (device, platform) => {
 	let preventTurningOff = false
 	const sensiboApi = platform.sensiboApi
 	const log = platform.log
-	// const state = device.state
 
 	return {
 		get: (target, prop) => {
@@ -30,6 +29,7 @@ module.exports = (device, platform) => {
 			}
 
 			// return a function to sync ac state
+			// TODO: should  be moved to be a 'set' below, see also StateManager line 576
 			if (prop === 'syncState') {
 				return async() => {
 					try {
@@ -114,8 +114,7 @@ module.exports = (device, platform) => {
 
 				const sensiboNewState = unified.sensiboFormattedState(device, state)
 
-				log.easyDebug(device.name, ' -> Setting New State:')
-				log.easyDebug(JSON.stringify(sensiboNewState, null, 2))
+				log.easyDebug(`Device: ${device.name} -> Setting New State: ${JSON.stringify(sensiboNewState, null, 4)}`)
 
 				try {
 					// send state command to Sensibo
@@ -133,7 +132,7 @@ module.exports = (device, platform) => {
 				setTimeout(() => {
 					device.updateHomeKit()
 					platform.setProcessing = false
-				}, 500)
+				}, (setTimeoutDelay / 2))
 			}, setTimeoutDelay)
 
 			return true

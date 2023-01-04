@@ -24,7 +24,7 @@ class AirPurifier {
 		this.displayName = this.name
 		this.disableLightSwitch = platform.disableLightSwitch
 		this.filterService = deviceInfo.filterService
-		this.capabilities = unified.capabilities(device)
+		this.capabilities = unified.capabilities(device, platform)
 
 		this.state = this.cachedState.devices[this.id] = unified.acState(device)
 

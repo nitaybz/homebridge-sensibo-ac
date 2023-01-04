@@ -33,7 +33,7 @@ class AirConditioner {
 		this.disableLightSwitch = platform.disableLightSwitch
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
 		this.filterService = deviceInfo.filterService
-		this.capabilities = unified.capabilities(device)
+		this.capabilities = unified.capabilities(device, platform)
 
 		this.state = this.cachedState.devices[this.id] = unified.acState(device)
 
@@ -133,9 +133,11 @@ class AirConditioner {
 		if (this.capabilities.AUTO) {
 			props.push(Characteristic.TargetHeaterCoolerState.AUTO)
 		}
+
 		if (this.capabilities.COOL) {
 			props.push(Characteristic.TargetHeaterCoolerState.COOL)
 		}
+
 		if (this.capabilities.HEAT) {
 			props.push(Characteristic.TargetHeaterCoolerState.HEAT)
 		}
@@ -210,7 +212,7 @@ class AirConditioner {
 				.on('set', this.stateManager.set.ACSwing)
 		}
 
-		if (	(this.capabilities.COOL && this.capabilities.COOL.fanSpeeds) || (this.capabilities.HEAT && this.capabilities.HEAT.fanSpeeds)) {
+		if ((this.capabilities.COOL && this.capabilities.COOL.fanSpeeds) || (this.capabilities.HEAT && this.capabilities.HEAT.fanSpeeds)) {
 			this.HeaterCoolerService.getCharacteristic(Characteristic.RotationSpeed)
 				.on('get', this.stateManager.get.ACRotationSpeed)
 				.on('set', this.stateManager.set.ACRotationSpeed)
@@ -549,6 +551,7 @@ class AirConditioner {
 		this.storage.setItem('state', this.cachedState)
 	}
 
+	// TODO: create single shared (unified.js?) updateValue function
 	updateValue (serviceName, characteristicName, newValue) {
 		if (newValue !== 0 && newValue !== false && (typeof newValue === 'undefined' || !newValue)) {
 			this.log.easyDebug(`${this.roomName} - WRONG VALUE -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
@@ -560,9 +563,12 @@ class AirConditioner {
 		const validValues = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.validValues
 		const currentValue = this[serviceName].getCharacteristic(Characteristic[characteristicName]).value
 
+		// TODO: return immediately, as it will have the same result
 		if (validValues && !validValues.includes(newValue)) {
 			newValue = currentValue
 		}
+
+		// TODO: return immediately, as it will have the same result
 		if (minAllowed && newValue < minAllowed) {
 			newValue = currentValue
 		} else if (maxAllowed && newValue > maxAllowed) {

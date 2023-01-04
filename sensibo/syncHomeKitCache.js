@@ -31,6 +31,8 @@ module.exports = (platform) => {
 					return accessory.type === 'AirConditioner' && accessory.id === device.id
 				})
 
+				platform.log.easyDebug(`Device: ${device.id}, airConditionerIsNew: ${airConditionerIsNew}`)
+
 				if (airConditionerIsNew) {
 					const airConditioner = new AirConditioner(device, platform)
 
@@ -76,6 +78,8 @@ module.exports = (platform) => {
 					return accessory.type === 'AirPurifier' && accessory.id === device.id
 				})
 
+				platform.log.easyDebug(`Device: ${device.id}, airPurifierIsNew: ${airPurifierIsNew}`)
+
 				if (airPurifierIsNew) {
 					const airPurifier = new AirPurifier(device, platform)
 
@@ -93,6 +97,8 @@ module.exports = (platform) => {
 					const roomSensorIsNew = !platform.activeAccessories.find(accessory => {
 						return accessory.type === 'RoomSensor' && accessory.id === sensor.id
 					})
+
+					platform.log.easyDebug(`Device: ${device.id}, roomSensorIsNew: ${roomSensorIsNew}`)
 
 					if (roomSensorIsNew) {
 						const roomSensor = new RoomSensor(sensor, device, platform)

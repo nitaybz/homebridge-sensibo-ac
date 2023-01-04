@@ -26,7 +26,7 @@ function HKToFanLevel(value, fanLevels) {
 		const totalLevels = fanLevels.length
 
 		for (let i = 0; i < fanLevels.length; i++) {
-			if (value <= (100 * (i + 1) / totalLevels))	{
+			if (value <= (100 * (i + 1) / totalLevels)) {
 				selected = fanLevels[i]
 				break
 			}
@@ -75,7 +75,7 @@ module.exports = {
 		}
 	},
 
-	capabilities: device => {
+	capabilities: (device, platform) => {
 		const capabilities = {}
 
 		for (const [key, modeCapabilities] of Object.entries(device.remoteCapabilities.modes)) {
@@ -127,6 +127,9 @@ module.exports = {
 			if (modeCapabilities.light) {
 				capabilities[mode].light = true
 			}
+
+			platform.log.easyDebug(`Mode: ${mode}, Capabilities: `)
+			platform.log.easyDebug(capabilities[mode])
 		}
 
 		return capabilities
@@ -152,7 +155,7 @@ module.exports = {
 			if (acOnSecondsSinceLastFiltersClean > filtersCleanSecondsThreshold) {
 				state.filterLifeLevel = 0
 			} else {
-				state.filterLifeLevel = 100 - Math.floor(acOnSecondsSinceLastFiltersClean/filtersCleanSecondsThreshold*100)
+				state.filterLifeLevel = 100 - Math.floor(acOnSecondsSinceLastFiltersClean / filtersCleanSecondsThreshold * 100)
 			}
 		}
 
@@ -226,6 +229,7 @@ module.exports = {
 	},
 
 	sensiboFormattedState: (device, state) => {
+		device.log.easyDebug(`formatState: ${JSON.stringify(state, null, 4)}`)
 		const acState = {
 			on: state.active,
 			mode: state.mode.toLowerCase(),

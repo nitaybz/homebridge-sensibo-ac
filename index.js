@@ -61,8 +61,6 @@ class SensiboACPlatform {
 		this.FAHRENHEIT_UNIT = 'F'
 		this.locations = []
 
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
-
 		const requestedInterval = 90000 // Sensibo interval is hardcoded (requested by the brand)
 
 		this.refreshDelay = 5000
@@ -70,6 +68,8 @@ class SensiboACPlatform {
 		this.pollingTimeout = null
 		this.processingState = false
 		this.setProcessing = false
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
 		// define debug method to output debug logs when enabled in the config
 		this.log.easyDebug = (...content) => {
