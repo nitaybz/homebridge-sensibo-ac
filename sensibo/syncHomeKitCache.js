@@ -122,8 +122,8 @@ module.exports = (platform) => {
 
 		platform.cachedAccessories.forEach(accessory => {
 			if (!accessory.context.type) {
+				platform.log.easyDebug(`Old cached accessory to be removed, name: ${accessory.displayName}`)
 				accessoriesToRemove.push(accessory)
-				platform.log.easyDebug('removing old cached accessory')
 			}
 
 			let deviceExists, sensorExists, locationExists
@@ -139,6 +139,7 @@ module.exports = (platform) => {
 									|| device.productModel.includes('sky'))
 				})
 				if (!deviceExists) {
+					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 					accessoriesToRemove.push(accessory)
 				}
 				break
@@ -148,6 +149,7 @@ module.exports = (platform) => {
 					return device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel === 'pure'
 				})
 				if (!deviceExists) {
+					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 					accessoriesToRemove.push(accessory)
 				}
 				break
@@ -157,6 +159,7 @@ module.exports = (platform) => {
 					return device.id === accessory.context.deviceId && device.remoteCapabilities && ['pure','airq'].includes(device.productModel)
 				})
 				if (!deviceExists) {
+					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 					accessoriesToRemove.push(accessory)
 				}
 				break
@@ -166,12 +169,14 @@ module.exports = (platform) => {
 					return device.id === accessory.context.deviceId
 				})
 				if (!deviceExists || !Array.isArray(deviceExists.motionSensors)) {
+					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 					accessoriesToRemove.push(accessory)
 				} else {
 					sensorExists = deviceExists.motionSensors.find(sensor => {
 						return sensor.id === accessory.context.sensorId
 					})
 					if (!sensorExists) {
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 						accessoriesToRemove.push(accessory)
 					}
 				}
@@ -182,6 +187,7 @@ module.exports = (platform) => {
 					return device.id === accessory.context.deviceId && device.remoteCapabilities
 				})
 				if (!deviceExists || !platform.externalHumiditySensor) {
+					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 					accessoriesToRemove.push(accessory)
 				}
 				break
@@ -191,6 +197,7 @@ module.exports = (platform) => {
 					return device.id === accessory.context.deviceId && device.remoteCapabilities
 				})
 				if (!deviceExists || !platform.enableSyncButton || platform.syncButtonInAccessory) {
+					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 					accessoriesToRemove.push(accessory)
 				}
 				break
@@ -200,6 +207,7 @@ module.exports = (platform) => {
 					return device.id === accessory.context.deviceId && device.remoteCapabilities
 				})
 				if (!deviceExists || !platform.enableClimateReactSwitch) {
+					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 					accessoriesToRemove.push(accessory)
 				}
 				break
@@ -209,7 +217,9 @@ module.exports = (platform) => {
 					return device.location.id === accessory.context.locationId
 				})
 				if (!locationExists || !platform.enableOccupancySensor) {
+					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 					accessoriesToRemove.push(accessory)
+					// TODO: check why platform.locations is updated below
 					platform.locations = platform.locations.filter(location => {
 						return location !== accessory.context.locationId
 					})
