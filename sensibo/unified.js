@@ -85,16 +85,15 @@ module.exports = {
 			capabilities[mode] = {}
 
 			// set temperatures min & max
-			// FIXME: Check on min and max calcs
-			if (['COOL', 'HEAT', 'AUTO', 'DRY'].includes(mode) && modeCapabilities.temperatures && modeCapabilities.temperatures.C) {
+			if (modeCapabilities.temperatures?.C) {
 				capabilities[mode].temperatures = {
 					C: {
-						min: modeCapabilities.temperatures.C.values[0],
-						max: modeCapabilities.temperatures.C.values[modeCapabilities.temperatures.C.values.length - 1]
+						min: Math.min(...modeCapabilities.temperatures.C.values),
+						max: Math.max(...modeCapabilities.temperatures.C.values)
 					},
 					F: {
-						min: modeCapabilities.temperatures.F.values[0],
-						max: modeCapabilities.temperatures.F.values[modeCapabilities.temperatures.F.values.length - 1]
+						min: Math.min(...modeCapabilities.temperatures.F.values),
+						max: Math.max(...modeCapabilities.temperatures.F.values)
 					}
 				}
 			}
@@ -186,17 +185,20 @@ module.exports = {
 		return state
 	},
 
-	airQualityState: device => {
+	airQualityState: (device, Constants) => {
 		const state = {}
 
 		state.airQuality = device.measurements?.pm25 ?? 0
 
 		if (device.measurements?.tvoc && device.measurements.tvoc > 0) {
+			const VOCDensityMax = Constants.VOCDENSITY_MAX
 			// convert ppb to μg/m3
 			const VOCDensity = Math.round(device.measurements.tvoc * 4.57)
-			// Homebridge currently has max value of 1000 for VOCDensity
 
-			state.VOCDensity = VOCDensity < 1000 ? VOCDensity : 1000
+			state.VOCDensity = VOCDensity < VOCDensityMax ? VOCDensity : VOCDensityMax
+
+			// Homebridge currently has max value of 1000 for VOCDensity
+			// state.VOCDensity = VOCDensity < 1000 ? VOCDensity : 1000
 
 			if (state.airQuality !== 0) {
 				// don't overwrite airQuality if already retrieved from Sensibo
@@ -215,7 +217,7 @@ module.exports = {
 
 		if (device.measurements?.co2 && device.measurements.co2 > 0) {
 			state.carbonDioxideLevel = device.measurements.co2
-			state.carbonDioxideDetected = device.measurements.co2 > 1000 ? 1 : 0
+			state.carbonDioxideDetected = device.measurements.co2 < Constants.carbonDioxideAlertThreshold ? 0 : 1
 		}
 
 		return state

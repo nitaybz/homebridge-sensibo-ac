@@ -34,6 +34,8 @@ module.exports = (platform) => {
 				platform.log.easyDebug(`Device: ${device.id}, airConditionerIsNew: ${airConditionerIsNew}`)
 
 				if (airConditionerIsNew) {
+					// TODO: what if aircon isn't needed at all (all services disabled)? Do we still push it?
+					// What about airConditioner variable for other accessories?
 					const airConditioner = new AirConditioner(device, platform)
 
 					platform.activeAccessories.push(airConditioner)

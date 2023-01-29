@@ -1,11 +1,14 @@
 const unified = require('../sensibo/unified')
 let Characteristic, Service
+const Constants = {}
 
 class AirQualitySensor {
 
 	constructor(device, platform) {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
+		Constants.VOCDENSITY_MAX = platform.VOCDENSITY_MAX
+		Constants.carbonDioxideAlertThreshold = platform.carbonDioxideAlertThreshold
 
 		const deviceInfo = unified.deviceInformation(device)
 
@@ -23,7 +26,7 @@ class AirQualitySensor {
 		this.type = 'AirQualitySensor'
 		this.displayName = this.name
 
-		this.state = this.cachedState.devices[this.id] = unified.airQualityState(device)
+		this.state = this.cachedState.devices[this.id] = unified.airQualityState(device, Constants)
 
 		const StateHandler = require('../sensibo/StateHandler')(this, platform)
 
@@ -83,6 +86,7 @@ class AirQualitySensor {
 		this.AirQualitySensorService.getCharacteristic(Characteristic.AirQuality)
 			.on('get', this.stateManager.get.AirQuality)
 		this.AirQualitySensorService.getCharacteristic(Characteristic.VOCDensity)
+			.setProps({ maxValue: Constants.VOCDENSITY_MAX })
 			.on('get', this.stateManager.get.VOCDensity)
 	}
 

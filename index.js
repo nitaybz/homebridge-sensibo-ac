@@ -34,22 +34,27 @@ class SensiboACPlatform {
 			return
 		}
 
+		this.name = config['name'] || PLATFORM_NAME
 		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
-		this.devicesToExclude = config['devicesToExclude'] || []
+		this.carbonDioxideAlertThreshold = config['carbonDioxideAlertThreshold'] || 1500
+		this.disableAirConditioner = config['disableAirConditioner'] || false
+		this.disableAirQuality = config['disableAirQuality'] || false
+		this.disableCarbonDioxide = config['disableCarbonDioxide'] || false
 		this.disableDry = config['disableDry'] || false
 		this.disableFan = config['disableFan'] || false
-		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
+		this.disableHumidity = config['disableHumidity'] || false
 		this.disableLightSwitch = config['disableLightSwitch'] || false
+		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
 		this.disableVerticalSwing = config['disableVerticalSwing'] || false
 		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
 		this.enableHistoryStorage = config['enableHistoryStorage'] || false
 		this.enableOccupancySensor = config['enableOccupancySensor'] || false
 		this.enableSyncButton = config['enableSyncButton'] || false
+		this.syncButtonInAccessory = config['syncButtonInAccessory'] || false
 		this.externalHumiditySensor = config['externalHumiditySensor'] || false
+		this.devicesToExclude = config['devicesToExclude'] || []
 		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
 		this.locationsToInclude = config['locationsToInclude'] || []
-		this.name = config['name'] || PLATFORM_NAME
-		this.syncButtonInAccessory = config['syncButtonInAccessory'] || false
 
 		this.persistPath = path.join(this.api.user.persistPath(), '/../sensibo-persist')
 		this.emptyState = {
@@ -59,6 +64,7 @@ class SensiboACPlatform {
 		}
 		this.CELSIUS_UNIT = 'C'
 		this.FAHRENHEIT_UNIT = 'F'
+		this.VOCDENSITY_MAX = 10000
 		this.locations = []
 
 		const requestedInterval = 90000 // Sensibo interval is hardcoded (requested by the brand)

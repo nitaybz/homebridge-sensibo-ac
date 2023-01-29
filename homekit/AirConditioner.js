@@ -26,8 +26,9 @@ class AirConditioner {
 		this.displayName = this.name
 		this.temperatureUnit = deviceInfo.temperatureUnit
 		this.usesFahrenheit = this.temperatureUnit === FAHRENHEIT_UNIT
-		this.disableFan = platform.disableFan
+		this.disableAirConditioner = platform.disableAirConditioner
 		this.disableDry = platform.disableDry
+		this.disableFan = platform.disableFan
 		this.disableHorizontalSwing = platform.disableHorizontalSwing
 		this.disableVerticalSwing = platform.disableVerticalSwing
 		this.disableLightSwitch = platform.disableLightSwitch
@@ -81,7 +82,11 @@ class AirConditioner {
 			.setCharacteristic(Characteristic.Model, this.model)
 			.setCharacteristic(Characteristic.SerialNumber, this.serial)
 
-		this.addHeaterCoolerService()
+		if ((this.capabilities.AUTO || this.capabilities.COOL || this.capabilities.HEAT) && !this.disableAirConditioner) {
+			this.addHeaterCoolerService()
+		} else {
+			this.removeHeaterCoolerService()
+		}
 
 		if (this.capabilities.FAN && !this.disableFan) {
 			this.addFanService()
@@ -94,6 +99,8 @@ class AirConditioner {
 		} else {
 			this.removeDryService()
 		}
+
+		// TODO: should HorizontalSwingSwitch and/or SyncButton be suppressed if HeaterCooler and Fan and Dry services don't exist?
 
 		// TODO: see if HorizontalSwing can be created via a custom characteristic, rather than a separate accessory
 		// https://developers.homebridge.io/HAP-NodeJS/classes/Characteristic.html
@@ -159,6 +166,7 @@ class AirConditioner {
 
 		if (this.capabilities.COOL) {
 			this.HeaterCoolerService.getCharacteristic(Characteristic.CoolingThresholdTemperature)
+				.updateValue(this.capabilities.COOL.temperatures[CELSIUS_UNIT].min)
 				.setProps({
 					minValue: this.capabilities.COOL.temperatures[CELSIUS_UNIT].min,
 					maxValue: this.capabilities.COOL.temperatures[CELSIUS_UNIT].max,
@@ -170,6 +178,7 @@ class AirConditioner {
 
 		if (this.capabilities.HEAT) {
 			this.HeaterCoolerService.getCharacteristic(Characteristic.HeatingThresholdTemperature)
+				.updateValue(this.capabilities.HEAT.temperatures[CELSIUS_UNIT].min)
 				.setProps({
 					minValue: this.capabilities.HEAT.temperatures[CELSIUS_UNIT].min,
 					maxValue: this.capabilities.HEAT.temperatures[CELSIUS_UNIT].max,
@@ -181,6 +190,7 @@ class AirConditioner {
 
 		if (this.capabilities.AUTO && !this.capabilities.COOL && this.capabilities.AUTO.temperatures) {
 			this.HeaterCoolerService.getCharacteristic(Characteristic.CoolingThresholdTemperature)
+				.updateValue(this.capabilities.AUTO.temperatures[CELSIUS_UNIT].min)
 				.setProps({
 					minValue: this.capabilities.AUTO.temperatures[CELSIUS_UNIT].min,
 					maxValue: this.capabilities.AUTO.temperatures[CELSIUS_UNIT].max,
@@ -192,6 +202,7 @@ class AirConditioner {
 
 		if (this.capabilities.AUTO && !this.capabilities.HEAT && this.capabilities.AUTO.temperatures) {
 			this.HeaterCoolerService.getCharacteristic(Characteristic.HeatingThresholdTemperature)
+				.updateValue(this.capabilities.AUTO.temperatures[CELSIUS_UNIT].min)
 				.setProps({
 					minValue: this.capabilities.AUTO.temperatures[CELSIUS_UNIT].min,
 					maxValue: this.capabilities.AUTO.temperatures[CELSIUS_UNIT].max,
@@ -233,6 +244,16 @@ class AirConditioner {
 
 			this.HeaterCoolerService.getCharacteristic(Characteristic.ResetFilterIndication)
 				.on('set', this.stateManager.set.ResetFilterIndication)
+		}
+	}
+
+	removeHeaterCoolerService() {
+		const HeaterCoolerService = this.accessory.getService(Service.HeaterCooler)
+
+		if (HeaterCoolerService) {
+			// remove service
+			this.log.easyDebug(`Removing HeaterCoolerService from the ${this.roomName}`)
+			this.accessory.removeService(HeaterCoolerService)
 		}
 	}
 
@@ -410,26 +431,31 @@ class AirConditioner {
 			})
 		}
 
-		// update measurements
-		this.updateValue('HeaterCoolerService', 'CurrentTemperature', this.state.currentTemperature)
-		this.updateValue('HeaterCoolerService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
+		if (this.HeaterCoolerService) {
+			// update measurements
+			this.updateValue('HeaterCoolerService', 'CurrentTemperature', this.state.currentTemperature)
+			this.updateValue('HeaterCoolerService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
+		}
 
+		// TODO: could this just check this.DryService?
 		if (this.capabilities.DRY && !this.disableDry) {
 			this.updateValue('DryService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
 		}
 
 		// if status is OFF, set all services to INACTIVE
 		if (!this.state.active) {
-			this.updateValue('HeaterCoolerService', 'Active', 0)
-			this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
-
-			if (this.FanService) {
-				this.updateValue('FanService', 'Active', 0)
+			if (this.HeaterCoolerService) {
+				this.updateValue('HeaterCoolerService', 'Active', 0)
+				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
 			}
 
 			if (this.DryService) {
 				this.updateValue('DryService', 'Active', 0)
 				this.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
+			}
+
+			if (this.FanService) {
+				this.updateValue('FanService', 'Active', 0)
 			}
 
 			return
@@ -440,67 +466,76 @@ class AirConditioner {
 		case 'HEAT':
 		case 'AUTO':
 
-			// turn on HeaterCoolerService
-			this.updateValue('HeaterCoolerService', 'Active', 1)
+			if (this.HeaterCoolerService) {
+				// turn on HeaterCoolerService
+				this.updateValue('HeaterCoolerService', 'Active', 1)
 
-			// update temperatures for HeaterCoolerService
-			this.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', this.state.targetTemperature)
-			this.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.state.targetTemperature)
+				// update temperatures for HeaterCoolerService
+				this.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', this.state.targetTemperature)
+				this.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.state.targetTemperature)
 
-			// update vertical swing for HeaterCoolerService
-			if (!this.disableVerticalSwing && this.capabilities[this.state.mode].VerticalSwing) {
-				this.updateValue('HeaterCoolerService', 'SwingMode', Characteristic.SwingMode[this.state.verticalSwing])
-			}
+				// update vertical swing for HeaterCoolerService
+				if (!this.disableVerticalSwing && this.capabilities[this.state.mode].VerticalSwing) {
+					this.updateValue('HeaterCoolerService', 'SwingMode', Characteristic.SwingMode[this.state.verticalSwing])
+				}
 
-			// update horizontal swing for HeaterCoolerService
-			if (this.HorizontalSwingSwitchService) {
-				this.updateValue('HorizontalSwingSwitchService', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
-			}
+				// update horizontal swing for HeaterCoolerService
+				if (this.HorizontalSwingSwitchService) {
+					this.updateValue('HorizontalSwingSwitchService', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
+				}
 
-			// update light switch for HeaterCoolerService
-			if (this.LightSwitchService) {
-				this.updateValue('LightSwitchService', 'On', this.state.light)
-			}
+				// update light switch for HeaterCoolerService
+				if (this.LightSwitchService) {
+					this.updateValue('LightSwitchService', 'On', this.state.light)
+				}
 
-			// update fanSpeed for HeaterCoolerService
-			if (this.capabilities[this.state.mode].fanSpeeds) {
-				this.updateValue('HeaterCoolerService', 'RotationSpeed', this.state.fanSpeed)
-			}
+				// update fanSpeed for HeaterCoolerService
+				if (this.capabilities[this.state.mode].fanSpeeds) {
+					this.updateValue('HeaterCoolerService', 'RotationSpeed', this.state.fanSpeed)
+				}
 
-			// update filter characteristics for HeaterCoolerService
-			if (this.filterService) {
-				this.updateValue('HeaterCoolerService', 'FilterChangeIndication', Characteristic.FilterChangeIndication[this.state.filterChange])
-				this.updateValue('HeaterCoolerService', 'FilterLifeLevel', this.state.filterLifeLevel)
-			}
+				// update filter characteristics for HeaterCoolerService
+				if (this.filterService) {
+					this.updateValue('HeaterCoolerService', 'FilterChangeIndication', Characteristic.FilterChangeIndication[this.state.filterChange])
+					this.updateValue('HeaterCoolerService', 'FilterLifeLevel', this.state.filterLifeLevel)
+				}
 
-			// set proper target and current state of HeaterCoolerService
-			if (this.state.mode === 'COOL') {
-				this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.COOL)
-				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.COOLING)
-			} else if (this.state.mode === 'HEAT') {
-				this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.HEAT)
-				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)
-			} else if (this.state.mode === 'AUTO') {
-				this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.AUTO)
-				if (this.state.currentTemperature > this.state.targetTemperature) {
+				// set proper target and current state of HeaterCoolerService
+				if (this.state.mode === 'COOL') {
+					this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.COOL)
 					this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.COOLING)
-				} else {
+				} else if (this.state.mode === 'HEAT') {
+					this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.HEAT)
 					this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)
+				} else if (this.state.mode === 'AUTO') {
+					this.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.AUTO)
+					if (this.state.currentTemperature > this.state.targetTemperature) {
+						this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.COOLING)
+					} else {
+						this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)
+					}
 				}
 			}
 
-			// turn off FanService
-			if (this.FanService) {
-				this.updateValue('FanService', 'Active', 0)
-			}
-
-			// turn off DryService
 			if (this.DryService) {
+				// turn off DryService
 				this.updateValue('DryService', 'Active', 0)
 				this.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
 			}
+
+			if (this.FanService) {
+				// turn off FanService
+				this.updateValue('FanService', 'Active', 0)
+			}
+
 			break
 		case 'FAN':
+			if (this.DryService) {
+				// turn off DryService
+				this.updateValue('DryService', 'Active', 0)
+				this.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
+			}
+
 			if (this.FanService) {
 				// turn on FanService
 				this.updateValue('FanService', 'Active', 1)
@@ -516,14 +551,10 @@ class AirConditioner {
 				}
 			}
 
-			// turn off HeaterCoolerService
-			this.updateValue('HeaterCoolerService', 'Active', 0)
-			this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
-
-			// turn off DryService
-			if (this.DryService) {
-				this.updateValue('DryService', 'Active', 0)
-				this.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
+			if (this.HeaterCoolerService) {
+				// turn off HeaterCoolerService
+				this.updateValue('HeaterCoolerService', 'Active', 0)
+				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
 			}
 
 			break
@@ -544,13 +575,15 @@ class AirConditioner {
 				}
 			}
 
-			// turn off HeaterCoolerService
-			this.updateValue('HeaterCoolerService', 'Active', 0)
-			this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
-
-			// turn off FanService
 			if (this.FanService) {
+				// turn off FanService
 				this.updateValue('FanService', 'Active', 0)
+			}
+
+			if (this.HeaterCoolerService) {
+				// turn off HeaterCoolerService
+				this.updateValue('HeaterCoolerService', 'Active', 0)
+				this.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
 			}
 
 			break

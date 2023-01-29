@@ -73,14 +73,16 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "platform": "SensiboAC",
         "apiKey": "***************",
         "allowRepeatedCommands": false,
+        "carbonDioxideAlertThreshold": "1500",
+        "disableAirConditioner": false,
         "disableAirQuality": false,
         "disableCarbonDioxide": false,
         "disableDry": false,
         "disableFan": false,
-        "disableHumidity": false,
         "disableHorizontalSwing": false,
-        "disableVerticalSwing": false,
+        "disableHumidity": false,
         "disableLightSwitch": false,
+        "disableVerticalSwing": false,
         "enableClimateReactSwitch": true,
         "enableHistoryStorage": true,
         "enableOccupancySensor": true,
@@ -97,33 +99,37 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 
 ### Configurations Table
 
-*advanced details below
+See below the table for additional details on these settings.
 
 |          Parameter         |                       Description                                | Required |  Default |   type   |
 | -------------------------- | ---------------------------------------------------------------- |:--------:|:--------:|:--------:|
-| `platform`                 |  always "SensiboAC"                                              |     ✓    |     -    |  String  |
+| `platform`                 |  Always "SensiboAC"                                              |     ✓    | `SensiboAC` |  String  |
+| `apiKey`                   |  Your Sensibo account API key (can be used instead of username/password)    |     ✓*   |     -    |  String  |
 | `username`                 |  Your Sensibo account username/email                             |     ✓*   |     -    |  String  |
 | `password`                 |  Your Sensibo account password                                   |     ✓*   |     -    |  String  |
-| `apiKey`                   |  Your Sensibo account API key (can be used instead of username/password)    |     ✓*   |     -    |  String  |
 | `allowRepeatedCommands`    |  Allow the plugin to send the same state command again           |          |  `false` |  Boolean |
-| `disableAirQuality`        |  When set to `true`, will remove Air Quality readings            |          |  `false` |  Boolean |
+| `carbonDioxideAlertThreshold` |  Value, in PPM, over which the Apple Home app will alert you to high CO2 readings. Requires the Carbon Dioxide Sensor be enabled  |          |  `1500` |  Integer |
+| `disableAirConditioner`    |  When set to `true`, will remove the Air Conditioner modes (Auto, Cool, Heat)          |          |  `false` |  Boolean |
+| `disableAirQuality`        |  When set to `true`, will remove Air Quality and TVOC readings   |          |  `false` |  Boolean |
 | `disableCarbonDioxide`     |  When set to `true`, will remove Carbon Dioxide readings and warnings       |          |  `false` |  Boolean |
-| `disableDry`               |  When set to `true`, it will disable the DRY accessory           |          |  `false` |  Boolean |
-| `disableFan`               |  When set to `true`, it will disable the FAN accessory           |          |  `false` |  Boolean |
-| `disableHumidity`          |  When set to `true`, will remove Humidity readings               |          |  `false` |  Boolean |
-| `disableLightSwitch`       |  Disable the Light service to control the AC Light (via extra light bulb)   |          |  `false` |  Boolean |
-| `disableHorizontalSwing`   |  Disable horizontal swing control (via extra switch)             |          |  `false` |  Boolean |
-| `disableVerticalSwing`     |  Disable vertical swing control (removes option from accessory)  |          |  `false` |  Boolean |
+| `disableDry`               |  When set to `true`, will remove the DRY accessory               |          |  `false` |  Boolean |
+| `disableFan`               |  When set to `true`, will remove the FAN accessory               |          |  `false` |  Boolean |
+| `disableHumidity`          |  When set to `true`, will remove Current Relative Humidity readings         |          |  `false` |  Boolean |
+| `disableLightSwitch`       |  When set to `true`, will remove the extra light bulb to control the AC Light  |          |  `false` |  Boolean |
+| `disableHorizontalSwing`   |  When set to `true`, will remove the horizontal swing switch     |          |  `false` |  Boolean |
+| `disableVerticalSwing`     |  When set to `true`, will remove the vertical swing control (Oscillate switch) from the Accessory  |          |  `false` |  Boolean |
 | `enableClimateReactSwitch` |  Adds a switch to enable/disable Climate React                   |          |  `false` |  Boolean |
-| `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app  |         |  `false` |   Boolean |
+| `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app   |         |  `false` |   Boolean |
 | `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home         |          |  `false` |  Boolean  |
-| `enableSyncButton`         |  When set to `true`, adds a standalone **AC Sync Switch** to toggle the state of the AC in Home app, without sending a command to the accessory  |          |  `false` |  Boolean  |
+| `enableSyncButton`         |  When set to `true`, adds a standalone **AC Sync Switch** to toggle the state of the AC in Home app, without sending a command to the unit  |          |  `false` |  Boolean  |
 | `syncButtonInAccessory`    |  When set to `true`, adds an **AC Sync Switch**, like `enableSyncButton` above, attached to the AC Accessory. It will also remove the standalone Sync Switch (if one exists)  |          |  `false` |  Boolean  |
 | `externalHumiditySensor`   |  Creates an additional Humidity sensor accessory                 |          |  `false` |  Boolean |
 | `devicesToExclude`         |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge  |          |  - |  String[]  |
 | `ignoreHomeKitDevices`     |  Automatically ignore, skip or remove HomeKit supported devices  |          |  `false` |  Boolean |
 | `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)  |          |  - |  String[]  |
 | `debug`                    |  When set to `true`, the plugin will produce extra logs for debugging purposes         |          |  `false` |  Boolean  |
+
+\* *only apiKey OR username / password are required, not both*
 
 ## Advanced Control
 
@@ -137,14 +143,13 @@ In practice:
 - Temperature unit (Celsius/Fahrenheit) is taken from Sensibo API
 - "AUTO" mode is available in the AC states in HomeKit only if it is available in Sensibo app
 - Modes "FAN" and "DRY" (dehumidifier) will create their own accessories only if you have this ability inside Sensibo app
-- Fan Speed ("Rotation Speed" in Home app) and Vertical Swing ("Oscillate" in Home app) will show in the accessory settings, but only if you have this capability in Sensibo app
+- Fan Speed ("Rotation Speed" in Home app) and Vertical Swing ("Oscillate" in Home app) will show in the Accessory settings, but only if you have this capability in Sensibo app
 - Horizontal Swing capability in Sensibo app will show up as a normal switch in HomeKit (because there is no other way to control horizontal swing at the moment)
-- **NEW!** use `"ignoreHomeKitDevices": true` to automatically ignore, skip or remove HomeKit supported devices like Sensibo Air and Sensibo Pure.
+- use `"ignoreHomeKitDevices": true` to automatically ignore, skip or remove HomeKit supported devices like Sensibo Air and Sensibo Pure.
 
 ### State Polling
 
-The accessory state will be updated in the background every 90 seconds, this is hard coded and requested specifically by Sensibo company.
-The state will also refresh every time you open the "Home" app or any related HomeKit app.
+The accessory state will be updated in the background every 90 seconds, this is hard coded and requested specifically by Sensibo company. The state will also refresh every time you open the "Home" app or any related HomeKit app.
 
 ### Dry Mode
 
@@ -224,11 +229,24 @@ To enable the **history storage** feature, add `"enableHistoryStorage": true` to
 
 Fan speed steps are determined by the steps you have available in the Sensibo app. Since HomeKit control over fan speed is with a slider between 0-100, the plugin converts the steps you have in the Sensibo app to values between 1 to 100, when 100 is highest and 1 is lowest. If "AUTO" speed is available in your setup, setting the fan speed to 0, should actually set it to "AUTO" speed.
 
-### Issues & Debug
+## Troubleshooting and Debug
 
-If you experience any issues with the plugins please refer to the [Issues](https://github.com/nitaybz/homebridge-sensibo-ac/issues) tab or [Sensibo-AC Discord channel](https://discord.gg/yguuVAX) and check if your issue is already described there, if it doesn't, please create a new issue with as much detailed information as you can give (logs are crucial).
+Start by turning on debug logs, this is done by adding `"debug": true` to your config, saving and restarting Homebridge. This will print additional info in the Homebridge Console Logs, which will give more details on what's happening and may help isolate the issue.
 
-If you want to even speed up the process, you can add `"debug": true` to your config, which will give me more details on the logs and speed up fixing the issue.
+If you are having issues with a particular Sensibo acessory, you could try removing just that accessory from the Homebridge cache (rather than having to reset all of Homebridge which will remove *all* accessories).
+
+To do this, if you are using Homebridge UI (homebridge-config-ui-x) on top of your Homebridge install, try:
+
+- Navigate to `http://<your_homebridge_instance>/settings` in your browser (`Homebridge Settings`)
+- Scroll down and click the right hand button next to `Remove Single Cached Accessory`
+- From the list presented, click to remove the desired Accessory
+- Restart Homebridge, hopefully the Accessory will then be re-added correctly from the API response
+
+Note: the Accessory may need to be moved from the Default Room in the Apple Home app once re-added
+
+### Raising an Issue
+
+If you experience any issues with the plugins please refer to the [Issues](https://github.com/nitaybz/homebridge-sensibo-ac/issues) tab or [Sensibo-AC Discord channel](https://discord.gg/yguuVAX) and check if your issue is already described there. If it isn't, please create a new issue with as much detailed information as you can, and please include ***debug logs*** (this is crucial).
 
 ## Special Thanks
 

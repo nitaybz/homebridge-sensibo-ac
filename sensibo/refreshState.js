@@ -61,7 +61,13 @@ module.exports = (platform) => {
 
 					// Update Air Quality Sensor state in cache + HomeKit
 					if (airQualitySensor) {
-						airQualitySensor.state.update(unified.airQualityState(device))
+						// FIXME: need a better way to get constants in to the airQualityState function
+						const Constants = {
+							VOCDENSITY_MAX: platform.VOCDENSITY_MAX,
+							carbonDioxideAlertThreshold: platform.carbonDioxideAlertThreshold
+						}
+
+						airQualitySensor.state.update(unified.airQualityState(device, Constants))
 					}
 
 					// Update Humidity Sensor state in HomeKit
