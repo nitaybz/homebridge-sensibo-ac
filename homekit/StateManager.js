@@ -256,6 +256,7 @@ module.exports = (device, platform) => {
 			},
 
 			TargetHumidifierDehumidifierState: (callback) => {
+				log.easyDebug(device.name, '(GET) - Target Dehumidifier State: DEHUMIDIFIER')
 				callback(null, Characteristic.TargetHumidifierDehumidifierState.DEHUMIDIFIER)
 			},
 

@@ -191,14 +191,10 @@ module.exports = {
 		state.airQuality = device.measurements?.pm25 ?? 0
 
 		if (device.measurements?.tvoc && device.measurements.tvoc > 0) {
-			const VOCDensityMax = Constants.VOCDENSITY_MAX
 			// convert ppb to μg/m3
 			const VOCDensity = Math.round(device.measurements.tvoc * 4.57)
 
-			state.VOCDensity = VOCDensity < VOCDensityMax ? VOCDensity : VOCDensityMax
-
-			// Homebridge currently has max value of 1000 for VOCDensity
-			// state.VOCDensity = VOCDensity < 1000 ? VOCDensity : 1000
+			state.VOCDensity = VOCDensity < Constants.VOCDENSITY_MAX ? VOCDensity : Constants.VOCDENSITY_MAX
 
 			if (state.airQuality !== 0) {
 				// don't overwrite airQuality if already retrieved from Sensibo

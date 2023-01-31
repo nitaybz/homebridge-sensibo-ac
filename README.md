@@ -35,7 +35,7 @@ Check with: `node -v` & `homebridge -V` and update if needed
 - **Vertical Swing** - allows you to enable/disable vertical swing of your AC
 - **AC Sync Button** - easily toggle the state of the AC between ON/OFF in case your AC is out of sync with HomeKit (does not send commands to the AC)
 - **Occupancy Sensor** - get the Home/Away status from Sensibo API to HomeKit via Occupancy sensor
-- **Enable/Disable Climate React** - enable/disable Climate React. Note it is currently not possible to change settings, on/off only
+- **Enable/Disable Climate React** - enable/disable Climate React. Note: It is currently not possible to change settings, on/off only
 - **Filter Cleaning Indication** - if available in your Sensibo account (via Plus etc), a HomeKit representation of the Filter status will appear in Home app accessories
 - **History Storage** - toggle on storing of temperature and humidity measurements and will present them in Eve app as a graph
 
@@ -73,7 +73,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "platform": "SensiboAC",
         "apiKey": "***************",
         "allowRepeatedCommands": false,
-        "carbonDioxideAlertThreshold": "1500",
+        "carbonDioxideAlertThreshold": 1500,
         "disableAirConditioner": false,
         "disableAirQuality": false,
         "disableCarbonDioxide": false,
@@ -114,16 +114,16 @@ See below the table for additional details on these settings.
 | `disableCarbonDioxide`     |  When set to `true`, will remove Carbon Dioxide readings and warnings       |          |  `false` |  Boolean |
 | `disableDry`               |  When set to `true`, will remove the DRY accessory               |          |  `false` |  Boolean |
 | `disableFan`               |  When set to `true`, will remove the FAN accessory               |          |  `false` |  Boolean |
-| `disableHumidity`          |  When set to `true`, will remove Current Relative Humidity readings         |          |  `false` |  Boolean |
-| `disableLightSwitch`       |  When set to `true`, will remove the extra light bulb to control the AC Light  |          |  `false` |  Boolean |
+| `disableHumidity`          |  When set to `true`, will remove Current Relative Humidity readings from the AC / Heat Pump Accessory  |          |  `false` |  Boolean |
+| `disableLightSwitch`       |  When set to `true`, will remove the extra light bulb to control the AC Light          |          |  `false` |  Boolean |
 | `disableHorizontalSwing`   |  When set to `true`, will remove the horizontal swing switch     |          |  `false` |  Boolean |
 | `disableVerticalSwing`     |  When set to `true`, will remove the vertical swing control (Oscillate switch) from the Accessory  |          |  `false` |  Boolean |
 | `enableClimateReactSwitch` |  Adds a switch to enable/disable Climate React                   |          |  `false` |  Boolean |
 | `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app   |         |  `false` |   Boolean |
 | `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home         |          |  `false` |  Boolean  |
-| `enableSyncButton`         |  When set to `true`, adds a standalone **AC Sync Switch** to toggle the state of the AC in Home app, without sending a command to the unit  |          |  `false` |  Boolean  |
-| `syncButtonInAccessory`    |  When set to `true`, adds an **AC Sync Switch**, like `enableSyncButton` above, attached to the AC Accessory. It will also remove the standalone Sync Switch (if one exists)  |          |  `false` |  Boolean  |
-| `externalHumiditySensor`   |  Creates an additional Humidity sensor accessory                 |          |  `false` |  Boolean |
+| `enableSyncButton`         |  When set to `true`, adds a **AC Sync Switch** to toggle the state of the AC in Home app, without sending a command to the unit  |          |  `false` |  Boolean  |
+| `syncButtonInAccessory`    |  When set to `true`, adds an **AC Sync Switch** (like `enableSyncButton` above) but within the AC Accessory. It will also remove the standalone Sync Switch (if one exists)  |          |  `false` |  Boolean  |
+| `externalHumiditySensor`   |  Creates a separate Humidity sensor accessory, ignores the `disableHumidity` setting   |          |  `false` |  Boolean |
 | `devicesToExclude`         |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge  |          |  - |  String[]  |
 | `ignoreHomeKitDevices`     |  Automatically ignore, skip or remove HomeKit supported devices  |          |  `false` |  Boolean |
 | `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)  |          |  - |  String[]  |
@@ -163,6 +163,10 @@ If your Sensibo app can control your AC **FAN** mode, this plugin will create ex
 
 To disable the extra fan accessory, add `"disableFan": true` to your config.
 
+### Auto & Fan speeds
+
+Fan speed steps are determined by the steps you have available in the Sensibo app. Since HomeKit control over fan speed is with a slider between 0-100, the plugin converts the steps you have in the Sensibo app to values between 1 to 100, when 100 is highest and 1 is lowest. If "AUTO" speed is available in your setup, setting the fan speed to 0, will set the unit to "AUTO" speed.
+
 ### Horizontal Swing
 
 If your Sensibo app has **Horizontal Swing** control, the plugin will create an extra switch accessory in HomeKit to control it.
@@ -171,9 +175,11 @@ To disable the extra horizontal swing switch accessory, add `"disableHorizontalS
 
 ### Vertical Swing
 
-If your Sensibo app has **Vertical Swing** control, the plugin will add a switch to the existing AC accessory in HomeKit to control it.
+If your Sensibo app has **Vertical Swing** control, the plugin will add a switch to the existing AC accessory in the Home app to control it.
 
 To disable the extra vertical swing (oscillate) switch, add `"disableVerticalSwing": true` to your config.
+
+Note: Due to Homebridge and Apple Home app caching you may need to manually remove the AC accessory to see the change. See [Issue #90](https://github.com/nitaybz/homebridge-sensibo-ac/issues/90) for details. For details on how to remove an Accessory take a look at the steps in [Troubleshooting and Debug](#troubleshooting-and-debug) below.
 
 ### AC Sync Button
 
@@ -181,33 +187,33 @@ To disable the extra vertical swing (oscillate) switch, add `"disableVerticalSwi
 - Does your sensibo state get out of sync with your AC?
 - Do you find yourself changing commands from the original remote just for the AC and Sensibo to be in sync?
 
-If you have ever found yourself struggling with the above, this feature is exactly for you!
+If you have ever found yourself struggling with the above, this feature is exactly for you! It allows you to toggle the state in Sensibo and Home app without changing the real state of your device, this will help you to sync between them.
 
-It allows you to quickly toggle the state in Sensibo and Home app without changing the real state of your device, this will help you to quickly sync between them.
+When enabled, an additional switch accessory will be added. The switch is stateless, which means that when clicked, it turns back OFF after 1 second. Behind the scenes, the plugin toggles the state of the device from ON to OFF (or the other way around, depending on the current state of the device), without sending actual commands to the AC.
 
-When enabled, this feature creates a new switch accessory. The switch is stateless, which means that when clicked, it turns back OFF after 1 second. Behind the scenes, the plugin changes the state of the device from ON to OFF or the other way around, depending on the current state of the device, without sending actual commands to the AC.
-
-\* *This can be required if your AC has the same command for ON and OFF because it can go out of sync easily.*
+*This maybe be required if your AC has the same command for ON and OFF because it can go out of sync easily.*
 
 To enable the extra **AC Sync** switch, add `"enableSyncButton": true` to your config.
 
 To attach the **AC Sync** switch as a service within the AC accessory, instead of a separate switch, add `"syncButtonInAccessory": true` to your config.
 
+Note: Setting `"syncButtonInAccessory": true` by itself will create the switch, regardless of `enableSyncButton` value.
+
 ### Occupancy Sensor
 
 Enabling this feature will add **Occupancy Sensor** to HomeKit, representing the Home/Away state of the geofence feature in Sensibo app.
 
-\* Geofencing must be enabled in Sensibo app for it to work
+Note: Geofencing must be enabled in Sensibo app for it to work
 
 To enable the extra **Occupancy Sensor**, add `"enableOccupancySensor": true` to your config.
 
 ### Climate React
 
-When enabled, this feature creates a new switch accessory in HomeKit. The new switch can quickly enable or disable the state of the "Climate React" you've set in Sensibo app.
+When enabled, an additional switch accessory will be added. The switch will enable or disable the "Climate React" mode you've set up in the Sensibo app.
 
 Use this feature in conjunction with the occupancy sensor and you'll be able to get the "Sensibo Plus" feature that allows turning it on/off according to your geolocation.
 
-\* This feature does not allow changing the actual logic of the "Climate React", only enable or disable it. Therefore, it will not work if the "Climate React" was not set up in Sensibo app first.
+Note: This feature does not allow changing the actual logic (temperature, mode etc) of the "Climate React" mode, only enabling or disabling it. Therefore, it will not work if the "Climate React" was not set up in Sensibo app first.
 
 To enable the extra **Climate React** switch, add `"enableClimateReactSwitch": true` to your config.
 
@@ -225,10 +231,6 @@ Enabling this feature will keep all measurements of temperature and humidity and
 
 To enable the **history storage** feature, add `"enableHistoryStorage": true` to your config.
 
-### Fan speeds & "AUTO" speed
-
-Fan speed steps are determined by the steps you have available in the Sensibo app. Since HomeKit control over fan speed is with a slider between 0-100, the plugin converts the steps you have in the Sensibo app to values between 1 to 100, when 100 is highest and 1 is lowest. If "AUTO" speed is available in your setup, setting the fan speed to 0, should actually set it to "AUTO" speed.
-
 ## Troubleshooting and Debug
 
 Start by turning on debug logs, this is done by adding `"debug": true` to your config, saving and restarting Homebridge. This will print additional info in the Homebridge Console Logs, which will give more details on what's happening and may help isolate the issue.
@@ -242,7 +244,7 @@ To do this, if you are using Homebridge UI (homebridge-config-ui-x) on top of yo
 - From the list presented, click to remove the desired Accessory
 - Restart Homebridge, hopefully the Accessory will then be re-added correctly from the API response
 
-Note: the Accessory may need to be moved from the Default Room in the Apple Home app once re-added
+Note: The Accessory may need to be moved from the Default Room in the Apple Home app once re-added.
 
 ### Raising an Issue
 

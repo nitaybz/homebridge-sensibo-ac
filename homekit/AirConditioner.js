@@ -600,6 +600,7 @@ class AirConditioner {
 
 			return
 		}
+
 		const minAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.minValue
 		const maxAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.maxValue
 		const validValues = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.validValues

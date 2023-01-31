@@ -31,7 +31,7 @@ module.exports = (platform) => {
 					return accessory.type === 'AirConditioner' && accessory.id === device.id
 				})
 
-				platform.log.easyDebug(`Device: ${device.id}, airConditionerIsNew: ${airConditionerIsNew}`)
+				platform.log.easyDebug(`Device: ${device.id}, Model: ${device.productModel}, airConditionerIsNew: ${airConditionerIsNew}`)
 
 				if (airConditionerIsNew) {
 					// TODO: what if aircon isn't needed at all (all services disabled)? Do we still push it?
@@ -47,15 +47,17 @@ module.exports = (platform) => {
 						platform.activeAccessories.push(humiditySensor)
 					}
 
-					// Add external Air Quality Sensor if enabled and available
 					// TODO: add externalAirQualitySensor option??
 					// e.g. if (['airq'].includes(device.productModel) && platform.externalAirQualitySensor) {
+					// Add external Air Quality Sensor if enabled and available
 					if (['airq'].includes(device.productModel)) {
-						// TODO: check for a better way to do this
-						airConditioner.measurements = device.measurements
-						const airQualitySensor = new AirQualitySensor(airConditioner, platform)
+						if (!platform.disableAirQuality || !platform.disableCarbonDioxide) {
+							// TODO: check for a better way to do this
+							airConditioner.measurements = device.measurements
+							const airQualitySensor = new AirQualitySensor(airConditioner, platform)
 
-						platform.activeAccessories.push(airQualitySensor)
+							platform.activeAccessories.push(airQualitySensor)
+						}
 					}
 
 					// Add separate Sync Button if enabled

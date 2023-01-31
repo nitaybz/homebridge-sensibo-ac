@@ -12,7 +12,7 @@
 			"platform": "SensiboAC",
 			"apiKey": "***************",
 			"allowRepeatedCommands": false,
-			"carbonDioxideAlertThreshold": "1500",
+			"carbonDioxideAlertThreshold": 1500,
 			"disableAirConditioner": false,
 			"disableAirQuality": false,
 			"disableCarbonDioxide": false,
