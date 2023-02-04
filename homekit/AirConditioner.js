@@ -33,6 +33,7 @@ class AirConditioner {
 		this.disableVerticalSwing = platform.disableVerticalSwing
 		this.disableLightSwitch = platform.disableLightSwitch
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
+		this.modesToExclude = platform.modesToExclude
 		this.filterService = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device, platform)
 
@@ -50,7 +51,7 @@ class AirConditioner {
 		})
 
 		if (!this.accessory) {
-			this.log.easyDebug(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
+			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
 			this.accessory = new this.api.platformAccessory(this.name, this.UUID)
 			this.accessory.context.type = this.type
 			this.accessory.context.deviceId = this.id
@@ -595,6 +596,7 @@ class AirConditioner {
 
 	// TODO: create single shared (unified.js?) updateValue function
 	updateValue (serviceName, characteristicName, newValue) {
+		// FIXME: doesn't the below check for not false and false at the same time?
 		if (newValue !== 0 && newValue !== false && (typeof newValue === 'undefined' || !newValue)) {
 			this.log.easyDebug(`${this.roomName} - WRONG VALUE -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
 
@@ -619,8 +621,8 @@ class AirConditioner {
 		}
 
 		if (currentValue !== newValue) {
-			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
 			this.log.easyDebug(`${this.roomName} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
+			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
 		}
 	}
 

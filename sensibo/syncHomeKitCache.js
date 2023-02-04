@@ -23,7 +23,7 @@ module.exports = (platform) => {
 			}
 
 			// Add AirConditioner
-			// FIXME: clean up productModel if condition
+			// TODO: tidy productModel matching
 			if (['sky','skyv2','skyplus','air','airq'].includes(device.productModel)
 					|| device.productModel.includes('air')
 					|| device.productModel.includes('sky')) {
@@ -47,12 +47,12 @@ module.exports = (platform) => {
 						platform.activeAccessories.push(humiditySensor)
 					}
 
-					// TODO: add externalAirQualitySensor option??
-					// e.g. if (['airq'].includes(device.productModel) && platform.externalAirQualitySensor) {
-					// Add external Air Quality Sensor if enabled and available
+					// TODO: make if statements single line?
+					// Add external Air Quality Sensor if available
 					if (['airq'].includes(device.productModel)) {
+						// Check that at least one of AirQuality or CarbonDioxide sensor is enabled before creating
 						if (!platform.disableAirQuality || !platform.disableCarbonDioxide) {
-							// TODO: check for a better way to do this
+							// TODO: check for a better way to get measurements
 							airConditioner.measurements = device.measurements
 							const airQualitySensor = new AirQualitySensor(airConditioner, platform)
 
@@ -130,11 +130,20 @@ module.exports = (platform) => {
 				accessoriesToRemove.push(accessory)
 			}
 
+			const isActive = platform.activeAccessories.find(activeAccessory => {
+				return accessory.UUID === activeAccessory.UUID
+			})
+
+			if (!isActive) {
+				// TODO: should we remove non-active accessories immediately? see also AirQualitySensor below
+				platform.log.easyDebug(`Accessory, ${accessory.displayName}, not in activeAccessories[]`)
+			}
+
 			let deviceExists, sensorExists, locationExists
 
 			switch(accessory.context.type) {
 			case 'AirConditioner':
-				// FIXME: clean up productModel matching
+				// TODO: tidy productModel matching
 				deviceExists = platform.devices.find(device => {
 					return device.id === accessory.context.deviceId
 								&& device.remoteCapabilities
@@ -162,7 +171,8 @@ module.exports = (platform) => {
 				deviceExists = platform.devices.find(device => {
 					return device.id === accessory.context.deviceId && device.remoteCapabilities && ['pure','airq'].includes(device.productModel)
 				})
-				if (!deviceExists) {
+				// TODO: should disabled check be moved out? see also isActive above
+				if (!deviceExists || (deviceExists && platform.disableAirQuality && platform.disableCarbonDioxide)) {
 					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 					accessoriesToRemove.push(accessory)
 				}

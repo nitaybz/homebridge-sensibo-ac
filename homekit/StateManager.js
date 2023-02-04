@@ -6,12 +6,12 @@ function toFahrenheit(value) {
 
 function characteristicToMode(characteristic) {
 	switch (characteristic) {
+	case Characteristic.TargetHeaterCoolerState.AUTO:
+		return 'AUTO'
 	case Characteristic.TargetHeaterCoolerState.COOL:
 		return 'COOL'
 	case Characteristic.TargetHeaterCoolerState.HEAT:
 		return 'HEAT'
-	case Characteristic.TargetHeaterCoolerState.AUTO:
-		return 'AUTO'
 	}
 }
 
@@ -564,8 +564,10 @@ module.exports = (device, platform) => {
 
 			// AC LIGHT
 			LightSwitch: (state, callback) => {
-				log.easyDebug(device.name + ' -> Setting AC Light to', state ? 'ON' : 'OFF')
-				device.state.light = state
+				const lightState = state ?? false
+
+				log.easyDebug(device.name + ' -> Setting AC Light to', lightState ? 'ON' : 'OFF')
+				device.state.light = lightState
 				callback()
 			},
 

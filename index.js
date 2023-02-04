@@ -55,6 +55,7 @@ class SensiboACPlatform {
 		this.devicesToExclude = config['devicesToExclude'] || []
 		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
 		this.locationsToInclude = config['locationsToInclude'] || []
+		this.modesToExclude = config['modesToExclude'] || []
 
 		this.persistPath = path.join(this.api.user.persistPath(), '/../sensibo-persist')
 		this.emptyState = {

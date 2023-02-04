@@ -92,6 +92,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "devicesToExclude": [],
         "ignoreHomeKitDevices": false,
         "locationsToInclude": [],
+        "modesToExclude": [],
         "debug": false
     }
 ]
@@ -107,27 +108,28 @@ See below the table for additional details on these settings.
 | `apiKey`                   |  Your Sensibo account API key (can be used instead of username/password)    |     ✓*   |     -    |  String  |
 | `username`                 |  Your Sensibo account username/email                             |     ✓*   |     -    |  String  |
 | `password`                 |  Your Sensibo account password                                   |     ✓*   |     -    |  String  |
-| `allowRepeatedCommands`    |  Allow the plugin to send the same state command again           |          |  `false` |  Boolean |
-| `carbonDioxideAlertThreshold` |  Value, in PPM, over which the Apple Home app will alert you to high CO2 readings. Requires the Carbon Dioxide Sensor be enabled  |          |  `1500` |  Integer |
-| `disableAirConditioner`    |  When set to `true`, will remove the Air Conditioner modes (Auto, Cool, Heat)          |          |  `false` |  Boolean |
-| `disableAirQuality`        |  When set to `true`, will remove Air Quality and TVOC readings   |          |  `false` |  Boolean |
-| `disableCarbonDioxide`     |  When set to `true`, will remove Carbon Dioxide readings and warnings       |          |  `false` |  Boolean |
-| `disableDry`               |  When set to `true`, will remove the DRY accessory               |          |  `false` |  Boolean |
-| `disableFan`               |  When set to `true`, will remove the FAN accessory               |          |  `false` |  Boolean |
-| `disableHumidity`          |  When set to `true`, will remove Current Relative Humidity readings from the AC / Heat Pump Accessory  |          |  `false` |  Boolean |
-| `disableLightSwitch`       |  When set to `true`, will remove the extra light bulb to control the AC Light          |          |  `false` |  Boolean |
-| `disableHorizontalSwing`   |  When set to `true`, will remove the horizontal swing switch     |          |  `false` |  Boolean |
-| `disableVerticalSwing`     |  When set to `true`, will remove the vertical swing control (Oscillate switch) from the Accessory  |          |  `false` |  Boolean |
-| `enableClimateReactSwitch` |  Adds a switch to enable/disable Climate React                   |          |  `false` |  Boolean |
-| `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app   |         |  `false` |   Boolean |
-| `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home         |          |  `false` |  Boolean  |
-| `enableSyncButton`         |  When set to `true`, adds a **AC Sync Switch** to toggle the state of the AC in Home app, without sending a command to the unit  |          |  `false` |  Boolean  |
-| `syncButtonInAccessory`    |  When set to `true`, adds an **AC Sync Switch** (like `enableSyncButton` above) but within the AC Accessory. It will also remove the standalone Sync Switch (if one exists)  |          |  `false` |  Boolean  |
-| `externalHumiditySensor`   |  Creates a separate Humidity sensor accessory, ignores the `disableHumidity` setting   |          |  `false` |  Boolean |
-| `devicesToExclude`         |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge  |          |  - |  String[]  |
-| `ignoreHomeKitDevices`     |  Automatically ignore, skip or remove HomeKit supported devices  |          |  `false` |  Boolean |
-| `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)  |          |  - |  String[]  |
-| `debug`                    |  When set to `true`, the plugin will produce extra logs for debugging purposes         |          |  `false` |  Boolean  |
+| `allowRepeatedCommands`    |  Allow the plugin to send the same state command again           |          |  `false` |  Boolean |
+| `carbonDioxideAlertThreshold` |  Value, in PPM, over which the Apple Home app will alert you to high CO2 readings. Requires the Carbon Dioxide Sensor be enabled  |          |  `1500` |  Integer |
+| `disableAirConditioner`    |  When set to `true`, will remove all the Air Conditioner modes (AUTO, COOL, HEAT)  |          |  `false` |  Boolean |
+| `disableAirQuality`        |  When set to `true`, will remove Air Quality and TVOC readings   |          |  `false` |  Boolean |
+| `disableCarbonDioxide`     |  When set to `true`, will remove Carbon Dioxide readings and warnings       |          |  `false` |  Boolean |
+| `disableDry`               |  When set to `true`, will remove the DRY accessory               |          |  `false` |  Boolean |
+| `disableFan`               |  When set to `true`, will remove the FAN accessory               |          |  `false` |  Boolean |
+| `disableHumidity`          |  When set to `true`, will remove Current Relative Humidity readings from the AC / Heat Pump Accessory  |          |  `false` |  Boolean |
+| `disableLightSwitch`       |  When set to `true`, will remove the extra light bulb to control the AC Light  |          |  `false` |  Boolean |
+| `disableHorizontalSwing`   |  When set to `true`, will remove the horizontal swing switch     |          |  `false` |  Boolean |
+| `disableVerticalSwing`     |  When set to `true`, will remove the vertical swing control (Oscillate switch) from the Accessory  |          |  `false` |  Boolean |
+| `enableClimateReactSwitch` |  Adds a switch to enable/disable Climate React                   |          |  `false` |  Boolean |
+| `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app  |          |  `false` |   Boolean |
+| `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home         |          |  `false` |  Boolean  |
+| `enableSyncButton`         |  When set to `true`, adds a **AC Sync Switch** to toggle the state of the AC in Home app, without sending a command to the unit  |          |  `false` |  Boolean  |
+| `syncButtonInAccessory`    |  When set to `true`, adds an **AC Sync Switch** (like `enableSyncButton` above) but within the AC Accessory. It will also remove the standalone Sync Switch (if one exists)  |          |  `false` |  Boolean  |
+| `externalHumiditySensor`   |  Creates a separate Humidity sensor accessory, ignores the `disableHumidity` setting  |          |  `false` |  Boolean |
+| `devicesToExclude`         |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge  |          |     -    |  String[]  |
+| `ignoreHomeKitDevices`     |  Automatically ignore, skip or remove HomeKit supported devices  |          |  `false` |  Boolean |
+| `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)  |          |     -    |  String[]  |
+| `modesToExclude`           |  Modes to exclude from Home app when setting up Sensibo devices (leave empty to keep all available modes). Valid values: AUTO, COOL, HEAT  |          |     -    |  String[]  |
+| `debug`                    |  When set to `true`, the plugin will produce extra logs for debugging purposes  |          |  `false` |  Boolean  |
 
 \* *only apiKey OR username / password are required, not both*
 

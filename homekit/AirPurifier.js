@@ -194,8 +194,8 @@ class AirPurifier {
 		}
 
 		if (currentValue !== newValue) {
-			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
 			this.log.easyDebug(`${this.roomName} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
+			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
 		}
 	}
 
