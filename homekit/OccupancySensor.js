@@ -64,7 +64,7 @@ class OccupancySensor {
 	}
 
 	addOccupancySensor() {
-		this.log.easyDebug(`Adding OccupancySensorService in the ${this.locationName}`)
+		this.log.easyDebug(`${this.name} - Adding OccupancySensorService`)
 		this.OccupancySensorService = this.accessory.getService(Service.OccupancySensor)
 		if (!this.OccupancySensorService) {
 			this.OccupancySensorService = this.accessory.addService(Service.OccupancySensor, this.name, this.type)
@@ -85,7 +85,7 @@ class OccupancySensor {
 	updateValue (serviceName, characteristicName, newValue) {
 		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
 			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.locationName} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
+			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
 		}
 	}
 

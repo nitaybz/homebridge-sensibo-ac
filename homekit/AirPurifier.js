@@ -78,7 +78,7 @@ class AirPurifier {
 	}
 
 	addAirPurifierService() {
-		this.log.easyDebug(`Adding AirPurifierService in the ${this.roomName}`)
+		this.log.easyDebug(`${this.name} - Adding AirPurifierService`)
 		this.AirPurifierService = this.accessory.getService(Service.AirPurifier)
 		if (!this.AirPurifierService) {
 			this.AirPurifierService = this.accessory.addService(Service.AirPurifier, this.name, this.type)
@@ -112,7 +112,7 @@ class AirPurifier {
 	}
 
 	addLightSwitch() {
-		this.log.easyDebug(`Adding PureLightSwitchService in the ${this.roomName}`)
+		this.log.easyDebug(`${this.name} - Adding LightSwitchService`)
 
 		this.PureLightSwitchService = this.accessory.getService(this.roomName + ' Pure Light')
 		if (!this.PureLightSwitchService) {
@@ -129,7 +129,7 @@ class AirPurifier {
 
 		if (LightSwitch) {
 			// remove service
-			this.log.easyDebug(`Removing Pure Light Service from the ${this.roomName}`)
+			this.log.easyDebug(`${this.name} - Removing LightSwitchService`)
 			this.accessory.removeService(LightSwitch)
 		}
 	}
@@ -166,7 +166,9 @@ class AirPurifier {
 
 		// update light switch for AirPurifierService
 		if (this.PureLightSwitchService) {
-			this.updateValue('PureLightSwitchService', 'On', this.state.light)
+			const switchValue = this.state?.light ?? false
+
+			this.updateValue('PureLightSwitchService', 'On', switchValue)
 		}
 
 		// cache last state to storage
@@ -194,7 +196,7 @@ class AirPurifier {
 		}
 
 		if (currentValue !== newValue) {
-			this.log.easyDebug(`${this.roomName} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
+			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
 			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
 		}
 	}

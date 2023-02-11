@@ -62,7 +62,7 @@ class HumiditySensor {
 	}
 
 	addHumiditySensorService() {
-		this.log.easyDebug(`Adding HumiditySensorService in the ${this.roomName}`)
+		this.log.easyDebug(`${this.name} - Adding HumiditySensorService`)
 		this.HumiditySensorService = this.accessory.getService(Service.HumiditySensor)
 		if (!this.HumiditySensorService) {
 			this.HumiditySensorService = this.accessory.addService(Service.HumiditySensor, this.name, this.type)
@@ -87,7 +87,7 @@ class HumiditySensor {
 	updateValue (serviceName, characteristicName, newValue) {
 		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
 			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.roomName} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
+			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
 		}
 	}
 

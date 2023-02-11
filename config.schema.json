@@ -195,13 +195,15 @@
 			},
 			"modesToExclude": {
 				"title": "Air Conditioning Modes to Exclude",
-				"description": "Select the AC modes you want removed from the Home app when using your device (leave empty to keep all available modes). Valid values: AUTO, COOL, HEAT",
+				"description": "Select the AC modes you want removed from your AC Accessories in the Home app (leave empty to keep all available modes)",
 				"type": "array",
 				"items": {
 					"type": "string",
 					"enum": [
 						"AUTO",
 						"COOL",
+						"DRY",
+						"FAN",
 						"HEAT"
 					]
 				}

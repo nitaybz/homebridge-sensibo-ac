@@ -53,7 +53,7 @@ class ClimateReactSwitch {
 	}
 
 	addClimateReactService() {
-		this.log.easyDebug(`Adding ClimateReactService in the ${this.roomName}`)
+		this.log.easyDebug(`${this.name} - Adding ClimateReactService`)
 
 		this.ClimateReactService = this.accessory.getService(Service.Switch)
 		if (!this.ClimateReactService) {
@@ -66,14 +66,16 @@ class ClimateReactSwitch {
 	}
 
 	updateHomeKit() {
+		const smartModeState = this.state?.smartMode ?? false
+
 		// update Climate React Service
-		this.updateValue('ClimateReactService', 'On', this.state.smartMode)
+		this.updateValue('ClimateReactService', 'On', smartModeState)
 	}
 
 	updateValue (serviceName, characteristicName, newValue) {
 		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
 			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.roomName} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
+			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
 		}
 	}
 

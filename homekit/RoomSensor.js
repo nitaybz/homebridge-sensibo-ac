@@ -81,7 +81,7 @@ class RoomSensor {
 	}
 
 	addMotionSensor() {
-		this.log.easyDebug(`Adding MotionSensorService in the ${this.roomName}`)
+		this.log.easyDebug(`${this.name} - Adding MotionSensorService`)
 		this.MotionSensorService = this.accessory.getService(Service.MotionSensor)
 		if (!this.MotionSensorService) {
 			this.MotionSensorService = this.accessory.addService(Service.MotionSensor, this.roomName + ' Motion Sensor', this.type)
@@ -95,7 +95,7 @@ class RoomSensor {
 	}
 
 	addTemperatureSensor() {
-		this.log.easyDebug(`Adding TemperatureSensorService in the ${this.roomName}`)
+		this.log.easyDebug(`${this.name} - Adding TemperatureSensorService`)
 		this.TemperatureSensorService = this.accessory.getService(Service.TemperatureSensor)
 		if (!this.TemperatureSensorService) {
 			this.TemperatureSensorService = this.accessory.addService(Service.TemperatureSensor, this.name + ' Temperature', 'TemperatureSensor')
@@ -114,7 +114,7 @@ class RoomSensor {
 	}
 
 	addHumiditySensor() {
-		this.log.easyDebug(`Adding HumiditySensorService in the ${this.roomName}`)
+		this.log.easyDebug(`${this.name} - Adding HumiditySensorService`)
 		this.HumiditySensorService = this.accessory.getService(Service.HumiditySensor)
 		if (!this.HumiditySensorService) {
 			this.HumiditySensorService = this.accessory.addService(Service.HumiditySensor, this.name + ' Humidity', 'HumiditySensor')
@@ -154,7 +154,7 @@ class RoomSensor {
 	updateValue (serviceName, characteristicName, newValue) {
 		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
 			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.roomName} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
+			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
 		}
 	}
 

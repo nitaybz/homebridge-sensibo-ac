@@ -84,7 +84,12 @@ module.exports = {
 
 			capabilities[mode] = {}
 
+			if (!['DRY','FAN'].includes(mode)) {
+				capabilities[mode].homeAppEnabled = true
+			}
+
 			// set temperatures min & max
+			// TODO: check if we even need to bother setting F below because it's never used...
 			if (modeCapabilities.temperatures?.C) {
 				capabilities[mode].temperatures = {
 					C: {

@@ -84,7 +84,7 @@ class AirQualitySensor {
 	}
 
 	addAirQualityService() {
-		this.log.easyDebug(`Adding AirQualitySensorService in the ${this.roomName}`)
+		this.log.easyDebug(`${this.name} - Adding AirQualitySensorService`)
 		this.AirQualitySensorService = this.accessory.getService(Service.AirQualitySensor)
 
 		if (!this.AirQualitySensorService) {
@@ -103,13 +103,13 @@ class AirQualitySensor {
 
 		if (AirQualitySensor) {
 			// remove service
-			this.log.easyDebug(`Removing AirQualitySensorService in the ${this.roomName}`)
+			this.log.easyDebug(`${this.name} - Removing AirQualitySensorService`)
 			this.accessory.removeService(AirQualitySensor)
 		}
 	}
 
 	addCarbonDioxideService() {
-		this.log.easyDebug(`Adding CarbonDioxideSensorService in the ${this.roomName}`)
+		this.log.easyDebug(`${this.name} - Adding CarbonDioxideSensorService`)
 		this.CarbonDioxideSensorService = this.accessory.getService(Service.CarbonDioxideSensor)
 
 		if (!this.CarbonDioxideSensorService) {
@@ -127,7 +127,7 @@ class AirQualitySensor {
 
 		if (CarbonDioxideSensor) {
 			// remove service
-			this.log.easyDebug(`Removing CarbonDioxideSensorService in the ${this.roomName}`)
+			this.log.easyDebug(`${this.name} - Removing CarbonDioxideSensorService`)
 			this.accessory.removeService(CarbonDioxideSensor)
 		}
 	}
@@ -180,7 +180,7 @@ class AirQualitySensor {
 
 		if (currentValue !== newValue) {
 			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.roomName} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
+			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
 		}
 	}
 
