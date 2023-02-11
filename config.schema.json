@@ -65,13 +65,6 @@
 					"functionBody": "return model.disableCarbonDioxide === false;"
 				}
 			},
-			"disableAirConditioner": {
-				"title": "Disable Air Conditioner / Heat Pump Accessory",
-				"description": "Disable Air Conditioner modes (Auto, Cool, Heat) - remove air con accessory",
-				"type": "boolean",
-				"default": false,
-				"required": false
-			},
 			"disableAirQuality": {
 				"title": "Disable Air Quality Sensor",
 				"description": "Remove Air Quality and TVOC readings",

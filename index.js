@@ -37,7 +37,6 @@ class SensiboACPlatform {
 		this.name = config['name'] || PLATFORM_NAME
 		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
 		this.carbonDioxideAlertThreshold = config['carbonDioxideAlertThreshold'] || 1500
-		this.disableAirConditioner = config['disableAirConditioner'] || false
 		this.disableAirQuality = config['disableAirQuality'] || false
 		this.disableCarbonDioxide = config['disableCarbonDioxide'] || false
 		this.disableDry = config['disableDry'] || false
@@ -55,8 +54,12 @@ class SensiboACPlatform {
 		this.devicesToExclude = config['devicesToExclude'] || []
 		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
 		this.locationsToInclude = config['locationsToInclude'] || []
-		this.modesToExclude = config['modesToExclude'] || []
-
+		this.modesToExclude = config['modesToExclude']?.map(mode => {
+			return mode.toUpperCase()
+		}) || []
+		this.disableAirConditioner = ['AUTO','COOL','HEAT'].every(mode => {
+			return this.modesToExclude.indexOf(mode) !== -1
+		})
 		this.persistPath = path.join(this.api.user.persistPath(), '/../sensibo-persist')
 		this.emptyState = {
 			devices:{},

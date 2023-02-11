@@ -74,7 +74,6 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "apiKey": "***************",
         "allowRepeatedCommands": false,
         "carbonDioxideAlertThreshold": 1500,
-        "disableAirConditioner": false,
         "disableAirQuality": false,
         "disableCarbonDioxide": false,
         "disableDry": false,
@@ -110,7 +109,6 @@ See below the table for additional details on these settings.
 | `password`                 |  Your Sensibo account password                                   |     ✓*   |     -    |  String  |
 | `allowRepeatedCommands`    |  Allow the plugin to send the same state command again           |          |  `false` |  Boolean |
 | `carbonDioxideAlertThreshold` |  Value, in PPM, over which the Apple Home app will alert you to high CO2 readings. Requires the Carbon Dioxide Sensor be enabled  |          |  `1500` |  Integer |
-| `disableAirConditioner`    |  When set to `true`, will remove all the Air Conditioner modes (AUTO, COOL, HEAT)  |          |  `false` |  Boolean |
 | `disableAirQuality`        |  When set to `true`, will remove Air Quality and TVOC readings   |          |  `false` |  Boolean |
 | `disableCarbonDioxide`     |  When set to `true`, will remove Carbon Dioxide readings and warnings       |          |  `false` |  Boolean |
 | `disableDry`               |  When set to `true`, will remove the DRY accessory               |          |  `false` |  Boolean |
@@ -128,7 +126,7 @@ See below the table for additional details on these settings.
 | `devicesToExclude`         |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge  |          |     -    |  String[]  |
 | `ignoreHomeKitDevices`     |  Automatically ignore, skip or remove HomeKit supported devices  |          |  `false` |  Boolean |
 | `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)  |          |     -    |  String[]  |
-| `modesToExclude`           |  Modes to exclude from Home app when setting up Sensibo devices (leave empty to keep all available modes). Valid values: AUTO, COOL, HEAT  |          |     -    |  String[]  |
+| `modesToExclude`           |  Modes to exclude from Home app when setting up Sensibo devices (leave empty to keep all available modes). Valid values: AUTO, COOL, DRY, FAN, HEAT  |          |     -    |  String[]  |
 | `debug`                    |  When set to `true`, the plugin will produce extra logs for debugging purposes  |          |  `false` |  Boolean  |
 
 \* *only apiKey OR username / password are required, not both*
@@ -153,17 +151,29 @@ In practice:
 
 The accessory state will be updated in the background every 90 seconds, this is hard coded and requested specifically by Sensibo company. The state will also refresh every time you open the "Home" app or any related HomeKit app.
 
+### Disabling AC modes
+
+If desired, you can choose to hide AC modes from the Apple Home app, preventing you from changing the unit to that mode.
+
+To disable a mode, add `"modesToExclude": ["MODE_TO_HIDE","ANOTHER_MODE_TO_HIDE"]` to your config. Valid values are: `AUTO, COOL, DRY, FAN & HEAT`.
+
+*Note: Including `DRY` or `FAN` in `modesToExclude` will ignore the `disableDry` and `disableFan` settings.*
+
 ### Dry Mode
 
 If your Sensibo app can control your AC **DRY** mode, the plugin will create extra dehumidifier accessory in HomeKit to control the DRY mode of your device. It will also include all the fan speeds and swing possibilities you have for DRY mode.
 
-To disable the extra dehumidifier accessory, add `"disableDry": true` to your config.
+To disable the extra dehumidifier accessory, add `"disableDry": true` to your config. `modesToExclude` will overwrite this setting.
+
+***This setting will be deprecated, please use `modesToExclude` instead***
 
 ### Fan Mode
 
 If your Sensibo app can control your AC **FAN** mode, this plugin will create extra fan accessory in HomeKit to control the FAN mode of your device. It will also include all the fan speeds and swing possibilities you have for FAN mode.
 
-To disable the extra fan accessory, add `"disableFan": true` to your config.
+To disable the extra fan accessory, add `"disableFan": true` to your config. `modesToExclude` will overwrite this setting.
+
+***This setting will be deprecated, please use `modesToExclude` instead***
 
 ### Auto & Fan speeds
 
