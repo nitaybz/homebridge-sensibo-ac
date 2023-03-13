@@ -142,103 +142,103 @@ module.exports = (platform) => {
 			let deviceExists, sensorExists, locationExists
 
 			switch(accessory.context.type) {
-			case 'AirConditioner':
+				case 'AirConditioner':
 				// TODO: tidy productModel matching
-				deviceExists = platform.devices.find(device => {
-					return device.id === accessory.context.deviceId
+					deviceExists = platform.devices.find(device => {
+						return device.id === accessory.context.deviceId
 								&& device.remoteCapabilities
 								&& (['sky','skyv2','skyplus','air','airq'].includes(device.productModel)
 									|| device.productModel.includes('air')
 									|| device.productModel.includes('sky'))
-				})
-				if (!deviceExists) {
-					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
-					accessoriesToRemove.push(accessory)
-				}
-				break
-
-			case 'AirPurifier':
-				deviceExists = platform.devices.find(device => {
-					return device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel === 'pure'
-				})
-				if (!deviceExists) {
-					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
-					accessoriesToRemove.push(accessory)
-				}
-				break
-
-			case 'AirQualitySensor':
-				deviceExists = platform.devices.find(device => {
-					return device.id === accessory.context.deviceId && device.remoteCapabilities && ['pure','airq'].includes(device.productModel)
-				})
-				// TODO: should disabled check be moved out? see also isActive above
-				if (!deviceExists || (deviceExists && platform.disableAirQuality && platform.disableCarbonDioxide)) {
-					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
-					accessoriesToRemove.push(accessory)
-				}
-				break
-
-			case 'RoomSensor':
-				deviceExists = platform.devices.find(device => {
-					return device.id === accessory.context.deviceId
-				})
-				if (!deviceExists || !Array.isArray(deviceExists.motionSensors)) {
-					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
-					accessoriesToRemove.push(accessory)
-				} else {
-					sensorExists = deviceExists.motionSensors.find(sensor => {
-						return sensor.id === accessory.context.sensorId
 					})
-					if (!sensorExists) {
+					if (!deviceExists) {
 						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 						accessoriesToRemove.push(accessory)
 					}
-				}
-				break
+					break
 
-			case 'HumiditySensor':
-				deviceExists = platform.devices.find(device => {
-					return device.id === accessory.context.deviceId && device.remoteCapabilities
-				})
-				if (!deviceExists || !platform.externalHumiditySensor) {
-					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
-					accessoriesToRemove.push(accessory)
-				}
-				break
-
-			case 'SyncButton':
-				deviceExists = platform.devices.find(device => {
-					return device.id === accessory.context.deviceId && device.remoteCapabilities
-				})
-				if (!deviceExists || !platform.enableSyncButton || platform.syncButtonInAccessory) {
-					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
-					accessoriesToRemove.push(accessory)
-				}
-				break
-
-			case 'ClimateReact':
-				deviceExists = platform.devices.find(device => {
-					return device.id === accessory.context.deviceId && device.remoteCapabilities
-				})
-				if (!deviceExists || !platform.enableClimateReactSwitch) {
-					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
-					accessoriesToRemove.push(accessory)
-				}
-				break
-
-			case 'OccupancySensor':
-				locationExists = platform.devices.find(device => {
-					return device.location.id === accessory.context.locationId
-				})
-				if (!locationExists || !platform.enableOccupancySensor) {
-					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
-					accessoriesToRemove.push(accessory)
-					// TODO: check why platform.locations is updated below
-					platform.locations = platform.locations.filter(location => {
-						return location !== accessory.context.locationId
+				case 'AirPurifier':
+					deviceExists = platform.devices.find(device => {
+						return device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel === 'pure'
 					})
-				}
-				break
+					if (!deviceExists) {
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						accessoriesToRemove.push(accessory)
+					}
+					break
+
+				case 'AirQualitySensor':
+					deviceExists = platform.devices.find(device => {
+						return device.id === accessory.context.deviceId && device.remoteCapabilities && ['pure','airq'].includes(device.productModel)
+					})
+					// TODO: should disabled check be moved out? see also isActive above
+					if (!deviceExists || (deviceExists && platform.disableAirQuality && platform.disableCarbonDioxide)) {
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						accessoriesToRemove.push(accessory)
+					}
+					break
+
+				case 'RoomSensor':
+					deviceExists = platform.devices.find(device => {
+						return device.id === accessory.context.deviceId
+					})
+					if (!deviceExists || !Array.isArray(deviceExists.motionSensors)) {
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						accessoriesToRemove.push(accessory)
+					} else {
+						sensorExists = deviceExists.motionSensors.find(sensor => {
+							return sensor.id === accessory.context.sensorId
+						})
+						if (!sensorExists) {
+							platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+							accessoriesToRemove.push(accessory)
+						}
+					}
+					break
+
+				case 'HumiditySensor':
+					deviceExists = platform.devices.find(device => {
+						return device.id === accessory.context.deviceId && device.remoteCapabilities
+					})
+					if (!deviceExists || !platform.externalHumiditySensor) {
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						accessoriesToRemove.push(accessory)
+					}
+					break
+
+				case 'SyncButton':
+					deviceExists = platform.devices.find(device => {
+						return device.id === accessory.context.deviceId && device.remoteCapabilities
+					})
+					if (!deviceExists || !platform.enableSyncButton || platform.syncButtonInAccessory) {
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						accessoriesToRemove.push(accessory)
+					}
+					break
+
+				case 'ClimateReact':
+					deviceExists = platform.devices.find(device => {
+						return device.id === accessory.context.deviceId && device.remoteCapabilities
+					})
+					if (!deviceExists || !platform.enableClimateReactSwitch) {
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						accessoriesToRemove.push(accessory)
+					}
+					break
+
+				case 'OccupancySensor':
+					locationExists = platform.devices.find(device => {
+						return device.location.id === accessory.context.locationId
+					})
+					if (!locationExists || !platform.enableOccupancySensor) {
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						accessoriesToRemove.push(accessory)
+						// TODO: check why platform.locations is updated below
+						platform.locations = platform.locations.filter(location => {
+							return location !== accessory.context.locationId
+						})
+					}
+					break
 			}
 		})
 

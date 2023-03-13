@@ -108,6 +108,7 @@ module.exports = (device, platform) => {
 			setTimer = setTimeout(async function() {
 				// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
 				if (preventTurningOff && state.active === false) {
+					log.easyDebug(`${device.name} - Auto fan speed, don't turn off when fanSpeed set to 0%. Prop: ${prop}, Value: ${value}`)
 					state.active = true
 					preventTurningOff = false
 				}

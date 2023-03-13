@@ -6,12 +6,14 @@ function toFahrenheit(value) {
 
 function characteristicToMode(characteristic) {
 	switch (characteristic) {
-	case Characteristic.TargetHeaterCoolerState.AUTO:
-		return 'AUTO'
-	case Characteristic.TargetHeaterCoolerState.COOL:
-		return 'COOL'
-	case Characteristic.TargetHeaterCoolerState.HEAT:
-		return 'HEAT'
+		case Characteristic.TargetHeaterCoolerState.AUTO:
+			return 'AUTO'
+
+		case Characteristic.TargetHeaterCoolerState.COOL:
+			return 'COOL'
+
+		case Characteristic.TargetHeaterCoolerState.HEAT:
+			return 'HEAT'
 	}
 }
 
@@ -403,7 +405,7 @@ module.exports = (device, platform) => {
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
 
-				log.easyDebug(device.name + ' -> Setting Mode to: ' + mode)
+				log.easyDebug(device.name + ' -> Setting Mode to:', mode)
 				device.state.targetTemperature = temp
 				device.state.mode = mode
 				device.state.active = true
@@ -420,7 +422,7 @@ module.exports = (device, platform) => {
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
 
-				log.easyDebug(device.name + ' -> Setting Mode to: ' + mode)
+				log.easyDebug(device.name + ' -> Setting Mode to:', mode)
 				device.state.targetTemperature = temp
 				device.state.mode = mode
 				device.state.active = true

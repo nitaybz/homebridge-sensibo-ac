@@ -6,7 +6,8 @@ function fanLevelToHK(value, fanLevels) {
 	fanLevels = fanLevels.filter(level => {
 		return level !== 'auto'
 	})
-	const totalLevels = fanLevels.length
+
+	const totalLevels = fanLevels.length > 0 ? fanLevels.length : 1
 	const valueIndex = fanLevels.indexOf(value) + 1
 
 	return Math.round(100 * valueIndex / totalLevels)
@@ -242,7 +243,7 @@ module.exports = {
 	},
 
 	sensiboFormattedState: (device, state) => {
-		device.log.easyDebug(`formatState: ${JSON.stringify(state, null, 4)}`)
+		device.log.easyDebug(`sensiboFormattedState: ${JSON.stringify(state, null, 4)}`)
 		const acState = {
 			on: state.active,
 			mode: state.mode.toLowerCase(),
