@@ -521,7 +521,7 @@ class AirConditioner {
 			case 'HEAT':
 			case 'AUTO':
 				if (this.HeaterCoolerService) {
-				// turn on HeaterCoolerService
+					// turn on HeaterCoolerService
 					this.Utils.updateValue(this, 'HeaterCoolerService', 'Active', 1)
 
 					// update temperatures for HeaterCoolerService
@@ -574,13 +574,13 @@ class AirConditioner {
 				}
 
 				if (this.DryService) {
-				// turn off DryService
+					// turn off DryService
 					this.Utils.updateValue(this, 'DryService', 'Active', 0)
 					this.Utils.updateValue(this, 'DryService', 'CurrentHumidifierDehumidifierState', 0)
 				}
 
 				if (this.FanService) {
-				// turn off FanService
+					// turn off FanService
 					this.Utils.updateValue(this, 'FanService', 'Active', 0)
 				}
 
@@ -588,13 +588,13 @@ class AirConditioner {
 
 			case 'FAN':
 				if (this.DryService) {
-				// turn off DryService
+					// turn off DryService
 					this.Utils.updateValue(this, 'DryService', 'Active', 0)
 					this.Utils.updateValue(this, 'DryService', 'CurrentHumidifierDehumidifierState', 0)
 				}
 
 				if (this.FanService) {
-				// turn on FanService
+					// turn on FanService
 					this.Utils.updateValue(this, 'FanService', 'Active', 1)
 
 					// update swing for FanService
@@ -609,7 +609,7 @@ class AirConditioner {
 				}
 
 				if (this.HeaterCoolerService) {
-				// turn off HeaterCoolerService
+					// turn off HeaterCoolerService
 					this.Utils.updateValue(this, 'HeaterCoolerService', 'Active', 0)
 					this.Utils.updateValue(this, 'HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
 				}
@@ -618,28 +618,28 @@ class AirConditioner {
 
 			case 'DRY':
 				if (this.DryService) {
-				// turn on FanService
+					// turn on DryService
 					this.Utils.updateValue(this, 'DryService', 'Active', 1)
 					this.Utils.updateValue(this, 'DryService', 'CurrentHumidifierDehumidifierState', Characteristic.CurrentHumidifierDehumidifierState.DEHUMIDIFYING)
 
-					// update swing for FanService
+					// update swing for DryService
 					if (!this.disableVerticalSwing && this.capabilities.DRY.verticalSwing) {
 						this.Utils.updateValue(this, 'DryService', 'SwingMode', Characteristic.SwingMode[this.state.verticalSwing])
 					}
 
-					// update fanSpeed for FanService
+					// update fanSpeed for DryService
 					if (this.capabilities.DRY.fanSpeeds) {
 						this.Utils.updateValue(this, 'DryService', 'RotationSpeed', this.state.fanSpeed)
 					}
 				}
 
 				if (this.FanService) {
-				// turn off FanService
+					// turn off FanService
 					this.Utils.updateValue(this, 'FanService', 'Active', 0)
 				}
 
 				if (this.HeaterCoolerService) {
-				// turn off HeaterCoolerService
+					// turn off HeaterCoolerService
 					this.Utils.updateValue(this, 'HeaterCoolerService', 'Active', 0)
 					this.Utils.updateValue(this, 'HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.INACTIVE)
 				}
