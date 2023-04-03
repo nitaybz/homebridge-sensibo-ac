@@ -146,7 +146,6 @@ class AirQualitySensor {
 		this.log.easyDebug(`${this.roomName} - entered updateValue -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
 		const characteristic = this[serviceName]?.getCharacteristic(Characteristic[characteristicName])
 
-		this.log.easyDebug(`AirQualitySensor.js - characteristic : ${characteristic}`)
 		if (typeof characteristic === 'undefined') {
 			this.log.easyDebug(`${this.roomName} - characteristic undefined -> serviceName: ${serviceName} and characteristicName: ${characteristicName}`)
 
