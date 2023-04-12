@@ -174,7 +174,7 @@ module.exports = (device, platform) => {
 			},
 
 			ACRotationSpeed: (callback) => {
-				const fanSpeed = device.state.fanSpeed
+				const fanSpeed = device.state.fanSpeed ?? 0
 
 				log.easyDebug(device.name, '(GET) - AC Rotation Speed is:', fanSpeed + '%')
 				callback(null, fanSpeed)
