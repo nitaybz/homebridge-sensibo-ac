@@ -53,7 +53,7 @@ module.exports = (device, platform) => {
 
 			state[prop] = value
 
-			// Send Reset Filter command and update value
+			// Send Reset Filter command
 			if (prop === 'filterChange') {
 				try {
 					log.easyDebug(`filterChange - updating ${device.name}`)
@@ -67,9 +67,10 @@ module.exports = (device, platform) => {
 				return
 			}
 
-			// Send Reset Filter command and update value
+			// Send Smart Mode command
 			if (prop === 'smartMode') {
 				try {
+					log.easyDebug(`smartMode - updating ${device.name} to ${value}`)
 					sensiboApi.enableDisableClimateReact(device.id, value)
 				} catch(err) {
 					log('Error occurred! -> Climate React state did not change')
@@ -82,9 +83,10 @@ module.exports = (device, platform) => {
 				return
 			}
 
-			// Send Reset Filter command and update value
+			// Send Pure Boost command
 			if (prop === 'pureBoost') {
 				try {
+					log.easyDebug(`pureBoost - updating ${device.name} to ${value}`)
 					sensiboApi.enableDisablePureBoost(device.id, value)
 				} catch(err) {
 					log('Error occurred! -> Pure Boost state did not change')
