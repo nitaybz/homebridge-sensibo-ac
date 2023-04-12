@@ -6,6 +6,7 @@ module.exports = (platform) => {
 
 		updateValue: (device, serviceName, characteristicName, newValue) => {
 			// log.easyDebug(`${device.name} - updateValue: ${newValue} for characteristic ${characteristicName} on service ${serviceName}`)
+			// Could we use .validateUserInput or .validateClientSuppliedValue from HAP Characteristics definition? Probably not as both are private...
 
 			const characteristic = device[serviceName]?.getCharacteristic(Characteristic[characteristicName])
 
@@ -15,12 +16,7 @@ module.exports = (platform) => {
 				return
 			}
 
-			if (newValue !== 0 && newValue !== false && (typeof newValue === 'undefined' || !newValue)) {
-				log.easyDebug(`${device.name} - '${newValue}' bad value for characteristic ${characteristicName} on service ${serviceName}... skipping update`)
-
-				return
-			}
-
+			// FIXME: what does this line actually check for? Does it look for not false and false (not true) at the same time?
 			if (newValue !== 0 && newValue !== false && (typeof newValue === 'undefined' || !newValue)) {
 				log.easyDebug(`${device.name} - '${newValue}' bad value for characteristic ${characteristicName} on service ${serviceName}... skipping update`)
 

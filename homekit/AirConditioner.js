@@ -151,6 +151,7 @@ class AirConditioner {
 
 		if (Props) {
 			if (Props.minValue && Props.minValue >= characteristic.props.minValue) {
+				//TODO: updateValue via this.Utils.updateValue?
 				characteristic.updateValue(Props.minValue)
 			}
 			characteristic.setProps(Props)
@@ -243,6 +244,7 @@ class AirConditioner {
 			this.log.easyDebug(`${this.name} - Temporarily including current value ${currentValue} to prevent warning,`
 						+ ` then updating value to new minimum of ${newMinValue}`)
 			tempValidModes.push(currentValue)
+			//TODO: updateValue via this.Utils.updateValue?
 			TargetHeaterCoolerState.setProps({ validValues: tempValidModes })
 				.updateValue(newMinValue)
 		}
@@ -402,6 +404,8 @@ class AirConditioner {
 	}
 
 	addHorizontalSwingSwitch() {
+		//TODO: review the logging... maybe line below becomes "Add HorizontalSwingSwitch" and new log line 5 rows below for Adding if doesn't already exist?
+		//Do the same for other "add" functions
 		this.log.easyDebug(`${this.name} - Adding HorizontalSwingSwitchService`)
 
 		this.HorizontalSwingSwitchService = this.accessory.getService(this.roomName + ' Horizontal Swing')
@@ -461,6 +465,7 @@ class AirConditioner {
 			.on('set', (state, callback) => {
 				this.stateManager.set.SyncButton(state, callback)
 				setTimeout(() => {
+					//TODO: updateValue via this.Utils.updateValue?
 					this.SyncButtonService.getCharacteristic(Characteristic.On).updateValue(0)
 				}, 1000)
 			})
@@ -652,37 +657,37 @@ class AirConditioner {
 	}
 
 	// TODO: WIP - moving updateValue to Utils.js to create shared (single) function
-	updateValue (serviceName, characteristicName, newValue) {
-		// can we use .validateUserInput or .validateClientSuppliedValue from HAP Characteristics definition? Probably not as both are private
-		// FIXME: doesn't the below check for not false and false at the same time?
-		if (newValue !== 0 && newValue !== false && (typeof newValue === 'undefined' || !newValue)) {
-			this.log.easyDebug(`${this.name} - Wrong value: ${newValue} for characteristic '${characteristicName}' on service ${serviceName}`)
+	// updateValue (serviceName, characteristicName, newValue) {
+	// 	// can we use .validateUserInput or .validateClientSuppliedValue from HAP Characteristics definition? Probably not as both are private
+	// 	// FIXME: doesn't the below check for not false and false at the same time?
+	// 	if (newValue !== 0 && newValue !== false && (typeof newValue === 'undefined' || !newValue)) {
+	// 		this.log.easyDebug(`${this.name} - Wrong value: ${newValue} for characteristic '${characteristicName}' on service ${serviceName}`)
 
-			return
-		}
+	// 		return
+	// 	}
 
-		const minAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.minValue
-		const maxAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.maxValue
-		const validValues = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.validValues
-		const currentValue = this[serviceName].getCharacteristic(Characteristic[characteristicName]).value
+	// 	const minAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.minValue
+	// 	const maxAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.maxValue
+	// 	const validValues = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.validValues
+	// 	const currentValue = this[serviceName].getCharacteristic(Characteristic[characteristicName]).value
 
-		// TODO: return immediately, as it will have the same result
-		if (validValues && !validValues.includes(newValue)) {
-			newValue = currentValue
-		}
+	// 	// TODO: return immediately, as it will have the same result
+	// 	if (validValues && !validValues.includes(newValue)) {
+	// 		newValue = currentValue
+	// 	}
 
-		// TODO: return immediately, as it will have the same result
-		if (minAllowed && newValue < minAllowed) {
-			newValue = currentValue
-		} else if (maxAllowed && newValue > maxAllowed) {
-			newValue = currentValue
-		}
+	// 	// TODO: return immediately, as it will have the same result
+	// 	if (minAllowed && newValue < minAllowed) {
+	// 		newValue = currentValue
+	// 	} else if (maxAllowed && newValue > maxAllowed) {
+	// 		newValue = currentValue
+	// 	}
 
-		if (currentValue !== newValue) {
-			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
-			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-		}
-	}
+	// 	if (currentValue !== newValue) {
+	// 		this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
+	// 		this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
+	// 	}
+	// }
 
 }
 

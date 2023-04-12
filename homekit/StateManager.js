@@ -353,7 +353,7 @@ module.exports = (device, platform) => {
 			},
 
 			SyncButton: (callback) => {
-				log.easyDebug(device.name, '(GET) - Sync Button pressed, no state')
+				log.easyDebug(device.name, '(GET) - Sync Button, no state change')
 				callback(null, false)
 			}
 		},
