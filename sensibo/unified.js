@@ -174,15 +174,25 @@ module.exports = {
 			}
 		}
 
+		state.horizontalSwing = 'SWING_DISABLED'
+		state.verticalSwing = 'SWING_DISABLED'
+
+		if (device.acState.swing) {
+			if (device.acState.swing === 'rangeFull') {
+				state.verticalSwing = 'SWING_ENABLED'
+			} else if (device.acState.swing === 'horizontal') {
+				state.horizontalSwing = 'SWING_ENABLED'
+			} else if (device.acState.swing === 'both') {
+				state.horizontalSwing = 'SWING_ENABLED'
+				state.verticalSwing = 'SWING_ENABLED'
+			}
+		}
+
+		if (device.acState.horizontalSwing && device.acState.horizontalSwing === 'rangeFull') {
+			state.horizontalSwing = 'SWING_ENABLED'
+		}
+
 		const modeCapabilities = device.remoteCapabilities.modes[device.acState.mode]
-
-		if (modeCapabilities.swing && modeCapabilities.swing.includes('rangeFull')) {
-			state.verticalSwing = device.acState.verticalSwing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
-		}
-
-		if (modeCapabilities.horizontalSwing && modeCapabilities.horizontalSwing.includes('rangeFull')) {
-			state.horizontalSwing = device.acState.horizontalSwing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
-		}
 
 		if (modeCapabilities.fanLevels && modeCapabilities.fanLevels.length) {
 			state.fanSpeed = fanLevelToHK(device.acState.fanLevel, modeCapabilities.fanLevels) || 0
