@@ -38,15 +38,25 @@ module.exports = (platform) => {
 				log.easyDebug(`${device.name} - '${newValue}' is not a number for characteristic ${characteristicName} on service ${serviceName}... continuing`)
 			}
 
+			const validValues = characteristic.props.validValues
 			const minValue = characteristic.props.minValue
 			const maxValue = characteristic.props.maxValue
-			const validValues = characteristic.props.validValues
+			const minStep = characteristic.props.minStep
 			const currentValue = characteristic.value
 
 			if (validValues && !validValues.includes(newValue)) {
 				log.easyDebug(`${device.name} - '${newValue}' not in validValues: ${validValues} for characteristic ${characteristicName} on service ${serviceName}... skipping update`)
 
 				return
+			}
+
+			if (minStep) {
+				const roundedValue = minStep < 1 ? Math.round((newValue + Number.EPSILON) * 10) / 10 : Math.round(newValue + Number.EPSILON)
+
+				if (roundedValue !== newValue) {
+					log.easyDebug(`${device.name} - '${newValue}' doesn't meet the rounding requird by minStep: ${minStep} for characteristic ${characteristicName} on service ${serviceName}... rounding to ${roundedValue}`)
+					newValue = roundedValue
+				}
 			}
 
 			if (minValue && newValue < minValue) {
