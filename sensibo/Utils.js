@@ -4,6 +4,9 @@ module.exports = (platform) => {
 
 	return {
 
+		// TODO: round numbers to 0 or 1 decimals?
+		// Probably should be done when _calling_ updateValue rather than in it? (So it's not "hidden" functionality)
+		// E.g. humidity should be a full percentage, temp seems to support 1 decimal
 		updateValue: (device, serviceName, characteristicName, newValue) => {
 			// log.easyDebug(`${device.name} - updateValue: ${newValue} for characteristic ${characteristicName} on service ${serviceName}`)
 			// Could we use .validateUserInput or .validateClientSuppliedValue from HAP Characteristics definition? Probably not as both are private...
@@ -31,6 +34,7 @@ module.exports = (platform) => {
 
 			if (Number.isNaN(newValue)) {
 				// non-number is valid for many usecases
+				// TODO: could check if props.format is float or int, then compare and fail if needed?
 				log.easyDebug(`${device.name} - '${newValue}' is not a number for characteristic ${characteristicName} on service ${serviceName}... continuing`)
 			}
 

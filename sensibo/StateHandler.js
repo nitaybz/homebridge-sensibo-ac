@@ -123,7 +123,7 @@ module.exports = (device, platform) => {
 					// send state command to Sensibo
 					await sensiboApi.setDeviceState(device.id, sensiboNewState)
 				} catch(err) {
-					log(`ERROR setting ${prop} to ${value}`)
+					log(`${device.name} - ERROR setting ${prop} to ${value}`)
 					setTimeout(() => {
 						platform.setProcessing = false
 						platform.refreshState()
