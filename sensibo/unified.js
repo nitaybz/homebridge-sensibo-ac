@@ -159,7 +159,6 @@ module.exports = {
 		if (modeCapabilities.swing && modeCapabilities.swing.includes('rangeFull'))
 			state.swing = device.acState.swing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
 
-
 		if (modeCapabilities.horizontalSwing && modeCapabilities.horizontalSwing.includes('rangeFull'))
 			state.horizontalSwing = device.acState.horizontalSwing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
 

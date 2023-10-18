@@ -167,7 +167,6 @@ module.exports = (device, platform) => {
 			CurrentTemperature: (callback) => {
 				const currentTemp = device.state.currentTemperature
 				
-
 				if (device.usesFahrenheit)
 					log.easyDebug(device.name, '(GET) - Current Temperature is:', toFahrenheit(currentTemp) + 'ºF')
 				else
@@ -619,7 +618,6 @@ module.exports = (device, platform) => {
 				device.state.mode = 'DRY'
 				callback()
 			},
-
 
 			// HORIZONTAL SWING
 

@@ -74,8 +74,6 @@ module.exports = (platform) => {
 
 				})
 
-
-
 				// register new devices / unregister removed devices
 				platform.syncHomeKitCache()
 
