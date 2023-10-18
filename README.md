@@ -73,6 +73,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "password": "*******",
         "disableFan": false,
         "disableDry": false,
+        "disableAuto": false,
         "enableSyncButton": true,
         "syncButtonInAccessory": false,
         "enableOccupancySensor": true,
@@ -148,6 +149,10 @@ If your Sensibo app can control your AC **DRY** mode, this plugin will create ex
 it will also include all the fan speeds and swing possibilities you have for DRY mode.
 
 To disable the extra dehumidifier accessory, add `"disableDry": true` to your config.
+
+### Disable AUTO mode
+
+To disable an AC's AUTO mode, add `"disableAuto": true` to your config.
 
 ### Horizontal Swing
 

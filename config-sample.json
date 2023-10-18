@@ -14,6 +14,7 @@
       "password": "*******",
       "disableFan": false,
       "disableDry": false,
+      "disableAuto": false,
       "enableSyncButton": true,
       "syncButtonInAccessory": false,
       "enableOccupancySensor": true,

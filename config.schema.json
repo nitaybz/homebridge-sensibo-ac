@@ -39,6 +39,13 @@
                 "default": false,
                 "required": false
             },
+            "disableAuto": {
+                "title": "Disable Auto Mode",
+                "description": "Disable AUTO mode",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },  
             "ignoreHomeKitDevices": {
                 "title": "Ignore HomeKit Devices",
                 "description": "Automatically ignore, skip or remove HomeKit supported devices",

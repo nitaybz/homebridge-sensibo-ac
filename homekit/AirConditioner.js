@@ -28,11 +28,12 @@ class AirConditioner {
 		this.usesFahrenheit = this.temperatureUnit === FAHRENHEIT_UNIT
 		this.disableFan = platform.disableFan
 		this.disableDry = platform.disableDry
+		this.disableAuto = platform.disableAuto
 		this.disableHorizontalSwing = platform.disableHorizontalSwing
 		this.disableLightSwitch = platform.disableLightSwitch
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
 		this.filterService = deviceInfo.filterService
-		this.capabilities = unified.capabilities(device)
+		this.capabilities = unified.capabilities(device, platform.log, this.disableAuto)
 
 		this.state = this.cachedState.devices[this.id] = unified.acState(device)
 		

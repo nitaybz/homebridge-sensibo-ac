@@ -23,6 +23,7 @@ class SensiboACPlatform {
 		this.name = config['name'] || PLATFORM_NAME
 		this.disableFan = config['disableFan'] || false
 		this.disableDry = config['disableDry'] || false
+		this.disableAuto = config['disableAuto'] || false
 		this.enableHistoryStorage = config['enableHistoryStorage'] || false
 		this.locationsToInclude = config['locationsToInclude'] || []
 		this.devicesToExclude = config['devicesToExclude'] || []

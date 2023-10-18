@@ -68,7 +68,7 @@ module.exports = {
 		}
 	},
 
-	capabilities: device => {
+	capabilities: (device, log, disableAuto=false) => {
 
 		const capabilities = {}
 
@@ -76,6 +76,13 @@ module.exports = {
 
 			// Mode options are COOL, HEAT, AUTO, FAN, DRY
 			const mode = key.toUpperCase()
+
+			// if "disableAuto" is set, then skip adding AUTO mode.
+			if (disableAuto && mode === 'AUTO') {
+				log.easyDebug('Skipping AUTO mode for service')
+
+				continue;
+			}
 
 			capabilities[mode] = {}
 
