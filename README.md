@@ -101,6 +101,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 | `apiKey`                   | Your Sensibo account API key (can be used instead of username/password)  |          |     -    |  String  |
 | `disableFan`               |  When set to `true`, it will disable the FAN accessory        |          |  `false` |  Boolean |
 | `disableDry`               |  When set to `true`, it will disable the DRY accessory        |          |  `false` |  Boolean |
+| `disableAuto`              |  When set to `true`, it will disable the AUTO mode       |          |  `false` |  Boolean |
 | `disableHorizontalSwing`   |  Disable horizontal swing control (via extra switch)          |          |  `false` |  Boolean |
 | `disableLightSwitch` |  Disable the Light service to control the AC Light (via extra light bulb)  |          |  `false` |  Boolean |
 | `enableSyncButton`         |  Adding a switch to quickly toggle the state of the AC without sending commands to the AC.   |          |  `false` |  Boolean  |
