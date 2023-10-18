@@ -49,6 +49,7 @@ class SensiboACPlatform {
 		this.enableSyncButton = config['enableSyncButton'] || false
 		this.syncButtonInAccessory = config['syncButtonInAccessory'] || false
 		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
+		this.enableClimateReactAutoSetup = config['enableClimateReactAutoSetup'] || false
 		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
 		this.disableLightSwitch = config['disableLightSwitch'] || false
 		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false

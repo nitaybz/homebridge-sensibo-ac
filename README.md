@@ -78,6 +78,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "syncButtonInAccessory": false,
         "enableOccupancySensor": true,
         "enableClimateReactSwitch": true,
+        "enableClimateReactAutoSetup": false,
         "enableHistoryStorage": true,
         "disableHorizontalSwing": false,
         "disableLightSwitch: false,
@@ -106,6 +107,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 | `syncButtonInAccessory`         |  When set to `true`, it will remove the extra AC Sync switch if it exists and will show \"AC Sync Button\" attached as a service to the Same AC Accessory (works only when `enableSyncButton` is set to true)   |          |  `false` |  Boolean  |
 | `enableOccupancySensor`    |  Adding occupancy sensor to represent the state of someone at home   |         |  `false` |  Boolean  |
 | `enableClimateReactSwitch` |  Adding a switch to quickly enable/disable climate react.     |          |  `false` |  Boolean  |
+| `enableClimateReactAutoSetup` |  Enables setting up an appropriate Climate React configuration when AC state is set or changed.     |          |  `false` |  Boolean  |
 | `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app  |         |  `false` |   Boolean |
 | `devicesToExclude`       |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge        |          |  - |  String[]  |
 | `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)        |          |  - |  String[]  |
@@ -188,7 +190,7 @@ Enabling this feature will add **Occupancy Sensor** to HomeKit, representing the
 **To enable the extra occupancy sensor**, add 
 `"enableOccupancySensor": true` to your config.
 
-### Climate React
+### Climate React Switch
 When enabled, this feature creates a new switch accessory in HomeKit. The new switch can quickly enable or disable the state of the "Climate React" you've set in Sensibo app.<br>
 
 
@@ -196,9 +198,18 @@ Use this feature in conjunction with the occupancy sensor and you'll be able to 
 
 *This feature does not allow changing the actual logic of the "Climate React" but only make it enabled or disabled. Therefore, it will not work if the "Climate React" was not set up in Sensibo app.
 
-**To enable the extra "Climate React" switch**, add 
+**To enable a Climate React switch**, add 
 `"enableClimateReactSwitch": true` to your config.
 
+### Climate React Auto Setup
+When enabled, every time an AC's state is set or changed,  appropriate Climate React configuration will be set up for maintaining the desired temperature.
+
+For example, if setting an AC to Cool to 25C, Climate React will be set up such that when the temperature rises above 25C the AC starts to cool and when the temperature drops below 24 (the target temperature minus 1 degress centigrade, or the equivalent fahrenheit delta), the AC will be turned off.
+
+When setting an AC to Heat with a target temprature, Climate React will be set up similarly.
+
+**To enable Climate React Auto Setup**, add 
+`"enableClimateReactAutoSetup": true` to your config.
 
 ### Filter Cleaning Indication
 

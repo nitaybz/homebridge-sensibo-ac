@@ -106,13 +106,24 @@ module.exports = (device, platform) => {
 					preventTurningOff = false
 				}
 		
-				const sensiboNewState = unified.sensiboFormattedState(device, state)
+				const sensiboNewACState = unified.sensiboFormattedACState(device, state)
+				const sensiboNewClimateReactState = unified.sensiboFormattedClimageReactState(device, state)
+
 				log.easyDebug(device.name, ' -> Setting New State:')
-				log.easyDebug(JSON.stringify(sensiboNewState, null, 2))
+				log.easyDebug(JSON.stringify(sensiboNewACState, null, 2))
+				
+				if (platform.enableClimateReactAutoSetup) {
+					log.easyDebug(JSON.stringify(sensiboNewClimateReactState, null, 2))
+				}
 				
 				try {
 					// send state command to Sensibo
-					await sensiboApi.setDeviceState(device.id, sensiboNewState)
+					
+					if (platform.enableClimateReactAutoSetup) {
+						await sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
+					}
+
+					await sensiboApi.setDeviceACState(device.id, sensiboNewACState)
 				} catch(err) {
 					log(`ERROR setting ${prop} to ${value}`)
 					setTimeout(() => {

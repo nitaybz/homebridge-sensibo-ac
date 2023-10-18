@@ -48,8 +48,15 @@ module.exports = async function (platform) {
 
 			return await apiRequest('get', path + '?' + queryString)
 		},
-	
-		setDeviceState: async (deviceId, acState) => {
+
+		setDeviceClimateReactState: async (deviceId, climateReactState) => {
+			const path = `/pods/${deviceId}/smartmode`
+			const json = climateReactState
+
+			return await apiRequest('post', path, json)
+		},		
+			
+		setDeviceACState: async (deviceId, acState) => {
 			const path = `/pods/${deviceId}/acStates`
 			const json = {
 				'acState': acState
@@ -76,7 +83,6 @@ module.exports = async function (platform) {
 
 			return await apiRequest('put', path, json)
 		},
-	
 
 		enableDisablePureBoost: async (deviceId, enabled) => {
 			const path = `/pods/${deviceId}/pureboost`

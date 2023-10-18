@@ -75,12 +75,19 @@
                 "required": false
             },
             "enableClimateReactSwitch": {
-                "title": "Enable Climate React Switch",
+                "title": "Enable Climate React Enabled Switch",
                 "description": "Adding a switch to quickly enable/disable Climate React",
                 "type": "boolean",
                 "default": false,
                 "required": false
             },
+            "enableClimateReactAutoSetup": {
+                "title": "Enable Climate React Auto Setup",
+                "description": "Enables setting up an appropriate Climate React configuration when AC state is set or changed",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },            
             "enableHistoryStorage": {
                 "title": "Enable History Storage",
                 "description": "Records all temperature & humidity measurements history to be viewable in the Eve app",

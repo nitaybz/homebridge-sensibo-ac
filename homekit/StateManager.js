@@ -38,6 +38,66 @@ module.exports = (device, platform) => {
 		return value
 	}
 
+	const updateClimateReact = function() {
+		
+		device.state.smartMode.enabled = device.state.active && device.state.mode !== 'AUTO'
+		device.state.smartMode.type = 'temperature'
+		device.state.smartMode.highTemperatureWebhook = null	
+		device.state.smartMode.lowTemperatureWebhook = null	
+
+		if (device.state.mode === 'COOL') {
+			device.state.smartMode.highTemperatureThreshold = device.state.targetTemperature
+			device.state.smartMode.highTemperatureState = { 
+				on: true,
+				targetTemperature: device.state.targetTemperature,
+				temperatureUnit: device.temperatureUnit,
+				mode: device.state.mode,
+				fanSpeed: device.state.fanSpeed,
+				swing: device.state.swing,
+				horizontalSwing: device.state.horizontalSwing,
+				light: device.state.light
+			}
+			
+			device.state.smartMode.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
+			device.state.smartMode.lowTemperatureState = { 
+				on: false,
+				targetTemperature: device.state.targetTemperature,				
+				temperatureUnit: device.temperatureUnit,				
+				mode: device.state.mode,
+				fanSpeed: device.state.fanSpeed,
+				swing: device.state.swing,
+				horizontalSwing: device.state.horizontalSwing,
+				light: device.state.light
+			}
+								
+		} else if (device.state.mode === 'HEAT') {
+			device.state.smartMode.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
+			device.state.smartMode.highTemperatureState = { 
+				on: false,
+				targetTemperature: device.state.targetTemperature,				
+				temperatureUnit: device.temperatureUnit,
+				mode: device.state.mode,
+				fanSpeed: device.state.fanSpeed,
+				swing: device.state.swing,
+				horizontalSwing: device.state.horizontalSwing,
+				light: device.state.light
+			}
+			
+			device.state.smartMode.lowTemperatureThreshold = device.state.targetTemperature
+			device.state.smartMode.lowTemperatureState = { 
+				on: true,
+				targetTemperature: device.state.targetTemperature,				
+				temperatureUnit: device.temperatureUnit,
+				mode: device.state.mode,
+				fanSpeed: device.state.fanSpeed,
+				swing: device.state.swing,
+				horizontalSwing: device.state.horizontalSwing,
+				light: device.state.light				
+			}
+		}
+
+	}
+
 	return {
 
 		get: {
@@ -307,10 +367,10 @@ module.exports = (device, platform) => {
 
 			// CLIMATE REACT
 
-			ClimateReact: (callback) => {
-				const smartMode = device.state.smartMode
-				log.easyDebug(device.name, '(GET) - Climate React Switch:', smartMode)
-				callback(null, smartMode)
+			ClimateReactEnabledSwitch: (callback) => {
+				const smartModeEnabled = device.state.smartMode.enabled
+				log.easyDebug(device.name, '(GET) - Climate React Enabled Switch:', smartModeEnabled)
+				callback(null, smartModeEnabled)
 			},
 
 			// OCCUPANCY SENSOR
@@ -360,26 +420,32 @@ module.exports = (device, platform) => {
 					const mode = characteristicToMode(lastMode)
 					log.easyDebug(device.name + ' -> Setting Mode to', mode)
 					device.state.mode = mode
-				} else if (device.state.mode === 'COOL' || device.state.mode === 'HEAT' || device.state.mode === 'AUTO')
+				} else if (device.state.mode === 'COOL' || device.state.mode === 'HEAT' || device.state.mode === 'AUTO') {
 					device.state.active = false
+				}
+
+				updateClimateReact()
 
 				callback()
 			},
-
 
 			PureActive: (state, callback) => {
 				state = !!state
 				log.easyDebug(device.name + ' -> Setting Pure state Active:', state)
 				device.state.active = state
+
+				updateClimateReact()
+				
 				callback()
-			},
-		
+			},		
 		
 			TargetHeaterCoolerState: (state, callback) => {
 				const mode = characteristicToMode(state)
 				log.easyDebug(device.name + ' -> Setting Target HeaterCooler State:', mode)
 				device.state.mode = mode
 				device.state.active = true
+				
+				updateClimateReact()
 
 				callback()
 			},
@@ -393,9 +459,12 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
-				device.state.targetTemperature = temp
+				device.state.targetTemperature = temp								
 				log.easyDebug(device.name + ' -> Setting Mode to: ' + mode)
 				device.state.mode = mode
+
+				updateClimateReact()
+
 				callback()
 			},
 		
@@ -412,6 +481,9 @@ module.exports = (device, platform) => {
 				device.state.targetTemperature = temp
 				log.easyDebug(device.name + ' -> Setting Mode to: ' + mode)
 				device.state.mode = mode
+
+				updateClimateReact()
+
 				callback()
 			},
 		
@@ -427,6 +499,8 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				device.state.mode = mode
 
+				updateClimateReact()
+
 				callback()
 			},
 		
@@ -440,6 +514,8 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				device.state.mode = mode
 
+				updateClimateReact()
+
 				callback()
 			},
 
@@ -452,6 +528,8 @@ module.exports = (device, platform) => {
 				} else {
 					device.state.active = false
 				}
+
+				updateClimateReact()
 
 				callback()
 			},
@@ -573,9 +651,9 @@ module.exports = (device, platform) => {
 
 			// CLIMATE REACT
 
-			ClimateReact: (state, callback) => {
-				log.easyDebug(device.name + ' -> Setting Climate React Switch to', state)
-				device.state.smartMode = state
+			ClimateReactEnabledSwitch: (state, callback) => {
+				log.easyDebug(device.name + ' -> Setting Climate React Enabled Switch to', state)
+				device.state.smartMode.enabled = state
 				callback()
 			},
 

@@ -19,6 +19,7 @@
       "syncButtonInAccessory": false,
       "enableOccupancySensor": true,
       "enableClimateReactSwitch": true,
+      "enableClimateReactAutoSetup": false,
       "enableHistoryStorage": true,
       "disableHorizontalSwing": false,
       "disableLightSwitch": false,

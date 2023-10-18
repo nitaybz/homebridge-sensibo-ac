@@ -59,14 +59,14 @@ class ClimateReactSwitch {
 
 			
 		this.ClimateReactService.getCharacteristic(Characteristic.On)
-			.on('get', this.stateManager.get.ClimateReact)
-			.on('set', this.stateManager.set.ClimateReact)
+			.on('get', this.stateManager.get.ClimateReactEnabledSwitch)
+			.on('set', this.stateManager.set.ClimateReactEnabledSwitch)
 
 	}
 
 	updateHomeKit() {
 		// update Climate React Service
-		this.updateValue('ClimateReactService', 'On', this.state.smartMode)
+		this.updateValue('ClimateReactService', 'On', this.state.smartMode.enabled)
 	}
 
 	updateValue (serviceName, characteristicName, newValue) {
