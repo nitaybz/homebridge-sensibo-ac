@@ -126,9 +126,8 @@ function apiRequest(method, url, data) {
 				let results
 				if (json.status && json.status == 'success') {
 					log.easyDebug(`Successful ${method.toUpperCase()} response:`)
-					if (json.result && json.result instanceof Array)
-						// remove private address of users to prevent it appearing in logs
-						results = removePrivateAddress(json.result)
+					if (json.result && json.result instanceof Array)						
+						results = fixResponse(json.result)
 					else 
 						results = json
 					log.easyDebug(JSON.stringify(results))
@@ -195,9 +194,13 @@ function getToken(username, password, storage) {
 	})
 }
 
-function removePrivateAddress(results) {
+function fixResponse(results) {
 	return results.map(result =>  {
-		result.location && (result.location = { occupancy: result.location.occupancy, name: result.location.name, id: result.location.id})
+		// remove user's address to prevent it from appearing in logs
+		result.location && (result.location = { occupancy: result.location.occupancy, name: result.location.name, id: result.location.id});
+		
+		// if climate react was never set up - this will return a 'null' value which will mess up some of the underlaying code so we fix it
+		!result.smartMode && (result.smartMode = {enabled: false});
 		return result
 	})
 }
