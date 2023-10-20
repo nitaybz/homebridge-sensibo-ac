@@ -13,8 +13,11 @@ module.exports = (device, platform) => {
 	return {
 		get: (target, prop) => {
 			// check for last update and refresh state if needed
-			if (!platform.setProcessing)
+			if (!platform.setProcessing) {
 				platform.refreshState()
+			} else {
+				log.easyDebug('setProcessing is set to true, skipping state refresh.')
+			}
 
 			// return a function to update state (multiple properties)
 			if (prop === 'update')
@@ -55,6 +58,7 @@ module.exports = (device, platform) => {
 			// Send Reset Filter command and update value
 			if (prop === 'filterChange') {
 				try {
+					log(`Resetting filter indiactor for ${device.id}`)
 					sensiboApi.resetFilterIndicator(device.id)
 				} catch(err) {
 					log('Error occurred! -> Could not reset filter indicator')
@@ -66,30 +70,36 @@ module.exports = (device, platform) => {
 			// Send Reset Filter command and update value
 			if (prop === 'smartMode') {
 				try {
+					log(`Setting Climate React state for ${device.id} to ${value}`)
 					sensiboApi.enableDisableClimateReact(device.id, value)
 				} catch(err) {
 					log('Error occurred! -> Climate React state did not change')
 				}
 				
-				if (!platform.setProcessing)
+				if (!platform.setProcessing) {
 					platform.refreshState()
+				} else {
+					log.easyDebug('setProcessing is set to true, skipping state refresh due to Climate React set.')
+				}	
 				return
 			}
-
 
 			// Send Reset Filter command and update value
 			if (prop === 'pureBoost') {
 				try {
+					log(`Setting Pure Boost state for ${device.id} to ${value}`)
 					sensiboApi.enableDisablePureBoost(device.id, value)
 				} catch(err) {
 					log('Error occurred! -> Pure Boost state did not change')
 				}
 				
-				if (!platform.setProcessing)
+				if (!platform.setProcessing) {
 					platform.refreshState()
+				} else {
+					log.easyDebug('setProcessing is set to true, skipping state refresh due to Pure Boost set.')
+				}	
 				return
-			}
-	
+			}	
 
 			platform.setProcessing = true
 
