@@ -62,17 +62,10 @@
             },
             "syncButtonInAccessory": {
                 "title": "Sync Button in AC Accessory",
-                "description": "Enabling it will remove the extra AC Sync switch if it exists and will show \"AC Sync Button\" attached as a service to the Same AC Accessory (works only when `enableSyncButton` is set to true)",
+                "description": "Enabling this will remove the extra AC Sync switch if it exists and will show \"AC Sync Button\" attached as a service to the Same AC Accessory (only works when `enableSyncButton` is set to true)",
                 "type": "boolean",
                 "default": false,
                 "required": false
-            },
-            "climateReactSwitchInAccessory": {
-                "title": "Climate React Switch in AC Accessory",
-                "description": "Enabling it will remove the extra Climate React switch if it exists and will show \"Climate React Button\" attached as a service to the Same AC Accessory (works only when `enableClimateReactSwitch` is set to true)",
-                "type": "boolean",
-                "default": false,
-                "required": false                
             },
             "enableOccupancySensor": {
                 "title": "Enable Occupancy Sensor",
@@ -95,6 +88,13 @@
                 "default": false,
                 "required": false
             },            
+            "climateReactSwitchInAccessory": {
+                "title": "Climate React Switch in AC Accessory",
+                "description": "Enabling this will remove the extra Climate React switch if it exists and will show \"Climate React Button\" attached as a service to the Same AC Accessory (only works when `enableClimateReactSwitch` is set to true)",
+                "type": "boolean",
+                "default": false,
+                "required": false                
+            },
             "enableHistoryStorage": {
                 "title": "Enable History Storage",
                 "description": "Records all temperature & humidity measurements history to be viewable in the Eve app",
