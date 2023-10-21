@@ -77,6 +77,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "enableSyncButton": true,
         "syncButtonInAccessory": false,
         "enableOccupancySensor": true,
+        "climateReactSwitchInAccessory": false,
         "enableClimateReactSwitch": true,
         "enableClimateReactAutoSetup": false,
         "enableHistoryStorage": true,
@@ -106,6 +107,7 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
 | `disableLightSwitch` |  Disable the Light service to control the AC Light (via extra light bulb)  |          |  `false` |  Boolean |
 | `enableSyncButton`         |  Adding a switch to quickly toggle the state of the AC without sending commands to the AC.   |          |  `false` |  Boolean  |
 | `syncButtonInAccessory`         |  When set to `true`, it will remove the extra AC Sync switch if it exists and will show \"AC Sync Button\" attached as a service to the Same AC Accessory (works only when `enableSyncButton` is set to true)   |          |  `false` |  Boolean  |
+| `climateReactSwitchInAccessory`         |  When set to `true`, it will remove the extra AC Climate React switch if it exists and will show \"Climate React Button\" attached as a service to the Same AC Accessory (works only when `enableClimateReactSwitch` is set to true)   |          |  `false` |  Boolean  |
 | `enableOccupancySensor`    |  Adding occupancy sensor to represent the state of someone at home   |         |  `false` |  Boolean  |
 | `enableClimateReactSwitch` |  Adding a switch to quickly enable/disable climate react.     |          |  `false` |  Boolean  |
 | `enableClimateReactAutoSetup` |  Enables setting up an appropriate Climate React configuration when AC state is set or changed.     |          |  `false` |  Boolean  |
@@ -175,13 +177,14 @@ When enabled, this feature creates a new switch accessory in HomeKit. The new sw
 
 \* *it is extra necessary if your AC has the same command for ON and  OFF because it can go out of sync easily.*
 
-
 **To enable the extra "AC Sync" switch**, add 
 `"enableSyncButton": true` to your config.
 
 **To attach the "AC Sync" button as a service to the AC accessory instead of a separate switch**, add 
 `"syncButtonInAccessory": true` to your config.
 
+**To attach the "Climate React" button as a service to the AC accessory instead of a separate switch**, add 
+`"climateReactSwitchInAccessory": true` to your config.
 
 ### Occupancy Sensor
 Enabling this feature will add **Occupancy Sensor** to HomeKit, representing the Home/Away state of the geofence feature in Sensibo app.

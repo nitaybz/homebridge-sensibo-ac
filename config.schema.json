@@ -67,6 +67,13 @@
                 "default": false,
                 "required": false
             },
+            "climateReactSwitchInAccessory": {
+                "title": "Climate React Switch in AC Accessory",
+                "description": "Enabling it will remove the extra Climate React switch if it exists and will show \"Climate React Button\" attached as a service to the Same AC Accessory (works only when `enableClimateReactSwitch` is set to true)",
+                "type": "boolean",
+                "default": false,
+                "required": false                
+            },
             "enableOccupancySensor": {
                 "title": "Enable Occupancy Sensor",
                 "description": "Adding occupancy sensor to represent the state of someone at home/away",
@@ -75,7 +82,7 @@
                 "required": false
             },
             "enableClimateReactSwitch": {
-                "title": "Enable Climate React Enabled Switch",
+                "title": "Enable Climate React Switch",
                 "description": "Adding a switch to quickly enable/disable Climate React",
                 "type": "boolean",
                 "default": false,

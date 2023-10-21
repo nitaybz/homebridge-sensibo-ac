@@ -18,6 +18,7 @@
       "enableSyncButton": true,
       "syncButtonInAccessory": false,
       "enableOccupancySensor": true,
+      "climateReactSwitchInAccessory": false,
       "enableClimateReactSwitch": true,
       "enableClimateReactAutoSetup": false,
       "enableHistoryStorage": true,

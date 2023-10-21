@@ -32,6 +32,7 @@ class AirConditioner {
 		this.disableHorizontalSwing = platform.disableHorizontalSwing
 		this.disableLightSwitch = platform.disableLightSwitch
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
+		this.climateReactSwitchInAccessory = platform.climateReactSwitchInAccessory
 		this.filterService = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device, platform.log, this.disableAuto)
 
@@ -97,6 +98,10 @@ class AirConditioner {
 		else
 			this.removeSyncButtonService()
 
+		if (this.climateReactSwitchInAccessory)
+			this.addClimateReactService()
+		else
+			this.removeClimateReactService()
 
 		if (((this.capabilities.COOL && this.capabilities.COOL.light) || (this.capabilities.HEAT && this.capabilities.HEAT.light)) && !this.disableLightSwitch)
 			this.addLightSwitch()
@@ -375,6 +380,28 @@ class AirConditioner {
 		}
 
 	}
+
+	addClimateReactService() {
+		this.log.easyDebug(`Adding Climate React Switch Service in the ${this.roomName}`)
+
+		this.ClimateReactService = this.accessory.getService(Service.Switch)
+		if (!this.ClimateReactService)
+			this.ClimateReactService = this.accessory.addService(Service.Switch, this.name, this.type)
+			
+		this.ClimateReactService.getCharacteristic(Characteristic.On)
+			.on('get', this.stateManager.get.ClimateReactEnabledSwitch)
+			.on('set', this.stateManager.set.ClimateReactEnabledSwitch)
+	}	
+
+	removeClimateReactService() {
+		let ClimateReactService = this.accessory.getService('ClimateReact')
+		if (ClimateReactService) {
+			// remove service
+			this.log.easyDebug(`Removing Climate React Switch Service from the ${this.roomName}`)
+			this.accessory.removeService(ClimateReactService)
+		}
+
+	}	
 
 	updateHomeKit() {
 		// log new state with FakeGato

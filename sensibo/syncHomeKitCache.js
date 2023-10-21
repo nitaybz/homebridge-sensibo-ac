@@ -48,7 +48,7 @@ module.exports = (platform) => {
 					}
 	
 					// Add Climate React Switch if enabled
-					if (platform.enableClimateReactSwitch) {
+					if (platform.enableClimateReactSwitch && !platform.climateReactSwitchInAccessory) {
 						const climateReactSwitch = new ClimateReactSwitch(airConditioner, platform)
 						platform.activeAccessories.push(climateReactSwitch)
 					}
@@ -143,7 +143,7 @@ module.exports = (platform) => {
 
 			case 'ClimateReact':
 				deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities)
-				if (!deviceExists || !platform.enableClimateReactSwitch)
+				if (!deviceExists || !platform.enableClimateReactSwitch || platform.climateReactSwitchInAccessory)
 					accessoriesToRemove.push(accessory)
 				break
 

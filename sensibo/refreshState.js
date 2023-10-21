@@ -8,9 +8,10 @@ module.exports = (platform) => {
 			setTimeout(async () => {
 
 				try {
+					platform.log.easyDebug('Refreshing state...')
 					platform.devices = await platform.sensiboApi.getAllDevices()
 					await platform.storage.setItem('devices', platform.devices)
-					
+					platform.log.easyDebug('Refreshing state completed.')
 				} catch(err) {
 					platform.log.easyDebug('<<<< ---- Refresh State FAILED! ---- >>>>')
 					platform.processingState = false
@@ -32,27 +33,35 @@ module.exports = (platform) => {
 					const airQualitySensor = platform.activeAccessories.find(accessory => accessory.type === 'AirQualitySensor' && accessory.id === device.id)
 
 					if (airConditioner) {
+						
 						// Update AC state in cache + HomeKit
+						platform.log.easyDebug(`Updating AC state in Cache + HomeKit for ${device.id}`)
 						airConditioner.state.update(unified.acState(device))
 
 						// Update Humidity Sensor state in HomeKit
 						const humiditySensor = platform.activeAccessories.find(accessory => accessory.type === 'HumiditySensor' && accessory.id === device.id)
-						if (humiditySensor)
+						if (humiditySensor) {
+							platform.log.easyDebug(`Updating Humidity Sensor state in HomeKit for ${device.id}`)
 							humiditySensor.updateHomeKit()
+						}
 
 						// Update Climate React Switch state in HomeKit
 						const climateReactSwitch = platform.activeAccessories.find(accessory => accessory.type === 'ClimateReact' && accessory.id === device.id)
-						if (climateReactSwitch)
+						if (climateReactSwitch) {
+							platform.log.easyDebug(`Updating Climate React Switch state in HomeKit for ${device.id}`)
 							climateReactSwitch.updateHomeKit()
+						}
 					}
 
 					// Update Pure state in cache + HomeKit
 					if (airPurifier) {
+						platform.log.easyDebug(`Updating Pure state in cache + HomeKit for for ${device.id}`)
 						airPurifier.state.update(unified.acState(device))
 					}
 
 					// Update Air Quality Sensor state in cache + HomeKit
 					if (airQualitySensor) {
+						platform.log.easyDebug(`Updating Air Quality Sensor state in cache + HomeKit for for ${device.id}`)
 						airQualitySensor.state.update(unified.airQualityState(device))
 					}
 
@@ -60,8 +69,10 @@ module.exports = (platform) => {
 					if (device.motionSensors && Array.isArray(device.motionSensors)) {
 						device.motionSensors.forEach(sensor => {
 							const roomSensor = platform.activeAccessories.find(accessory => accessory.type === 'RoomSensor' && accessory.id === sensor.id)
-							if (roomSensor)
+							if (roomSensor) {
+								platform.log.easyDebug(`Updating Room Sensor state in cache + HomeKit for ${device.id}`)
 								roomSensor.state.update(unified.sensorState(sensor))
+							}
 						})
 					}
 
@@ -69,12 +80,14 @@ module.exports = (platform) => {
 					const location = platform.activeAccessories.find(accessory => accessory.type === 'OccupancySensor' && accessory.id === device.location.id)
 					if (location && !handledLocations.includes(location.id)) {
 						handledLocations.push(location.id)
+						platform.log.easyDebug(`Updating Occupancy state in cache + HomeKit for ${device.id}`)
 						location.state.update(unified.occupancyState(device.location))
 					}
 
 				})
 
 				// register new devices / unregister removed devices
+				platform.log.easyDebug('Syncing HomeKit Cache')
 				platform.syncHomeKitCache()
 
 				// start timeout for next polling

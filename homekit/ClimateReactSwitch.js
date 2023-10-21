@@ -30,6 +30,7 @@ class ClimateReactSwitch {
 			this.accessory.context.deviceId = this.id
 
 			platform.cachedAccessories.push(this.accessory)
+
 			// register the accessory
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
@@ -49,19 +50,16 @@ class ClimateReactSwitch {
 		this.addClimateReactService()
 	}
 
-	
 	addClimateReactService() {
 		this.log.easyDebug(`Adding Climate React Switch Service in the ${this.roomName}`)
 
 		this.ClimateReactService = this.accessory.getService(Service.Switch)
 		if (!this.ClimateReactService)
 			this.ClimateReactService = this.accessory.addService(Service.Switch, this.name, this.type)
-
 			
 		this.ClimateReactService.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.ClimateReactEnabledSwitch)
 			.on('set', this.stateManager.set.ClimateReactEnabledSwitch)
-
 	}
 
 	updateHomeKit() {
@@ -69,7 +67,7 @@ class ClimateReactSwitch {
 		this.updateValue('ClimateReactService', 'On', this.state.smartMode.enabled)
 	}
 
-	updateValue(serviceName, characteristicName, newValue) {
+	updateValue (serviceName, characteristicName, newValue) {
 		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
 			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
 			this.log.easyDebug(`${this.roomName} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)

@@ -12,11 +12,14 @@ module.exports = (device, platform) => {
 
 	return {
 		get: (target, prop) => {
+
+			// log.easyDebug(`StateHandler GET ${target.toString()} ${prop}`)
+
 			// check for last update and refresh state if needed
 			if (!platform.setProcessing) {
 				platform.refreshState()
 			} else {
-				log.easyDebug('setProcessing is set to true, skipping state refresh.')
+				log.easyDebug('setProcessing is set to true, skip refreshing state.')
 			}
 
 			// return a function to update state (multiple properties)
@@ -50,15 +53,17 @@ module.exports = (device, platform) => {
 	
 		set: (state, prop, value) => {
 			
+			log.easyDebug(`StateHandler SET ${state} ${prop} ${value}`)
+			
 			if (!platform.allowRepeatedCommands && prop in state && state[prop] === value)
 				return
 
 			state[prop] = value
 			
-			// Send Reset Filter command and update value
+			// Send Reset filter indicator command and refresh state
 			if (prop === 'filterChange') {
 				try {
-					log(`Resetting filter indiactor for ${device.id}`)
+					log(`Resetting filter indiactor for ${device.name}`)
 					sensiboApi.resetFilterIndicator(device.id)
 				} catch(err) {
 					log('Error occurred! -> Could not reset filter indicator')
@@ -67,10 +72,10 @@ module.exports = (device, platform) => {
 			} else if (prop === 'filterLifeLevel')
 				return
 
-			// Send Reset Filter command and update value
+			// Send Climate React state command and refresh state
 			if (prop === 'smartMode') {
 				try {
-					log(`Setting Climate React state for ${device.id} to ${value}`)
+					log(`Setting Climate React state for ${device.name} to ${value}`)
 					sensiboApi.enableDisableClimateReact(device.id, value)
 				} catch(err) {
 					log('Error occurred! -> Climate React state did not change')
@@ -84,10 +89,10 @@ module.exports = (device, platform) => {
 				return
 			}
 
-			// Send Reset Filter command and update value
+			// Send Pure Boost state command and refresh state
 			if (prop === 'pureBoost') {
 				try {
-					log(`Setting Pure Boost state for ${device.id} to ${value}`)
+					log(`Setting Pure Boost state for ${device.name} to ${value}`)
 					sensiboApi.enableDisablePureBoost(device.id, value)
 				} catch(err) {
 					log('Error occurred! -> Pure Boost state did not change')

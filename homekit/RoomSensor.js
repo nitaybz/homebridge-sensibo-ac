@@ -146,7 +146,7 @@ class RoomSensor {
 		this.storage.setItem('state', this.cachedState)
 	}
 
-	updateValue(serviceName, characteristicName, newValue) {
+	updateValue (serviceName, characteristicName, newValue) {
 		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
 			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
 			this.log.easyDebug(`${this.roomName} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)

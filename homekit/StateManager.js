@@ -107,9 +107,11 @@ module.exports = (device, platform) => {
 		
 				if (!active || mode === 'FAN' || mode === 'DRY') {
 					log.easyDebug(device.name, '(GET) - AC Active State: false')
+					
 					callback(null, 0)
 				} else {
 					log.easyDebug(device.name, '(GET) - AC Active State: true')
+
 					callback(null, 1)
 				}
 			},
@@ -117,18 +119,21 @@ module.exports = (device, platform) => {
 			PureActive: (callback) => {
 				const active = device.state.active
 				log.easyDebug(`${device.name} (GET) - Pure Active State: ${active}`)
+
 				callback(null, active ? 1 : 0)
 			},
 
 			CurrentAirPurifierState: (callback) => {
 				const active = device.state.active
 				log.easyDebug(`${device.name} (GET) - Pure Current State: ${active ? 'PURIFYING_AIR' : 'INACTIVE'}`)
+
 				callback(null, active ? 2 : 0)
 			},
 
 			TargetAirPurifierState: (callback) => {
 				const pureBoost = device.state.pureBoost
 				log.easyDebug(`${device.name} (GET) - Pure Target State (Boost): ${pureBoost ? 'AUTO' : 'MANUAL'}`)
+
 				callback(null, pureBoost ? 1 : 0)
 			},
 
@@ -159,9 +164,11 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(GET) - Target HeaterCooler State:', active ? mode : 'OFF')
 				if (!active || mode === 'FAN' || mode === 'DRY') {
 					const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
+
 					callback(null, lastMode)
-				} else
+				} else {
 					callback(null, sanitize(device.HeaterCoolerService, 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState[mode]))
+				}
 			},
 
 			CurrentTemperature: (callback) => {
@@ -199,11 +206,13 @@ module.exports = (device, platform) => {
 
 			TemperatureDisplayUnits: (callback) => {
 				log.easyDebug(device.name, '(GET) - Temperature Display Units:', device.temperatureUnit)
+
 				callback(null, device.usesFahrenheit ? Characteristic.TemperatureDisplayUnits.FAHRENHEIT : Characteristic.TemperatureDisplayUnits.CELSIUS)
 			},
 
 			CurrentRelativeHumidity: (callback) => {
 				log.easyDebug(device.name, '(GET) - Current Relative Humidity:', device.state.relativeHumidity, '%')
+
 				callback(null, device.state.relativeHumidity)
 			},
 
@@ -240,6 +249,7 @@ module.exports = (device, platform) => {
 				const filterChange = device.state.filterChange
 
 				log.easyDebug(device.name, '(GET) - Filter Change Indication:', filterChange)
+
 				callback(null, Characteristic.FilterChangeIndication[filterChange])
 			},
 
@@ -247,6 +257,7 @@ module.exports = (device, platform) => {
 				const filterLifeLevel = device.state.filterLifeLevel
 
 				log.easyDebug(device.name, '(GET) - Filter Life Level:', filterLifeLevel + '%')
+
 				callback(null, filterLifeLevel)
 			},
 
@@ -258,9 +269,11 @@ module.exports = (device, platform) => {
 		
 				if (!active || mode !== 'FAN') {
 					log.easyDebug(device.name, '(GET) - Fan Active State: false')
+
 					callback(null, 0)
 				} else {
 					log.easyDebug(device.name, '(GET) - Fan Active State: true')
+
 					callback(null, 1)
 				}
 			},
@@ -279,6 +292,7 @@ module.exports = (device, platform) => {
 				const fanSpeed = device.state.fanSpeed
 
 				log.easyDebug(device.name, '(GET) - Fan Rotation Speed:', fanSpeed + '%')
+
 				callback(null, fanSpeed)
 			},
 
@@ -289,9 +303,11 @@ module.exports = (device, platform) => {
 		
 				if (!active || mode !== 'DRY') {
 					log.easyDebug(device.name, '(GET) - Dry Active State: false')
+
 					callback(null, 0)
 				} else {
 					log.easyDebug(device.name, '(GET) - Dry Active State: true')
+
 					callback(null, 1)
 				}
 			},
@@ -302,15 +318,18 @@ module.exports = (device, platform) => {
 		
 				if (!active || mode !== 'DRY') {
 					log.easyDebug(device.name, '(GET) - Dry Current Dehumidifier State: INACTIVE')
+
 					callback(null, Characteristic.CurrentHumidifierDehumidifierState.INACTIVE)
 				} else {
 					log.easyDebug(device.name, '(GET) - Dry Current Dehumidifier State: DEHUMIDIFYING')
+
 					callback(null, Characteristic.CurrentHumidifierDehumidifierState.DEHUMIDIFYING)
 				}
 			},
 
 			TargetHumidifierDehumidifierState: (callback) => {
 				log.easyDebug(device.name, '(GET) - HeaterCooler State: ?')
+
 				callback(null, Characteristic.TargetHumidifierDehumidifierState.DEHUMIDIFIER)
 			},
 
@@ -318,6 +337,7 @@ module.exports = (device, platform) => {
 				const fanSpeed = device.state.fanSpeed
 
 				log.easyDebug(device.name, '(GET) - Dry Rotation Speed:', fanSpeed + '%')
+
 				callback(null, fanSpeed)
 			},
 
@@ -336,6 +356,7 @@ module.exports = (device, platform) => {
 			MotionDetected: (callback) => {
 				const motionDetected = device.state.motionDetected
 				log.easyDebug(device.name, '(GET) - Motion Detected:', motionDetected)
+
 				callback(null, motionDetected)
 			},
 
@@ -343,6 +364,7 @@ module.exports = (device, platform) => {
 			StatusLowBattery: (callback) => {
 				const lowBattery = device.state.lowBattery
 				log.easyDebug(device.name, '(GET) - Status Low Battery:', lowBattery)
+
 				callback(null, Characteristic.StatusLowBattery[lowBattery])
 			},
 
@@ -353,7 +375,6 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(GET) - Horizontal Swing:', horizontalSwing)
 
 				callback(null, horizontalSwing === 'SWING_ENABLED')
-
 			},
 
 			// AC LIGHT
@@ -412,7 +433,7 @@ module.exports = (device, platform) => {
 
 			ACActive: (state, callback) => {
 				state = !!state
-				log.easyDebug(device.name,' (SET) - AC Active State:', state)
+				log.easyDebug(device.name, '(SET) - AC Active State:', state)
 
 				if (state) {
 					device.state.active = true
@@ -450,7 +471,7 @@ module.exports = (device, platform) => {
 				callback()
 			},
 		
-			CoolingThresholdTemperature: (temp, callback) => {
+			CoolingThresholdTemperature: (targetTemp, callback) => {
 				if (device.usesFahrenheit)
 					log.easyDebug(device.name, '(SET) - Target Cooling Temperature:', toFahrenheit(targetTemp) + 'ºF')
 				else
@@ -459,7 +480,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
-				device.state.targetTemperature = temp								
+				device.state.targetTemperature = targetTemp								
 				log.easyDebug(device.name, '(SET) - target HeaterCooler State:', mode)
 				device.state.mode = mode
 
@@ -468,7 +489,7 @@ module.exports = (device, platform) => {
 				callback()
 			},
 		
-			HeatingThresholdTemperature: (temp, callback) => {
+			HeatingThresholdTemperature: (targetTemp, callback) => {
 				if (device.usesFahrenheit)
 					log.easyDebug(device.name, '(SET) - Target Heating Temperature:', toFahrenheit(targetTemp) + 'ºF')
 				else
@@ -477,7 +498,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
-				device.state.targetTemperature = temp
+				device.state.targetTemperature = targetTemp
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.mode = mode
 
@@ -504,7 +525,7 @@ module.exports = (device, platform) => {
 			},
 		
 			ACRotationSpeed: (speed, callback) => {
-				log.easyDebug(device.name, '(SET) - AC Rotation Speed:', fanSpeed + '%')
+				log.easyDebug(device.name, '(SET) - AC Rotation Speed:', speed + '%')
 				device.state.fanSpeed = speed
 
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
@@ -521,7 +542,7 @@ module.exports = (device, platform) => {
 
 			PureRotationSpeed: (speed, callback) => {
 				if (speed) {
-					log.easyDebug(device.name, '(SET) - Pure Rotation Speed:', fanSpeed + '%')
+					log.easyDebug(device.name, '(SET) - Pure Rotation Speed:', speed + '%')
 					device.state.fanSpeed = speed
 					device.state.active = true
 				} else {
@@ -539,6 +560,7 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - Filter Change Indication: RESET')
 				device.state.filterChange = 0
 				device.state.filterLifeLevel = 100
+
 				callback()
 			},
 		
@@ -553,6 +575,7 @@ module.exports = (device, platform) => {
 					device.state.mode = 'FAN'
 				} else if (device.state.mode === 'FAN')
 					device.state.active = false
+
 				callback()
 			},
 		
@@ -564,6 +587,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - HeaterCooler State: FAN')
 				device.state.mode = 'FAN'
+
 				callback()
 			},
 		
@@ -574,6 +598,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - HeaterCooler State: FAN')
 				device.state.mode = 'FAN'
+
 				callback()
 			},
 		
@@ -588,6 +613,7 @@ module.exports = (device, platform) => {
 					device.state.mode = 'DRY'
 				} else if (device.state.mode === 'DRY')
 					device.state.active = false
+
 				callback()
 			},
 		
@@ -595,6 +621,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - HeaterCooler State: DRY')
 				device.state.mode = 'DRY'
+
 				callback()
 			},
 		
@@ -606,16 +633,18 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - HeaterCooler State: DRY')
 				device.state.mode = 'DRY'
+
 				callback()
 			},
 		
 			DryRotationSpeed: (speed, callback) => {
-				log.easyDebug(device.name, '(SET) - Dry Rotation Speed:', fanSpeed + '%')				
+				log.easyDebug(device.name, '(SET) - Dry Rotation Speed:', speed + '%')				
 				device.state.fanSpeed = speed
 
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - HeaterCooler State: DRY')
 				device.state.mode = 'DRY'
+
 				callback()
 			},
 
@@ -625,8 +654,8 @@ module.exports = (device, platform) => {
 				state = state ? 'SWING_ENABLED' : 'SWING_DISABLED'
 				log.easyDebug(device.name, '(SET) - Horizontal Swing:', state)
 				device.state.horizontalSwing = state
-				callback()
 
+				callback()
 			},
 
 			// AC LIGHT
@@ -634,6 +663,7 @@ module.exports = (device, platform) => {
 			LightSwitch: (state, callback) => {
 				log.easyDebug(device.name, '(SET) - AC Light:', light ? 'ON' : 'OFF')
 				device.state.light = state
+
 				callback()
 			},
 
@@ -644,6 +674,7 @@ module.exports = (device, platform) => {
 					log.easyDebug(device.name + ' (SYNC) - AC Active State:', device.state.active)
 					device.state.syncState()
 				}
+
 				callback()
 			},
 
@@ -652,6 +683,7 @@ module.exports = (device, platform) => {
 			ClimateReactEnabledSwitch: (state, callback) => {
 				log.easyDebug(device.name, '(SET) - Climate React Enabled Switch:', state)
 				device.state.smartMode.enabled = state
+
 				callback()
 			},
 
@@ -661,6 +693,7 @@ module.exports = (device, platform) => {
 				const pureBoost = !!state
 				log.easyDebug(`${device.name} (SET) - Pure Target State (Boost): ${pureBoost ? 'AUTO' : 'MANUAL'}`)
 				device.state.pureBoost = pureBoost
+
 				callback()
 			} 
 		}
