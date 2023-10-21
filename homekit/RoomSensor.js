@@ -46,6 +46,7 @@ class RoomSensor {
 			this.accessory.context.deviceId = this.deviceId
 
 			platform.cachedAccessories.push(this.accessory)
+			
 			// register the accessory
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}

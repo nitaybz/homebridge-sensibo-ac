@@ -359,7 +359,6 @@ class AirConditioner {
 		if (!this.SyncButtonService)
 			this.SyncButtonService = this.accessory.addService(Service.Switch, this.name + ' Sync', 'SyncButton')
 
-
 		this.SyncButtonService.getCharacteristic(Characteristic.On)
 			.on('get', (callback) => { callback(null, false) })
 			.on('set', (state, callback) => {
@@ -368,7 +367,6 @@ class AirConditioner {
 					this.SyncButtonService.getCharacteristic(Characteristic.On).updateValue(0)
 				}, 1000)
 			})
-
 	}
 
 	removeSyncButtonService() {
@@ -384,9 +382,9 @@ class AirConditioner {
 	addClimateReactService() {
 		this.log.easyDebug(`Adding Climate React Switch Service in the ${this.roomName}`)
 
-		this.ClimateReactService = this.accessory.getService(Service.Switch)
+		this.ClimateReactService = this.accessory.getService('ClimateReact')
 		if (!this.ClimateReactService)
-			this.ClimateReactService = this.accessory.addService(Service.Switch, this.name, this.type)
+			this.ClimateReactService = this.accessory.addService(Service.Switch, this.roomName + ' Climate React' , 'ClimateReact')
 			
 		this.ClimateReactService.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.ClimateReactEnabledSwitch)
