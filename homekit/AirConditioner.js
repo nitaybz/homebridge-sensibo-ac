@@ -339,7 +339,6 @@ class AirConditioner {
 		this.LightSwitch.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.LightSwitch)
 			.on('set', this.stateManager.set.LightSwitch)
-
 	}
 
 	removeLightSwitch() {

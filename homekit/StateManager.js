@@ -452,7 +452,7 @@ module.exports = (device, platform) => {
 
 			PureActive: (state, callback) => {
 				state = !!state
-				log.easyDebug(`${device.name} (SET) - Pure Active State: ${active}`)
+				log.easyDebug(`${device.name} (SET) - Pure Active State: ${state}`)
 				device.state.active = state
 
 				updateClimateReact()
@@ -627,7 +627,7 @@ module.exports = (device, platform) => {
 		
 			DrySwing: (state, callback) => {
 				state = state === Characteristic.SwingMode.SWING_ENABLED ? 'SWING_ENABLED' : 'SWING_DISABLED'
-				log.easyDebug(device.name, '(SET) - Dry Swing:', swing)
+				log.easyDebug(device.name, '(SET) - Dry Swing:', state)
 				device.state.swing = state
 
 				device.state.active = true
@@ -661,7 +661,7 @@ module.exports = (device, platform) => {
 			// AC LIGHT
 
 			LightSwitch: (state, callback) => {
-				log.easyDebug(device.name, '(SET) - AC Light:', light ? 'ON' : 'OFF')
+				log.easyDebug(device.name, '(SET) - AC Light:', state ? 'ON' : 'OFF')
 				device.state.light = state
 
 				callback()
