@@ -47,7 +47,11 @@ module.exports = (device, platform) => {
 		},
 
 		set: (state, prop, value) => {
+			log.easyDebug(`StateHandler SET ${prop} ${value} for ${JSON.stringify(state, null, 4)}`)
+
 			if (!platform.allowRepeatedCommands && prop in state && state[prop] === value) {
+				log.easyDebug(`Repeat command while updating ${device.name}, returning`)
+
 				return
 			}
 
@@ -56,7 +60,7 @@ module.exports = (device, platform) => {
 			// Send Reset Filter command
 			if (prop === 'filterChange') {
 				try {
-					log.easyDebug(`filterChange - updating ${device.name}`)
+					log.easyDebug(`filterChange - Resetting filter indicator for ${device.name}`)
 					sensiboApi.resetFilterIndicator(device.id)
 				} catch(err) {
 					log('Error occurred! -> Could not reset filter indicator')
@@ -102,6 +106,7 @@ module.exports = (device, platform) => {
 			platform.setProcessing = true
 
 			// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
+			// FIXME: check on issue / race condition that prevents AC turning off if the previous command was to set fan to 0% (auto)
 			if (prop === 'fanSpeed' && value === 0 && device.capabilities[state.mode].autoFanSpeed) {
 				preventTurningOff = true
 			}
@@ -123,7 +128,7 @@ module.exports = (device, platform) => {
 					// send state command to Sensibo
 					await sensiboApi.setDeviceState(device.id, sensiboNewState)
 				} catch(err) {
-					log(`ERROR setting ${prop} to ${value}`)
+					log(`${device.name} - ERROR setting ${prop} to ${value}`)
 					setTimeout(() => {
 						platform.setProcessing = false
 						platform.refreshState()

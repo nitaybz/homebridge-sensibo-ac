@@ -66,8 +66,6 @@ node_modules/
 samplePayloads/
 .vscode/
 .DS_Store
-.eslintignore
-.eslintrc.json
 
 # ignore all logs
 *.log
