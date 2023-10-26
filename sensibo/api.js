@@ -176,7 +176,7 @@ module.exports = async function (platform) {
 
 		getAllDevices: async () => {
 			const path = '/users/me/pods'
-			const queryString = 'fields=id,acState,measurements,remoteCapabilities,room,temperatureUnit,productModel,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig,homekitSupported'
+			const queryString = 'fields=id,acState,measurements,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig,homekitSupported,remoteCapabilities,room,temperatureUnit,productModel'
 			let allDevices
 
 			try {
