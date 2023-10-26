@@ -63,6 +63,7 @@ Carthage/Build
 # https://docs.fastlane.tools/best-practices/source-control/#source-control
 
 node_modules/
+samplePayloads/
 .vscode/
 .DS_Store
 .eslintignore

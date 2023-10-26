@@ -5,13 +5,15 @@
         "node": true
     },
     "extends": "eslint:recommended",
+    "ignorePatterns": ["node_modules"],
     "parserOptions": {
         "ecmaVersion": 12
     },
     "rules": {
         "indent": [
             "error",
-            "tab"
+            "tab",
+            { "SwitchCase": 1 } 
         ],
         "linebreak-style": [
             "error",
@@ -24,6 +26,98 @@
         "semi": [
             "error",
             "never"
+        ],
+        "brace-style": [
+            "error",
+            "1tbs",
+            {
+                "allowSingleLine": false
+            }
+        ],
+        "curly": [
+            "error",
+            "all"
+        ],
+        "object-curly-spacing": [
+            "error",
+            "always"
+        ],
+        "object-curly-newline": [
+            "error",
+            {
+                "minProperties": 2
+            }
+        ],
+        "object-property-newline": [
+            "error",
+            {
+                "allowAllPropertiesOnSameLine": false
+            }
+        ],
+        "arrow-body-style": [
+            "error",
+            "always"
+        ],
+        "space-before-blocks": [
+            "error",
+            "always"
+        ],
+        "padded-blocks": [
+            "error",
+            {
+                "blocks": "never",
+                "classes": "always",
+                "switches": "never"
+            }
+        ],
+        "lines-between-class-members": [
+            "error",
+            "always"
+        ],
+        "newline-after-var": [
+            "error",
+            "always"
+        ],
+        "newline-before-return": [
+            "error"
+        ],
+        "block-spacing": [
+            "error",
+            "always"
+        ],
+        "no-trailing-spaces": [
+            "error",
+            {
+                "skipBlankLines": false
+            }
+        ],
+        "no-multiple-empty-lines": [
+            "error",
+            {
+                "max": 1
+            }
+        ],
+        "no-constant-binary-expression": [
+            "error"
+        ],
+        "prefer-const": [
+            "error",
+            {
+                "destructuring": "any",
+                "ignoreReadBeforeAssign": false
+            }
+        ],
+        "no-label-var": [
+            "error"
+        ],
+        "no-use-before-define": [
+            "error",
+            {
+                "functions": false,
+                "classes": true,
+                "variables": true,
+                "allowNamedExports": false
+            }
         ]
     }
 }

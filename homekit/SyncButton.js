@@ -1,11 +1,11 @@
 let Characteristic, Service
 
 class SyncButton {
-	constructor(airConditioner, platform) {
 
+	constructor(airConditioner, platform) {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
-		
+
 		this.log = airConditioner.log
 		this.api = airConditioner.api
 		this.id = airConditioner.id
@@ -13,7 +13,7 @@ class SyncButton {
 		this.serial = airConditioner.serial + '_sync'
 		this.manufacturer = airConditioner.manufacturer
 		this.roomName = airConditioner.roomName
-		this.name = this.roomName + ' AC Sync' 
+		this.name = this.roomName + ' AC Sync'
 		this.type = 'SyncButton'
 		this.displayName = this.name
 		this.state = airConditioner.state
@@ -21,7 +21,9 @@ class SyncButton {
 		this.stateManager = airConditioner.stateManager
 
 		this.UUID = this.api.hap.uuid.generate(this.id + '_sync')
-		this.accessory = platform.cachedAccessories.find(accessory => accessory.UUID === this.UUID)
+		this.accessory = platform.cachedAccessories.find(accessory => {
+			return accessory.UUID === this.UUID
+		})
 
 		if (!this.accessory) {
 			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
@@ -38,36 +40,36 @@ class SyncButton {
 
 		let informationService = this.accessory.getService(Service.AccessoryInformation)
 
-		if (!informationService)
+		if (!informationService) {
 			informationService = this.accessory.addService(Service.AccessoryInformation)
+		}
 
 		informationService
 			.setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
 			.setCharacteristic(Characteristic.Model, this.model)
 			.setCharacteristic(Characteristic.SerialNumber, this.serial)
 
-		
 		this.addSyncButtonService()
 	}
 
 	addSyncButtonService() {
-		this.log.easyDebug(`Adding Sync Button Service in the ${this.roomName}`)
+		this.log.easyDebug(`${this.name} - Adding SyncButtonService`)
 		this.SyncButtonService = this.accessory.getService(Service.Switch)
-		if (!this.SyncButtonService)
+		if (!this.SyncButtonService) {
 			this.SyncButtonService = this.accessory.addService(Service.Switch, this.name, this.type)
-
+		}
 
 		this.SyncButtonService.getCharacteristic(Characteristic.On)
-			.on('get', (callback) => { callback(null, false) })
+			.on('get', this.stateManager.get.SyncButton)
+			// TODO: see if below annoymous function can be moved to StateManager.js
 			.on('set', (state, callback) => {
-				this.stateManager.set.SyncState(state, callback)
+				this.stateManager.set.SyncButton(state, callback)
 				setTimeout(() => {
 					this.SyncButtonService.getCharacteristic(Characteristic.On).updateValue(0)
 				}, 1000)
 			})
-
 	}
-}
 
+}
 
 module.exports = SyncButton
