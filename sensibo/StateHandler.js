@@ -47,7 +47,6 @@ module.exports = (device, platform) => {
 		},
 
 		set: (state, prop, value) => {
-
 			log.easyDebug(`StateHandler SET ${prop} ${value} for ${JSON.stringify(state, null, 4)}`)
 
 			if (!platform.allowRepeatedCommands && prop in state && state[prop] === value) {

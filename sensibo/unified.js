@@ -92,7 +92,7 @@ module.exports = {
 			// set temperatures min & max
 			platform.log.easyDebug(`Capabilities, temperature scales available, C: ${'C' in modeCapabilities.temperatures} F: ${'F' in modeCapabilities.temperatures}`)
 
-      // TODO: check if we even need to bother setting F below because it's never used...
+			// TODO: check if we even need to bother setting F below because it's never used...
 			if (modeCapabilities.temperatures?.C) {
 				capabilities[mode].temperatures = {
 					C: {
