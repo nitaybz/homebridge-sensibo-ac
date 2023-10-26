@@ -15,7 +15,7 @@
 ## Requirements
 
 ![Version](https://img.shields.io/badge/node-%3E%3D10.17-brightgreen)
-![Version](https://img.shields.io/badge/homebridge-%3E%3D0.4.4-brightgreen)
+![Version](https://img.shields.io/badge/homebridge-%3E%3D1.4-brightgreen)
 ![Version](https://img.shields.io/badge/iOS-%3E%3D11.0.0-brightgreen)
 
 Check with: `node -v` & `homebridge -V` and update if needed
@@ -268,10 +268,8 @@ Great thanks to Sensibo company and especially Omer Enbar, their CEO & CO-Founde
 
 ## Support homebridge-sensibo-ac
 
-**homebridge-sensibo-ac** is a free plugin under the GNU license. It was developed as a contribution to the homebridge/hoobs community with lots of love and thoughts.
+**homebridge-sensibo-ac** is a free plugin under the GNU license. It was originally developed as a contribution to the homebridge/hoobs community with lots of love and thoughts by [nitaybz](https://github.com/nitaybz). Now maintained by others.
 
-Creating and maintaining Homebridge plugins consume a lot of time and effort and if you would like to share your appreciation, feel free to "Star" or donate.
+Creating and maintaining Homebridge plugins takes time and effort, if you would like to share your appreciation, feel free to "Star" or donate.
 
-[![Downloads](https://img.shields.io/npm/dt/homebridge-sensibo-ac.svg?color=critical)](https://www.npmjs.com/package/homebridge-sensibo-ac)
-
-[![Downloads](https://img.shields.io/badge/PayPal-Donate-blue.svg?logo=paypal)](https://www.paypal.me/nitaybz) [![Downloads](https://img.shields.io/badge/PATREON-Become%20a%20patron-red.svg?logo=patreon)](https://www.patreon.com/nitaybz) [![Downloads](https://img.shields.io/badge/Ko--Fi-Buy%20me%20a%20coffee-29abe0.svg?logo=ko-fi)](https://ko-fi.com/nitaybz)
+[![Downloads](https://img.shields.io/badge/PayPal-Donate%20to%20nitaybz-blue.svg?logo=paypal)](https://www.paypal.me/nitaybz) [![Downloads](https://img.shields.io/badge/Ko--Fi-Buy%20nitaybz%20a%20coffee-29abe0.svg?logo=ko-fi)](https://ko-fi.com/nitaybz)
