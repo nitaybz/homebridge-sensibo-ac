@@ -45,6 +45,7 @@ async function apiRequest(method, url, data) {
 					} else {
 						results = json
 					}
+
 					log.easyDebug(JSON.stringify(results, null, 4))
 					resolve(results)
 				} else {
