@@ -102,6 +102,7 @@ module.exports = (device, platform) => {
 			platform.setProcessing = true
 
 			// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
+			// FIXME: check on issue / race condition that prevents AC turning off if the previous command was to set fan to 0% (auto)
 			if (prop === 'fanSpeed' && value === 0 && device.capabilities[state.mode].autoFanSpeed) {
 				preventTurningOff = true
 			}

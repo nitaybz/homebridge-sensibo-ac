@@ -52,6 +52,7 @@ class AirQualitySensor {
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
 
+		// TODO: enable logging? See also line 137
 		// if (platform.enableHistoryStorage) {
 		// 	const FakeGatoHistoryService = require("fakegato-history")(this.api)
 		// 	this.loggingService = new FakeGatoHistoryService('weather', this.accessory, { storage: 'fs', path: platform.persistPath })
@@ -133,6 +134,16 @@ class AirQualitySensor {
 	}
 
 	updateHomeKit() {
+		// TODO: add logging? See also line 55
+		// log new state with FakeGato
+		// if (this.loggingService) {
+		// 	this.loggingService.addEntry({
+		// 		time: Math.floor((new Date()).getTime()/1000),
+		// 		temp: this.state.currentTemperature,
+		// 		humidity: this.state.relativeHumidity
+		// 	})
+		// }
+
 		this.updateValue('AirQualitySensorService', 'AirQuality', this.state.airQuality)
 		this.updateValue('AirQualitySensorService', 'VOCDensity', this.state.VOCDensity)
 		this.updateValue('CarbonDioxideSensorService', 'CarbonDioxideDetected', this.state.carbonDioxideDetected)

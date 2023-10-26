@@ -484,6 +484,8 @@ class AirConditioner {
 	updateHomeKit() {
 		// log new state with FakeGato
 		if (this.loggingService) {
+			// TODO: add CO2 and VOCs
+			// TODO: remove humidity if disabled
 			this.loggingService.addEntry({
 				time: Math.floor((new Date()).getTime()/1000),
 				temp: this.state.currentTemperature,
