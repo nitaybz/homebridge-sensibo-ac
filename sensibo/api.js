@@ -25,7 +25,7 @@ async function apiRequest(method, url, data) {
 		log.easyDebug(`Creating ${method.toUpperCase()} request to Sensibo API --->`)
 		log.easyDebug(baseURL + url)
 		if (data) {
-			log.easyDebug('data: ' +JSON.stringify(data))
+			log.easyDebug('data: ' +JSON.stringify(data, null, 4))
 		}
 
 		axios({
@@ -45,7 +45,7 @@ async function apiRequest(method, url, data) {
 					} else {
 						results = json
 					}
-					log.easyDebug(JSON.stringify(results))
+					log.easyDebug(JSON.stringify(results, null, 4))
 					resolve(results)
 				} else {
 					const error = json

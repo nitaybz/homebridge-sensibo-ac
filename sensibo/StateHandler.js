@@ -47,7 +47,11 @@ module.exports = (device, platform) => {
 		},
 
 		set: (state, prop, value) => {
+			log.easyDebug(`StateHandler SET ${prop} ${value} for ${JSON.stringify(state, null, 4)}`)
+
 			if (!platform.allowRepeatedCommands && prop in state && state[prop] === value) {
+				log.easyDebug(`Repeat command while updating ${device.name}, returning`)
+
 				return
 			}
 
@@ -56,7 +60,7 @@ module.exports = (device, platform) => {
 			// Send Reset Filter command
 			if (prop === 'filterChange') {
 				try {
-					log.easyDebug(`filterChange - updating ${device.name}`)
+					log.easyDebug(`filterChange - Resetting filter indicator for ${device.name}`)
 					sensiboApi.resetFilterIndicator(device.id)
 				} catch(err) {
 					log('Error occurred! -> Could not reset filter indicator')
