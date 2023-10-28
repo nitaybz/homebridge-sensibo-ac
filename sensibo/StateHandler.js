@@ -89,7 +89,7 @@ module.exports = (device, platform) => {
 					platform.refreshState()
 				} else {
 					log.easyDebug('setProcessing is set to true, skipping state refresh due to Climate React set.')
-				}	
+				}
 				return
 			}
 
@@ -106,7 +106,7 @@ module.exports = (device, platform) => {
 					platform.refreshState()
 				} else {
 					log.easyDebug('setProcessing is set to true, skipping state refresh due to Pure Boost set.')
-				}	
+				}
 				return
 			}	
 

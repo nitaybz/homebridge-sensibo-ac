@@ -121,13 +121,13 @@
 				"default": false,
 				"required": false
 			},
-            "enableClimateReactSwitch": {
-                "title": "Enable Climate React Switch",
-                "description": "Adding a switch to quickly enable/disable Climate React",
-                "type": "boolean",
-                "default": false,
-                "required": false
-            },
+			"enableClimateReactSwitch": {
+				"title": "Enable Climate React Switch",
+				"description": "Adding a switch to quickly enable/disable Climate React",
+				"type": "boolean",
+				"default": false,
+				"required": false
+			},
 			"enableHistoryStorage": {
 				"title": "Enable History Storage",
 				"description": "Records all temperature & humidity measurements history to be viewable in the Eve app",
@@ -200,13 +200,13 @@
 					"type": "string"
 				}
 			},
-            "disableAuto": {
-                "title": "Disable Auto Mode",
-                "description": "Disable AUTO mode",
-                "type": "boolean",
-                "default": false,
-                "required": false
-            },
+			"disableAuto": {
+				"title": "Disable Auto Mode",
+				"description": "Disable AUTO mode",
+				"type": "boolean",
+				"default": false,
+				"required": false
+			},
 			"modesToExclude": {
 				"title": "Air Conditioning Modes to Exclude",
 				"description": "Select the AC modes you want removed from your AC Accessories in the Home app (leave empty to keep all available modes)",
