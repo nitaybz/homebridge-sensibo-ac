@@ -30,21 +30,17 @@ class AirConditioner {
 		this.modesToExclude = platform.modesToExclude
 		this.temperatureUnit = deviceInfo.temperatureUnit
 		this.climateReactSwitchInAccessory = platform.climateReactSwitchInAccessory
-		this.disableAuto = platform.disableAuto
 		this.usesFahrenheit = this.temperatureUnit === FAHRENHEIT_UNIT
 		this.temperatureStep = this.temperatureUnit === FAHRENHEIT_UNIT ? 0.1 : 1
 		this.disableAirConditioner = platform.disableAirConditioner
 		this.disableDry = platform.disableDry
 		this.disableFan = platform.disableFan
-		this.disableDry = platform.disableDry
 		this.disableHorizontalSwing = platform.disableHorizontalSwing
 		this.disableVerticalSwing = platform.disableVerticalSwing
 		this.disableLightSwitch = platform.disableLightSwitch
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
 		this.filterService = deviceInfo.filterService
-		this.capabilities = unified.capabilities(device, platform, this.disableAuto)
-
-		this.state = this.cachedState.devices[this.id] = unified.acState(device)
+		this.capabilities = unified.capabilities(device, platform)
 		
 		const StateHandler = require('../sensibo/StateHandler')(this, platform)
 

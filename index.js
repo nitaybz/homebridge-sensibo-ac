@@ -16,13 +16,6 @@ class SensiboACPlatform {
 		this.storage = storage
 		this.refreshState = refreshState(this)
 		this.syncHomeKitCache = syncHomeKitCache(this)
-		this.name = config['name'] || PLATFORM_NAME
-		this.disableFan = config['disableFan'] || false
-		this.disableDry = config['disableDry'] || false
-		this.disableAuto = config['disableAuto'] || false
-		this.enableHistoryStorage = config['enableHistoryStorage'] || false
-		this.locationsToInclude = config['locationsToInclude'] || []
-		this.devicesToExclude = config['devicesToExclude'] || []
 		this.debug = config['debug'] || false
 		this.PLUGIN_NAME = PLUGIN_NAME
 		this.PLATFORM_NAME = PLATFORM_NAME
@@ -41,18 +34,15 @@ class SensiboACPlatform {
 			return
 		}
 
-		this.name = config['name'] || PLATFORM_NAME
-		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
+		this.name = config['name'] || PLATFORM_NAME		
 		this.carbonDioxideAlertThreshold = config['carbonDioxideAlertThreshold'] || 1500
 		this.disableAirQuality = config['disableAirQuality'] || false
 		this.disableCarbonDioxide = config['disableCarbonDioxide'] || false
+		this.devicesToExclude = config['devicesToExclude'] || []		
 		this.disableDry = config['disableDry'] || false
 		this.disableFan = config['disableFan'] || false
 		this.disableHumidity = config['disableHumidity'] || false
-		this.disableLightSwitch = config['disableLightSwitch'] || false
-		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
 		this.disableVerticalSwing = config['disableVerticalSwing'] || false
-		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
 		this.enableHistoryStorage = config['enableHistoryStorage'] || false
 		this.enableOccupancySensor = config['enableOccupancySensor'] || false
 		this.enableSyncButton = config['enableSyncButton'] || false
@@ -66,24 +56,30 @@ class SensiboACPlatform {
 		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
 		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
 		this.locationsToInclude = config['locationsToInclude'] || []
+		
 		this.modesToExclude = config['modesToExclude']?.map(mode => {
 			return mode.toUpperCase()
 		}) || []
+
 		this.disableAirConditioner = ['AUTO','COOL','HEAT'].every(mode => {
 			return this.modesToExclude.indexOf(mode) !== -1
 		})
+
 		this.persistPath = path.join(this.api.user.persistPath(), '/../sensibo-persist')
+
 		this.emptyState = {
-			devices:{},
-			sensors:{},
+			devices: {},
+			sensors: {},
 			occupancy: {}
 		}
+
 		this.CELSIUS_UNIT = 'C'
 		this.FAHRENHEIT_UNIT = 'F'
 		this.VOCDENSITY_MAX = 10000
 		this.locations = []
 
-		const requestedInterval = 90000 // Sensibo interval is hardcoded (requested by the brand)
+		// requested interval is hardcoded to 90 seconds (requested by the Sensibo)
+		const requestedInterval = 90000
 
 		this.refreshDelay = 5000
 		this.pollingInterval = requestedInterval - this.refreshDelay

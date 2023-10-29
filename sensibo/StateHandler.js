@@ -79,7 +79,7 @@ module.exports = (device, platform) => {
 			// Send Climate React state command and refresh state
 			if (prop === 'smartMode') {
 				try {
-					log(`Setting Climate React state for ${device.name} to ${value}`)
+					log.easyDebug(`Setting Climate React state for ${device.name} to ${value}`)
 					sensiboApi.enableDisableClimateReact(device.id, value)
 				} catch(err) {
 					log('Error occurred! -> Climate React state did not change')
@@ -96,7 +96,7 @@ module.exports = (device, platform) => {
 			// Send Pure Boost state command and refresh state
 			if (prop === 'pureBoost') {
 				try {
-					log(`Setting Pure Boost state for ${device.name} to ${value}`)
+					log.easyDebug(`Setting Pure Boost state for ${device.name} to ${value}`)
 					sensiboApi.enableDisablePureBoost(device.id, value)
 				} catch(err) {
 					log('Error occurred! -> Pure Boost state did not change')

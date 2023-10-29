@@ -40,8 +40,7 @@ async function apiRequest(method, url, data) {
 				if (json.status && json.status == 'success') {
 					log.easyDebug(`Successful ${method.toUpperCase()} response:`)
 					if (json.result && json.result instanceof Array) {
-						// remove private address of users to prevent it appearing in logs
-						results = removePrivateAddress(json.result)
+						results = fixResponse(json.result)
 					} else {
 						results = json
 					}
@@ -71,81 +70,6 @@ async function apiRequest(method, url, data) {
 				// log.easyDebug(err)
 				reject(errorContent)
 			})
-	})
-}
-
-function getToken(username, password, storage) {
-	// TODO: check on if the below is required
-	// eslint-disable-next-line no-async-promise-executor
-	return new Promise(async (resolve, reject) => {
-		const token = await storage.getItem('token')
-
-		if (token && token.username && token.username === username && new Date().getTime() < token.expirationDate) {
-			log.easyDebug('Found valid token in storage')
-			resolve(token.key)
-
-			return
-		}
-
-		let data = {
-			username: username,
-			password: password,
-			grant_type: 'password',
-			client_id: 'bcrEwCG2mZTvm1vFJOD51DNdJHEaRemMitH1gCWc',
-			scope: 'read write'
-		}
-
-		data = qs.stringify(data)
-		const url = 'https://home.sensibo.com/o/token/'
-
-		axios.post(url, data)
-			.then(async response => {
-				if (response.data.access_token) {
-					const tokenObj = {
-						username: username,
-						key: response.data.access_token,
-						expirationDate: new Date().getTime() + response.data.expires_in*1000
-					}
-
-					log.easyDebug('Token successfully acquired from Sensibo API')
-					// log.easyDebug(tokenObj)
-					await storage.setItem('token', tokenObj)
-					resolve(tokenObj.key)
-				} else {
-					const error = `Inner Could NOT complete the the token request -> ERROR: "${response.data}"`
-
-					log(error)
-					reject(error)
-				}
-			})
-			.catch(err => {
-				const errorContent = {}
-
-				errorContent.message = `Could NOT complete the the token request - ERROR: "${err.response.data.error_description || err.response.data.error}"`
-
-				log('getToken:', errorContent.message)
-
-				if (err.response) {
-					log.easyDebug('Error response:')
-					log.easyDebug(err.response.data)
-					errorContent.response = err.response.data
-				}
-
-				// log.easyDebug(err)
-				reject(errorContent)
-			})
-	})
-}
-
-function removePrivateAddress(results) {
-	return results.map(result => {
-		result.location && (result.location = {
-			occupancy: result.location.occupancy,
-			name: result.location.name,
-			id: result.location.id
-		})
-
-		return result
 	})
 }
 
@@ -258,60 +182,28 @@ module.exports = async function (platform) {
 	}
 }
 
-function apiRequest(method, url, data) {
-	return new Promise((resolve, reject) => {
-	
-		log.easyDebug(`Creating ${method.toUpperCase()} request to Sensibo API --->`)
-		log.easyDebug(baseURL + url)
-		if (data)
-			log.easyDebug('data: ' +JSON.stringify(data))
-
-		axios({url, data, method})
-			.then(response => {
-				const json = response.data
-				let results
-				if (json.status && json.status == 'success') {
-					log.easyDebug(`Successful ${method.toUpperCase()} response:`)
-					if (json.result && json.result instanceof Array)
-						results = fixResponse(json.result)
-					else 
-						results = json
-					log.easyDebug(JSON.stringify(results))
-					resolve(results)
-				} else {
-					const error = json
-					log(`ERROR: ${error.reason} - "${error.message}"`)
-					log(json)
-					reject(error)
-				}
-			})
-			.catch(err => {
-				log(`ERROR: ${err.message}`)
-				if (err.response)
-					log.easyDebug(err.response.data)
-				reject(err)
-			})
-	})
-}
-
 function getToken(username, password, storage) {
+	// TODO: check on if the below is required
 	// eslint-disable-next-line no-async-promise-executor
 	return new Promise(async (resolve, reject) => {
-		let token = await storage.getItem('token')
+		const token = await storage.getItem('token')
+
 		if (token && token.username && token.username === username && new Date().getTime() < token.expirationDate) {
 			log.easyDebug('Found valid token in storage')
 			resolve(token.key)
+
 			return
 		}
-	
+
 		let data = {
 			username: username,
 			password: password,
 			grant_type: 'password',
 			client_id: 'bcrEwCG2mZTvm1vFJOD51DNdJHEaRemMitH1gCWc',
-			scope: 'read+write'
+			scope: 'read write'
 		}
-		data = qs.stringify(data, { encode: false })
+
+		data = qs.stringify(data)
 		const url = 'https://home.sensibo.com/o/token/'
 
 		axios.post(url, data)
@@ -322,20 +214,33 @@ function getToken(username, password, storage) {
 						key: response.data.access_token,
 						expirationDate: new Date().getTime() + response.data.expires_in*1000
 					}
+
 					log.easyDebug('Token successfully acquired from Sensibo API')
 					// log.easyDebug(tokenObj)
 					await storage.setItem('token', tokenObj)
 					resolve(tokenObj.key)
 				} else {
-					const error = `Could NOT complete the the token request -> ERROR: "${response.data}"`
+					const error = `Inner Could NOT complete the the token request -> ERROR: "${response.data}"`
+
 					log(error)
 					reject(error)
 				}
 			})
 			.catch(err => {
-				const error = `Could NOT complete the the token request -> ERROR: "${err.response.data.error_description || err.response.data.error}"`
-				log(error)
-				reject(error)
+				const errorContent = {}
+
+				errorContent.message = `Could NOT complete the the token request - ERROR: "${err.response.data.error_description || err.response.data.error}"`
+
+				log('getToken:', errorContent.message)
+
+				if (err.response) {
+					log.easyDebug('Error response:')
+					log.easyDebug(err.response.data)
+					errorContent.response = err.response.data
+				}
+
+				// log.easyDebug(err)
+				reject(errorContent)
 			})
 	})
 }
@@ -343,7 +248,7 @@ function getToken(username, password, storage) {
 function fixResponse(results) {
 	return results.map(result =>  {
 		// remove user's address to prevent it from appearing in logs
-		result.location && (result.location = { occupancy: result.location.occupancy, name: result.location.name, id: result.location.id});
+		result.location && (result.location = {occupancy: result.location.occupancy, name: result.location.name, id: result.location.id});
 		
 		// if climate react was never set up - this will return a 'null' value which will mess up some of the underlaying code so we fix it
 		!result.smartMode && (result.smartMode = {enabled: false});

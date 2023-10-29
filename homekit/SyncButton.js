@@ -53,7 +53,7 @@ class SyncButton {
 	}
 
 	addSyncButtonService() {
-		this.log.easyDebug(`Adding Sync Button Switch Service in the ${this.roomName}`)
+		this.log.easyDebug(`${this.name} - Adding SyncButtonService`)
 
 		this.SyncButtonService = this.accessory.getService(Service.Switch)
 		if (!this.SyncButtonService) {

@@ -32,9 +32,8 @@
 			"locationsToInclude": [],
 			"modesToExclude": [],
 			"debug": false,
-      "disableAuto": false,
-      "climateReactSwitchInAccessory": false,
-      "enableClimateReactAutoSetup": false
+			"climateReactSwitchInAccessory": false,
+			"enableClimateReactAutoSetup": false
     }
   ],
 

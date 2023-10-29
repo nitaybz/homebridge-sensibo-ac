@@ -81,7 +81,7 @@
 			},
 			"disableDry": {
 				"title": "Disable Dry Accessory",
-				"description": "Disable DRY mode control - remove extra dehumidifier accessory",
+				"description": "Disable DRY mode control - remove dehumidifier accessory",
 				"type": "boolean",
 				"default": false,
 				"required": false
@@ -123,7 +123,7 @@
 			},
 			"enableClimateReactSwitch": {
 				"title": "Enable Climate React Switch",
-				"description": "Adding a switch to quickly enable/disable Climate React",
+				"description": "Adds a switch to enable/disable Climate React",
 				"type": "boolean",
 				"default": false,
 				"required": false
@@ -199,13 +199,6 @@
 				"items": {
 					"type": "string"
 				}
-			},
-			"disableAuto": {
-				"title": "Disable Auto Mode",
-				"description": "Disable AUTO mode",
-				"type": "boolean",
-				"default": false,
-				"required": false
 			},
 			"modesToExclude": {
 				"title": "Air Conditioning Modes to Exclude",

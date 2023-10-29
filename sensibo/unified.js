@@ -76,7 +76,7 @@ module.exports = {
 		}
 	},
 
-	capabilities: (device, platform, disableAuto=false) => {
+	capabilities: (device, platform) => {
 
 		log = platform.log
 		const capabilities = {}
@@ -84,13 +84,6 @@ module.exports = {
 		for (const [key, modeCapabilities] of Object.entries(device.remoteCapabilities.modes)) {
 			// Mode options are COOL, HEAT, AUTO, FAN, DRY
 			const mode = key.toUpperCase()
-
-			// if "disableAuto" is set, then skip adding AUTO mode.
-			if (disableAuto && mode === 'AUTO') {
-				log.easyDebug('Skipping AUTO mode for service')
-
-				continue;
-			}
 
 			capabilities[mode] = {}
 
@@ -206,7 +199,7 @@ module.exports = {
 		const modeCapabilities = device.remoteCapabilities.modes[device.acState.mode]
 
 		if (modeCapabilities.swing && modeCapabilities.swing.includes('rangeFull')) {
-			state.swing = device.acState.swing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
+			state.verticalSwing = device.acState.swing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
 		}
 
 		if (modeCapabilities.horizontalSwing && modeCapabilities.horizontalSwing.includes('rangeFull')) {

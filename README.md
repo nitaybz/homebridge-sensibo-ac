@@ -93,7 +93,6 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "locationsToInclude": [],
         "modesToExclude": [],
         "debug": false,
-        "disableAuto": false,
         "climateReactSwitchInAccessory": false,
         "enableClimateReactAutoSetup": false,
     }
@@ -131,7 +130,6 @@ See below the table for additional details on these settings.
 | `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)  |          |     -    |  String[]  |
 | `modesToExclude`           |  Modes to exclude from Home app when setting up Sensibo devices (leave empty to keep all available modes). Valid values: AUTO, COOL, DRY, FAN, HEAT  |          |     -    |  String[]  |
 | `debug`                    |  When set to `true`, the plugin will produce extra logs for debugging purposes  |          |  `false` |  Boolean  |
-| `disableAuto`              |  When set to `true`, it will disable the AUTO mode       |          |  `false` |  Boolean |
 | `climateReactSwitchInAccessory`         |  When set to `true`, it will remove the extra AC Climate React switch if it exists and will show \"Climate React Button\" attached as a service to the Same AC Accessory (works only when `enableClimateReactSwitch` is set to true)   |          |  `false` |  Boolean  |
 | `enableClimateReactAutoSetup` |  Enables setting up an appropriate Climate React configuration when AC state is set or changed.     |          |  `false` |  Boolean  |
 
@@ -184,10 +182,6 @@ To disable the extra fan accessory, add `"disableFan": true` to your config. `mo
 ### Auto & Fan speeds
 
 Fan speed steps are determined by the steps you have available in the Sensibo app. Since HomeKit control over fan speed is with a slider between 0-100, the plugin converts the steps you have in the Sensibo app to values between 1 to 100, when 100 is highest and 1 is lowest. If "AUTO" speed is available in your setup, setting the fan speed to 0, will set the unit to "AUTO" speed.
-
-### Disable AUTO mode
-
-To disable an AC's AUTO mode, add `"disableAuto": true` to your config.
 
 ### Horizontal Swing
 
