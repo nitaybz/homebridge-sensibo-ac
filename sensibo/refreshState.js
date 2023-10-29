@@ -35,7 +35,6 @@ module.exports = (platform) => {
 					})
 
 					if (airConditioner) {
-						
 						// Update AC state in cache + HomeKit
 						platform.log.easyDebug(`Updating AC state in Cache + HomeKit for ${device.id}`)
 						airConditioner.state.update(unified.acState(device))
@@ -72,7 +71,7 @@ module.exports = (platform) => {
 							VOCDENSITY_MAX: platform.VOCDENSITY_MAX,
 							carbonDioxideAlertThreshold: platform.carbonDioxideAlertThreshold
 						}
-						
+
 						platform.log.easyDebug(`Updating Air Quality Sensor state in cache + HomeKit for for ${device.id}`)
 						airQualitySensor.state.update(unified.airQualityState(device, Constants))
 					}

@@ -34,11 +34,11 @@ class SensiboACPlatform {
 			return
 		}
 
-		this.name = config['name'] || PLATFORM_NAME		
+		this.name = config['name'] || PLATFORM_NAME
 		this.carbonDioxideAlertThreshold = config['carbonDioxideAlertThreshold'] || 1500
 		this.disableAirQuality = config['disableAirQuality'] || false
 		this.disableCarbonDioxide = config['disableCarbonDioxide'] || false
-		this.devicesToExclude = config['devicesToExclude'] || []		
+		this.devicesToExclude = config['devicesToExclude'] || []
 		this.disableDry = config['disableDry'] || false
 		this.disableFan = config['disableFan'] || false
 		this.disableHumidity = config['disableHumidity'] || false
@@ -56,7 +56,7 @@ class SensiboACPlatform {
 		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
 		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
 		this.locationsToInclude = config['locationsToInclude'] || []
-		
+
 		this.modesToExclude = config['modesToExclude']?.map(mode => {
 			return mode.toUpperCase()
 		}) || []

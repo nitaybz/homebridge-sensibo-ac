@@ -42,70 +42,68 @@ function sanitize(service, characteristic, value) {
 	return value
 }
 
-function updateClimateReact() {		
-	device.state.smartMode.enabled = device.state.active && device.state.mode !== 'AUTO'
-	device.state.smartMode.type = 'temperature'
-	device.state.smartMode.highTemperatureWebhook = null	
-	device.state.smartMode.lowTemperatureWebhook = null	
-
-	if (device.state.mode === 'COOL') {
-		device.state.smartMode.highTemperatureThreshold = device.state.targetTemperature
-		device.state.smartMode.highTemperatureState = { 
-			on: true,
-			targetTemperature: device.state.targetTemperature,
-			temperatureUnit: device.temperatureUnit,
-			mode: device.state.mode,
-			fanSpeed: device.state.fanSpeed,
-			swing: device.state.verticalSwing,
-			horizontalSwing: device.state.horizontalSwing,
-			light: device.state.light
-		}
-		
-		device.state.smartMode.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
-		device.state.smartMode.lowTemperatureState = { 
-			on: false,
-			targetTemperature: device.state.targetTemperature,				
-			temperatureUnit: device.temperatureUnit,				
-			mode: device.state.mode,
-			fanSpeed: device.state.fanSpeed,
-			swing: device.state.verticalSwing,
-			horizontalSwing: device.state.horizontalSwing,
-			light: device.state.light
-		}
-							
-	} else if (device.state.mode === 'HEAT') {
-		device.state.smartMode.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
-		device.state.smartMode.highTemperatureState = { 
-			on: false,
-			targetTemperature: device.state.targetTemperature,				
-			temperatureUnit: device.temperatureUnit,
-			mode: device.state.mode,
-			fanSpeed: device.state.fanSpeed,
-			swing: device.state.verticalSwing,
-			horizontalSwing: device.state.horizontalSwing,
-			light: device.state.light
-		}
-		
-		device.state.smartMode.lowTemperatureThreshold = device.state.targetTemperature
-		device.state.smartMode.lowTemperatureState = { 
-			on: true,
-			targetTemperature: device.state.targetTemperature,				
-			temperatureUnit: device.temperatureUnit,
-			mode: device.state.mode,
-			fanSpeed: device.state.fanSpeed,
-			swing: device.state.verticalSwing,
-			horizontalSwing: device.state.horizontalSwing,
-			light: device.state.light				
-		}
-	}
-
-}
-
-	
 // TODO: perhaps make this a class?
 module.exports = (device, platform) => {
 	Characteristic = platform.api.hap.Characteristic
 	const log = platform.log
+
+	function updateClimateReact() {
+		device.state.smartMode.enabled = device.state.active && device.state.mode !== 'AUTO'
+		device.state.smartMode.type = 'temperature'
+		device.state.smartMode.highTemperatureWebhook = null
+		device.state.smartMode.lowTemperatureWebhook = null
+
+		if (device.state.mode === 'COOL') {
+			device.state.smartMode.highTemperatureThreshold = device.state.targetTemperature
+			device.state.smartMode.highTemperatureState = {
+				on: true,
+				targetTemperature: device.state.targetTemperature,
+				temperatureUnit: device.temperatureUnit,
+				mode: device.state.mode,
+				fanSpeed: device.state.fanSpeed,
+				swing: device.state.verticalSwing,
+				horizontalSwing: device.state.horizontalSwing,
+				light: device.state.light
+			}
+
+			device.state.smartMode.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
+
+			device.state.smartMode.lowTemperatureState = {
+				on: false,
+				targetTemperature: device.state.targetTemperature,
+				temperatureUnit: device.temperatureUnit,
+				mode: device.state.mode,
+				fanSpeed: device.state.fanSpeed,
+				swing: device.state.verticalSwing,
+				horizontalSwing: device.state.horizontalSwing,
+				light: device.state.light
+			}
+		} else if (device.state.mode === 'HEAT') {
+			device.state.smartMode.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
+			device.state.smartMode.highTemperatureState = {
+				on: false,
+				targetTemperature: device.state.targetTemperature,
+				temperatureUnit: device.temperatureUnit,
+				mode: device.state.mode,
+				fanSpeed: device.state.fanSpeed,
+				swing: device.state.verticalSwing,
+				horizontalSwing: device.state.horizontalSwing,
+				light: device.state.light
+			}
+
+			device.state.smartMode.lowTemperatureThreshold = device.state.targetTemperature
+			device.state.smartMode.lowTemperatureState = {
+				on: true,
+				targetTemperature: device.state.targetTemperature,
+				temperatureUnit: device.temperatureUnit,
+				mode: device.state.mode,
+				fanSpeed: device.state.fanSpeed,
+				swing: device.state.verticalSwing,
+				horizontalSwing: device.state.horizontalSwing,
+				light: device.state.light
+			}
+		}
+	}
 
 	return {
 
@@ -116,7 +114,7 @@ module.exports = (device, platform) => {
 
 				if (!active || mode === 'FAN' || mode === 'DRY') {
 					log.easyDebug(device.name, '(GET) - AC Active State: false')
-					
+
 					callback(null, 0)
 				} else {
 					log.easyDebug(device.name, '(GET) - AC Active State: true')
@@ -154,9 +152,9 @@ module.exports = (device, platform) => {
 				const mode = device.state.mode
 				const targetTemp = device.state.targetTemperature
 				const currentTemp = device.state.currentTemperature
-		
+
 				log.easyDebug(device.name, '(GET) - Current HeaterCooler State:', active ? mode : 'OFF')
-				
+
 				if (!active || mode === 'FAN' || mode === 'DRY') {
 					callback(null, Characteristic.CurrentHeaterCoolerState.INACTIVE)
 				} else if (mode === 'COOL') {
@@ -173,11 +171,10 @@ module.exports = (device, platform) => {
 			TargetHeaterCoolerState: (callback) => {
 				const active = device.state.active
 				const mode = device.state.mode
-		
+
 				log.easyDebug(device.name, '(GET) - Target HeaterCooler State:', active ? mode : 'OFF')
 				if (!active || mode === 'FAN' || mode === 'DRY') {
 					const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
-
 
 					callback(null, lastMode)
 				} else {
@@ -187,11 +184,12 @@ module.exports = (device, platform) => {
 
 			CurrentTemperature: (callback) => {
 				const currentTemp = device.state.currentTemperature
-				
-				if (device.usesFahrenheit)
+
+				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(GET) - Current Temperature:', toFahrenheit(currentTemp) + 'ºF')
-				else
+				} else {
 					log.easyDebug(device.name, '(GET) - Current Temperature:', currentTemp + 'ºC')
+				}
 
 				callback(null, currentTemp)
 			},
@@ -199,10 +197,11 @@ module.exports = (device, platform) => {
 			CoolingThresholdTemperature: (callback) => {
 				const targetTemp = sanitize(device.HeaterCoolerService, 'CoolingThresholdTemperature', device.state.targetTemperature)
 
-				if (device.usesFahrenheit)
+				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(GET) - Target Cooling Temperature:', toFahrenheit(targetTemp) + 'ºF')
-				else
+				} else {
 					log.easyDebug(device.name, '(GET) - Target Cooling Temperature:', targetTemp + 'ºC')
+				}
 
 				callback(null, targetTemp)
 			},
@@ -210,10 +209,11 @@ module.exports = (device, platform) => {
 			HeatingThresholdTemperature: (callback) => {
 				const targetTemp = sanitize(device.HeaterCoolerService, 'HeatingThresholdTemperature', device.state.targetTemperature)
 
-				if (device.usesFahrenheit)
+				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(GET) - Target Heating Temperature:', toFahrenheit(targetTemp) + 'ºF')
-				else
+				} else {
 					log.easyDebug(device.name, '(GET) - Target Heating Temperature:', targetTemp + 'ºC')
+				}
 
 				callback(null, targetTemp)
 			},
@@ -359,6 +359,7 @@ module.exports = (device, platform) => {
 			// ROOM SENSOR
 			MotionDetected: (callback) => {
 				const motionDetected = device.state.motionDetected
+
 				log.easyDebug(device.name, '(GET) - Motion Detected:', motionDetected)
 
 				callback(null, motionDetected)
@@ -366,6 +367,7 @@ module.exports = (device, platform) => {
 
 			StatusLowBattery: (callback) => {
 				const lowBattery = device.state.lowBattery
+
 				log.easyDebug(device.name, '(GET) - Status Low Battery:', lowBattery)
 
 				callback(null, Characteristic.StatusLowBattery[lowBattery])
@@ -374,6 +376,7 @@ module.exports = (device, platform) => {
 			// HORIZONTAL SWING
 			HorizontalSwing: (callback) => {
 				const horizontalSwing = device.state.horizontalSwing
+
 				log.easyDebug(device.name, '(GET) - Horizontal Swing:', horizontalSwing)
 
 				callback(null, horizontalSwing === 'SWING_ENABLED')
@@ -382,6 +385,7 @@ module.exports = (device, platform) => {
 			// Air Conditioner/Purifier LIGHT
 			LightSwitch: (callback) => {
 				const light = device.state.light
+
 				log.easyDebug(device.name, '(GET) - Light:', light ? 'ON' : 'OFF')
 
 				callback(null, light)
@@ -391,6 +395,7 @@ module.exports = (device, platform) => {
 
 			ClimateReactEnabledSwitch: (callback) => {
 				const smartModeEnabled = device.state.smartMode.enabled
+
 				log.easyDebug(device.name, '(GET) - Climate React Enabled Switch:', smartModeEnabled)
 
 				callback(null, smartModeEnabled)
@@ -399,6 +404,7 @@ module.exports = (device, platform) => {
 			// OCCUPANCY SENSOR
 			OccupancyDetected: (callback) => {
 				const occupancy = device.state.occupancy
+
 				log.easyDebug(device.name, '(GET) Occupancy Detected:', occupancy)
 
 				callback(null, Characteristic.OccupancyDetected[occupancy])
@@ -407,13 +413,14 @@ module.exports = (device, platform) => {
 			// Air Quality
 			AirQuality: (callback) => {
 				const airQuality = device.state.airQuality
+
 				log.easyDebug(device.name, '(GET) - Air Quality:', airQuality)
-				
 				callback(null, airQuality)
 			},
 
 			VOCDensity: (callback) => {
 				const VOCDensity = device.state.VOCDensity
+
 				log.easyDebug(device.name, '(GET) - Volatile Organic Compound Density:', VOCDensity)
 
 				callback(null, VOCDensity)
@@ -421,6 +428,7 @@ module.exports = (device, platform) => {
 
 			CarbonDioxideDetected: (callback) => {
 				const carbonDioxideDetected = device.state.carbonDioxideDetected
+
 				log.easyDebug(device.name, '(GET) - Carbon Dioxide Detected:', carbonDioxideDetected)
 
 				callback(null, carbonDioxideDetected)
@@ -428,8 +436,9 @@ module.exports = (device, platform) => {
 
 			CarbonDioxideLevel: (callback) => {
 				const carbonDioxideLevel = device.state.carbonDioxideLevel
+
 				log.easyDebug(device.name, '(GET) - Carbon Dioxide Level:', carbonDioxideLevel)
-				
+
 				callback(null, carbonDioxideLevel)
 			},
 
@@ -448,6 +457,7 @@ module.exports = (device, platform) => {
 					device.state.active = true
 					const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 					const mode = characteristicToMode(lastMode)
+
 					log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 					device.state.mode = mode
 				} else if (device.state.mode === 'COOL' || device.state.mode === 'HEAT' || device.state.mode === 'AUTO') {
@@ -465,30 +475,33 @@ module.exports = (device, platform) => {
 				device.state.active = state
 
 				updateClimateReact()
-				
+
 				callback()
-			},		
-		
+			},
+
 			TargetHeaterCoolerState: (state, callback) => {
 				const mode = characteristicToMode(state)
+
 				log.easyDebug(device.name, '(SET) - Target HeaterCooler State:', mode)
 				device.state.mode = mode
 				device.state.active = true
-				
+
 				updateClimateReact()
 
 				callback()
 			},
-		
+
 			CoolingThresholdTemperature: (targetTemp, callback) => {
-				if (device.usesFahrenheit)
+				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(SET) - Target Cooling Temperature:', toFahrenheit(targetTemp) + 'ºF')
-				else
+				} else {
 					log.easyDebug(device.name, '(SET) - Target Cooling Temperature:', targetTemp + 'ºC')
+				}
 
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
-				device.state.targetTemperature = targetTemp								
+
+				device.state.targetTemperature = targetTemp
 				log.easyDebug(device.name, '(SET) - target HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
@@ -497,15 +510,17 @@ module.exports = (device, platform) => {
 
 				callback()
 			},
-		
+
 			HeatingThresholdTemperature: (targetTemp, callback) => {
-				if (device.usesFahrenheit)
+				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(SET) - Target Heating Temperature:', toFahrenheit(targetTemp) + 'ºF')
-				else
+				} else {
 					log.easyDebug(device.name, '(SET) - Target Heating Temperature:', targetTemp + 'ºC')
+				}
 
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
+
 				device.state.targetTemperature = targetTemp
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.active = true
@@ -517,13 +532,13 @@ module.exports = (device, platform) => {
 			},
 
 			ACSwing: (state, callback) => {
-				
 				state = state === Characteristic.SwingMode.SWING_ENABLED ? 'SWING_ENABLED' : 'SWING_DISABLED'
 				log.easyDebug(device.name, '(SET) - AC Swing:', state)
 				device.state.verticalSwing = state
 
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
+
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
@@ -539,6 +554,7 @@ module.exports = (device, platform) => {
 
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
+
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
@@ -683,6 +699,7 @@ module.exports = (device, platform) => {
 			// PURE BOOST
 			TargetAirPurifierState: (state, callback) => {
 				const pureBoost = !!state
+
 				log.easyDebug(`${device.name} (SET) - Pure Target State (Boost): ${pureBoost ? 'AUTO' : 'MANUAL'}`)
 				device.state.pureBoost = pureBoost
 

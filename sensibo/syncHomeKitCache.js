@@ -216,13 +216,16 @@ module.exports = (platform) => {
 					}
 					break
 
-			case 'ClimateReact':
-				deviceExists = platform.devices.find(device => device.id === accessory.context.deviceId && device.remoteCapabilities)
-				if (!deviceExists || !platform.enableClimateReactSwitch || platform.climateReactSwitchInAccessory) {
-					platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
-					accessoriesToRemove.push(accessory)
-				}
-				break
+				case 'ClimateReact':
+					deviceExists = platform.devices.find(device => {
+						device.id === accessory.context.deviceId && device.remoteCapabilities
+					})
+
+					if (!deviceExists || !platform.enableClimateReactSwitch || platform.climateReactSwitchInAccessory) {
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						accessoriesToRemove.push(accessory)
+					}
+					break
 
 				case 'OccupancySensor':
 					locationExists = platform.devices.find(device => {

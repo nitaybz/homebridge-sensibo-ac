@@ -134,8 +134,8 @@ module.exports = async function (platform) {
 			const json = climateReactState
 
 			return await apiRequest('post', path, json)
-		},		
-			
+		},
+
 		setDeviceACState: async (deviceId, acState) => {
 			const path = `/pods/${deviceId}/acStates`
 			const json = { 'acState': acState }
@@ -248,11 +248,15 @@ function getToken(username, password, storage) {
 function fixResponse(results) {
 	return results.map(result =>  {
 		// remove user's address to prevent it from appearing in logs
-		result.location && (result.location = {occupancy: result.location.occupancy, name: result.location.name, id: result.location.id});
-		
+		result.location && (result.location = {
+			occupancy: result.location.occupancy,
+			name: result.location.name,
+			id: result.location.id
+		})
+
 		// if climate react was never set up - this will return a 'null' value which will mess up some of the underlaying code so we fix it
-		!result.smartMode && (result.smartMode = {enabled: false});
+		!result.smartMode && (result.smartMode = { enabled: false })
+
 		return result
 	})
-
 }

@@ -77,8 +77,6 @@ module.exports = {
 	},
 
 	capabilities: (device, platform) => {
-
-		log = platform.log
 		const capabilities = {}
 
 		for (const [key, modeCapabilities] of Object.entries(device.remoteCapabilities.modes)) {
@@ -305,8 +303,7 @@ module.exports = {
 	},
 
 	sensiboFormattedClimageReactState: (device, state) => {
-    
-		smartModeState = state.smartMode
+		const smartModeState = state.smartMode
 
 		const climateReactState = {
 			enabled: smartModeState.enabled,
@@ -323,7 +320,7 @@ module.exports = {
 				mode: smartModeState.lowTemperatureState.mode.toLowerCase(),
 				targetTemperature: smartModeState.lowTemperatureState.targetTemperature
 			},
-			lowTemperatureWebhook: null,    
+			lowTemperatureWebhook: null,
 			highTemperatureThreshold: smartModeState.highTemperatureThreshold,
 			highTemperatureState:
 			{
@@ -335,10 +332,10 @@ module.exports = {
 				fanLevel: HKToFanLevel(state.fanSpeed, device.capabilities[state.mode].fanSpeeds),
 				mode: smartModeState.highTemperatureState.mode.toLowerCase(),
 				targetTemperature: smartModeState.highTemperatureState.targetTemperature
-			},			
+			},
 			highTemperatureWebhook: null
 		}
-    
+
 		return climateReactState
-	}	
+	}
 }

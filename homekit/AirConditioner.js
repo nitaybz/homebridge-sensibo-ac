@@ -41,7 +41,7 @@ class AirConditioner {
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
 		this.filterService = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device, platform)
-		
+
 		const StateHandler = require('../sensibo/StateHandler')(this, platform)
 
 		this.state = this.cachedState.devices[this.id] = unified.acState(device)
@@ -123,11 +123,11 @@ class AirConditioner {
 			this.removeSyncButtonService()
 		}
 
-
-		if (this.climateReactSwitchInAccessory)
+		if (this.climateReactSwitchInAccessory) {
 			this.addClimateReactService()
-		else
+		} else {
 			this.removeClimateReactService()
+		}
 
 		if (((this.capabilities.COOL && this.capabilities.COOL.light) || (this.capabilities.HEAT && this.capabilities.HEAT.light)) && !this.disableLightSwitch) {
 			this.addLightSwitch()
@@ -486,24 +486,24 @@ class AirConditioner {
 			this.log.easyDebug(`${this.name} - Removing SyncButtonSwitchService`)
 			this.accessory.removeService(SyncButtonService)
 		}
-
 	}
-
 
 	addClimateReactService() {
 		this.log.easyDebug(`Adding Climate React Switch Service in the ${this.roomName}`)
 
 		this.ClimateReactService = this.accessory.getService('ClimateReact')
-		if (!this.ClimateReactService)
+		if (!this.ClimateReactService) {
 			this.ClimateReactService = this.accessory.addService(Service.Switch, this.roomName + ' Climate React' , 'ClimateReact')
-			
+		}
+
 		this.ClimateReactService.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.ClimateReactEnabledSwitch)
 			.on('set', this.stateManager.set.ClimateReactEnabledSwitch)
-	}	
+	}
 
 	removeClimateReactService() {
-		let ClimateReactService = this.accessory.getService('ClimateReact')
+		const ClimateReactService = this.accessory.getService('ClimateReact')
+
 		if (ClimateReactService) {
 			// remove service
 			this.log.easyDebug(`Removing Climate React Switch Service from the ${this.roomName}`)
