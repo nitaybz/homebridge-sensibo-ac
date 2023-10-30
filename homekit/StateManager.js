@@ -382,7 +382,7 @@ module.exports = (device, platform) => {
 				callback(null, horizontalSwing === 'SWING_ENABLED')
 			},
 
-			// Air Conditioner/Purifier LIGHT
+			// AIR CONDITIONER/PURIFIER LIGHT
 			LightSwitch: (callback) => {
 				const light = device.state.light
 
@@ -392,7 +392,6 @@ module.exports = (device, platform) => {
 			},
 
 			// CLIMATE REACT
-
 			ClimateReactEnabledSwitch: (callback) => {
 				const smartModeEnabled = device.state.smartMode.enabled
 
@@ -415,6 +414,7 @@ module.exports = (device, platform) => {
 				const airQuality = device.state.airQuality
 
 				log.easyDebug(device.name, '(GET) - Air Quality:', airQuality)
+
 				callback(null, airQuality)
 			},
 
@@ -444,6 +444,7 @@ module.exports = (device, platform) => {
 
 			SyncButton: (callback) => {
 				log.easyDebug(device.name, '(GET) - Sync Button, no state change')
+
 				callback(null, false)
 			}
 		},
@@ -559,6 +560,8 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				device.state.mode = mode
 
+				updateClimateReact()
+
 				callback()
 			},
 
@@ -589,13 +592,16 @@ module.exports = (device, platform) => {
 			FanActive: (state, callback) => {
 				state = !!state
 				log.easyDebug(device.name, '(SET) - Fan state Active:', state)
+
 				if (state) {
 					log.easyDebug(device.name, '(SET) - Mode to: FAN')
 					device.state.mode = 'FAN'
+
 					device.state.active = true
 				} else if (device.state.mode === 'FAN') {
 					device.state.active = false
 				}
+
 				callback()
 			},
 
@@ -606,6 +612,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - Mode to: FAN')
 				device.state.mode = 'FAN'
+
 				callback()
 			},
 
@@ -616,6 +623,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - Mode to: FAN')
 				device.state.mode = 'FAN'
+
 				callback()
 			},
 
@@ -630,6 +638,7 @@ module.exports = (device, platform) => {
 				} else if (device.state.mode === 'DRY') {
 					device.state.active = false
 				}
+
 				callback()
 			},
 
@@ -649,6 +658,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name + ' -> Setting Mode to: DRY')
 				device.state.mode = 'DRY'
+
 				callback()
 			},
 
@@ -659,6 +669,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name + ' -> Setting Mode to: DRY')
 				device.state.mode = 'DRY'
+
 				callback()
 			},
 
@@ -667,13 +678,19 @@ module.exports = (device, platform) => {
 				state = state ? 'SWING_ENABLED' : 'SWING_DISABLED'
 				log.easyDebug(device.name, '(SET) - Horizontal Swing Swing:', state)
 				device.state.horizontalSwing = state
+
+				updateClimateReact()
+
 				callback()
 			},
 
-			// Air Conditioner/Purifier LIGHT
+			// AIR CONDITIONER/PURIFIER LIGHT
 			LightSwitch: (state, callback) => {
 				log.easyDebug(device.name, '(SET) - Light to', state ? 'ON' : 'OFF')
 				device.state.light = state
+
+				updateClimateReact()
+
 				callback()
 			},
 
@@ -689,10 +706,10 @@ module.exports = (device, platform) => {
 			},
 
 			// CLIMATE REACT
-
 			ClimateReactEnabledSwitch: (state, callback) => {
 				log.easyDebug(device.name, '(SET) - Climate React Enabled Switch:', state)
 				device.state.smartMode.enabled = state
+
 				callback()
 			},
 
@@ -700,7 +717,7 @@ module.exports = (device, platform) => {
 			TargetAirPurifierState: (state, callback) => {
 				const pureBoost = !!state
 
-				log.easyDebug(`${device.name} (SET) - Pure Target State (Boost): ${pureBoost ? 'AUTO' : 'MANUAL'}`)
+				log.easyDebug(device.name, '(SET) - Pure Target State (Boost):', pureBoost ? 'AUTO' : 'MANUAL')
 				device.state.pureBoost = pureBoost
 
 				callback()

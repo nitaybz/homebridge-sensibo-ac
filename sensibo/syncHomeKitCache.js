@@ -218,7 +218,7 @@ module.exports = (platform) => {
 
 				case 'ClimateReact':
 					deviceExists = platform.devices.find(device => {
-						device.id === accessory.context.deviceId && device.remoteCapabilities
+						return device.id === accessory.context.deviceId && device.remoteCapabilities
 					})
 
 					if (!deviceExists || !platform.enableClimateReactSwitch || platform.climateReactSwitchInAccessory) {

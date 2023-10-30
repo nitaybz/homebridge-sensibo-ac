@@ -196,14 +196,6 @@ module.exports = {
 
 		const modeCapabilities = device.remoteCapabilities.modes[device.acState.mode]
 
-		if (modeCapabilities.swing && modeCapabilities.swing.includes('rangeFull')) {
-			state.verticalSwing = device.acState.swing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
-		}
-
-		if (modeCapabilities.horizontalSwing && modeCapabilities.horizontalSwing.includes('rangeFull')) {
-			state.horizontalSwing = device.acState.horizontalSwing === 'rangeFull' ? 'SWING_ENABLED' : 'SWING_DISABLED'
-		}
-
 		if (modeCapabilities.fanLevels && modeCapabilities.fanLevels.length) {
 			state.fanSpeed = fanLevelToHK(device.acState.fanLevel, modeCapabilities.fanLevels) || 0
 		}
@@ -302,7 +294,7 @@ module.exports = {
 		return acState
 	},
 
-	sensiboFormattedClimageReactState: (device, state) => {
+	sensiboFormattedClimateReactState: (device, state) => {
 		const smartModeState = state.smartMode
 
 		const climateReactState = {
@@ -312,8 +304,6 @@ module.exports = {
 			lowTemperatureState:
 			{
 				on: smartModeState.lowTemperatureState.on,
-				swing: smartModeState.lowTemperatureState.swing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped',
-				horizontalSwing: smartModeState.lowTemperatureState.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped',
 				light: smartModeState.lowTemperatureState.light ? 'on' : 'off',
 				temperatureUnit: device.temperatureUnit,
 				fanLevel: HKToFanLevel(state.fanSpeed, device.capabilities[state.mode].fanSpeeds),
@@ -325,8 +315,6 @@ module.exports = {
 			highTemperatureState:
 			{
 				on: smartModeState.highTemperatureState.on,
-				swing: smartModeState.highTemperatureState.swing  === 'SWING_ENABLED' ? 'rangeFull' : 'stopped',
-				horizontalSwing: smartModeState.highTemperatureState.horizontalSwing  === 'SWING_ENABLED' ? 'rangeFull' : 'stopped',
 				light: smartModeState.highTemperatureState.light ? 'on' : 'off',
 				temperatureUnit: device.temperatureUnit,
 				fanLevel: HKToFanLevel(state.fanSpeed, device.capabilities[state.mode].fanSpeeds),
@@ -334,6 +322,32 @@ module.exports = {
 				targetTemperature: smartModeState.highTemperatureState.targetTemperature
 			},
 			highTemperatureWebhook: null
+		}
+
+		if ('threeDimensionalSwing' in device.capabilities[state.mode]) {
+			if ((state.horizontalSwing === 'SWING_ENABLED') && (state.verticalSwing === 'SWING_ENABLED')) {
+				climateReactState.lowTemperatureState.swing = 'both'
+				climateReactState.highTemperatureState.swing = 'both'
+			} else if (state.verticalSwing === 'SWING_ENABLED') {
+				climateReactState.lowTemperatureState.swing = 'rangeFull'
+				climateReactState.highTemperatureState.swing = 'rangeFull'
+			} else if (state.horizontalSwing === 'SWING_ENABLED') {
+				climateReactState.lowTemperatureState.swing = 'horizontal'
+				climateReactState.highTemperatureState.swing = 'horizontal'
+			} else {
+				climateReactState.lowTemperatureState.swing = 'stopped'
+				climateReactState.highTemperatureState.swing = 'stopped'
+			}
+		} else {
+			if ('verticalSwing' in device.capabilities[state.mode]) {
+				climateReactState.lowTemperatureState.swing = state.verticalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+				climateReactState.highTemperatureState.swing = state.verticalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+			}
+
+			if ('horizontalSwing' in device.capabilities[state.mode]) {
+				climateReactState.lowTemperatureState.horizontalSwing = state.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+				climateReactState.highTemperatureState.horizontalSwing = state.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+			}
 		}
 
 		return climateReactState

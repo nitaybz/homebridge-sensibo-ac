@@ -489,7 +489,7 @@ class AirConditioner {
 	}
 
 	addClimateReactService() {
-		this.log.easyDebug(`Adding Climate React Switch Service in the ${this.roomName}`)
+		this.log.easyDebug(`${this.roomName} - Adding Climate React Switch Service`)
 
 		this.ClimateReactService = this.accessory.getService('ClimateReact')
 		if (!this.ClimateReactService) {
@@ -506,7 +506,7 @@ class AirConditioner {
 
 		if (ClimateReactService) {
 			// remove service
-			this.log.easyDebug(`Removing Climate React Switch Service from the ${this.roomName}`)
+			this.log.easyDebug(`${this.roomName} - Removing Climate React Switch Service`)
 			this.accessory.removeService(ClimateReactService)
 		}
 	}

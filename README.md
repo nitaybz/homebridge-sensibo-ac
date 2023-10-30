@@ -130,8 +130,8 @@ See below the table for additional details on these settings.
 | `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)  |          |     -    |  String[]  |
 | `modesToExclude`           |  Modes to exclude from Home app when setting up Sensibo devices (leave empty to keep all available modes). Valid values: AUTO, COOL, DRY, FAN, HEAT  |          |     -    |  String[]  |
 | `debug`                    |  When set to `true`, the plugin will produce extra logs for debugging purposes  |          |  `false` |  Boolean  |
-| `climateReactSwitchInAccessory`         |  When set to `true`, it will remove the extra AC Climate React switch if it exists and will show \"Climate React Button\" attached as a service to the Same AC Accessory (works only when `enableClimateReactSwitch` is set to true)   |          |  `false` |  Boolean  |
-| `enableClimateReactAutoSetup` |  Enables setting up an appropriate Climate React configuration when AC state is set or changed.     |          |  `false` |  Boolean  |
+| `climateReactSwitchInAccessory`         |  When set to `true`, adds a **Climate React Button** (like `enableClimateReactSwitch` above) but within the AC Accessory. It will also remove the standalone AC Climate React switch (if one exists). Works only when `enableClimateReactSwitch` is also set to true  |          |  `false` |  Boolean  |
+| `enableClimateReactAutoSetup` |  When set to `true`, the plugin (whenever the AC state is set or changed) will update the Climate React configuration to match the new settings  |          |  `false` |  Boolean  |
 
 \* *only apiKey OR username / password are required, not both*
 
@@ -231,20 +231,18 @@ Use this feature in conjunction with the occupancy sensor and you'll be able to 
 
 Note: This feature does not allow changing the actual logic (temperature, mode etc) of the "Climate React" mode, only enabling or disabling it. Therefore, it will not work if the "Climate React" was not set up in Sensibo app first.
 
-**To attach the "Climate React" button as a service to the AC accessory instead of a separate switch**, add 
-`"climateReactSwitchInAccessory": true` to your config.
+To enable the **Climate React switch**, add `"enableClimateReactSwitch": true` to your config.
 
-**To enable the a Climate React switch**, add `"enableClimateReactSwitch": true` to your config.
+To attach the **Climate React switch** as a service within the AC accessory, instead of a separate switch, also add `"climateReactSwitchInAccessory": true` to your config.
 
 ### Climate React Auto Setup
-When enabled, every time an AC's state is set or changed,  appropriate Climate React configuration will be set up for maintaining the desired temperature.
+When enabled, every time an AC's state is set or changed, the Climate React configuration will be updated such that the desired temperature is maintained.
 
-For example, if setting an AC to Cool to 25C, Climate React will be set up such that when the temperature rises above 25C the AC starts to cool and when the temperature drops below 24 (the target temperature minus 1 degress centigrade, or the equivalent fahrenheit delta), the AC will be turned off.
+For example, if setting an AC to Cool to 25C, Climate React will be set up such that when the temperature rises above 25C the AC starts to cool and when the temperature drops below 24 (the target temperature minus 1 degree C, or the equivalent F delta), the AC will be turned off.
 
 When setting an AC to Heat with a target temprature, Climate React will be set up similarly.
 
-**To enable Climate React Auto Setup**, add 
-`"enableClimateReactAutoSetup": true` to your config.
+**To enable Climate React Auto Setup**, add `"enableClimateReactAutoSetup": true` to your config.
 
 ### Filter Cleaning Indication
 
