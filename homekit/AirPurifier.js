@@ -50,9 +50,14 @@ class AirPurifier {
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
 
+		// TODO: enable logging? See also line 143
 		// if (platform.enableHistoryStorage) {
-		// 	const FakeGatoHistoryService = require("fakegato-history")(this.api)
-		// 	this.loggingService = new FakeGatoHistoryService('weather', this.accessory, { storage: 'fs', path: platform.persistPath })
+		// 	const FakeGatoHistoryService = require('fakegato-history')(this.api)
+
+		// 	this.loggingService = new FakeGatoHistoryService('weather', this.accessory, {
+		// 		storage: 'fs',
+		// 		path: platform.persistPath
+		// 	})
 		// }
 
 		this.accessory.context.roomName = this.roomName
@@ -135,6 +140,7 @@ class AirPurifier {
 	}
 
 	updateHomeKit() {
+		// TODO: add logging? See also line 53
 		// log new state with FakeGato
 		// if (this.loggingService) {
 		// 	this.loggingService.addEntry({

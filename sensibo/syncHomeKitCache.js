@@ -89,9 +89,13 @@ module.exports = (platform) => {
 
 					platform.activeAccessories.push(airPurifier)
 
-					const airQualitySensor = new AirQualitySensor(device, platform)
+					// Check that at least one of AirQuality or CarbonDioxide sensor is enabled before creating
+					if (!platform.disableAirQuality || !platform.disableCarbonDioxide) {
+						// TODO: why are we using 'device' here? Compare to line 57 where aircon is used with AirQualitySensor
+						const airQualitySensor = new AirQualitySensor(device, platform)
 
-					platform.activeAccessories.push(airQualitySensor)
+						platform.activeAccessories.push(airQualitySensor)
+					}
 				}
 			}
 

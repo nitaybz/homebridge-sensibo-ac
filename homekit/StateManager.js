@@ -472,7 +472,7 @@ module.exports = (device, platform) => {
 
 			PureActive: (state, callback) => {
 				state = !!state
-				log.easyDebug(`${device.name} (SET) - Pure Active State: ${state}`)
+				log.easyDebug(device.name, '(SET) - Pure Active State:', state)
 				device.state.active = state
 
 				updateClimateReact()

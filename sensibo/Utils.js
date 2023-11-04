@@ -1,4 +1,4 @@
-module.exports = (platform) => {
+module.exports = (device, platform) => {
 	const Characteristic = platform.api.hap.Characteristic
 	const log = platform.log
 
@@ -7,7 +7,7 @@ module.exports = (platform) => {
 		// TODO: round numbers to 0 or 1 decimals?
 		// Probably should be done when _calling_ updateValue rather than in it? (So it's not "hidden" functionality)
 		// E.g. humidity should be a full percentage, temp seems to support 1 decimal
-		updateValue: (device, serviceName, characteristicName, newValue) => {
+		updateValue: (serviceName, characteristicName, newValue) => {
 			// log.easyDebug(`${device.name} - updateValue: ${newValue} for characteristic ${characteristicName} on service ${serviceName}`)
 			// Could we use .validateUserInput or .validateClientSuppliedValue from HAP Characteristics definition? Probably not as both are private...
 

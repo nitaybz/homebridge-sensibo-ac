@@ -10,6 +10,8 @@ class AirQualitySensor {
 		Constants.VOCDENSITY_MAX = platform.VOCDENSITY_MAX
 		Constants.carbonDioxideAlertThreshold = platform.carbonDioxideAlertThreshold
 
+		this.Utils = require('../sensibo/Utils')(this, platform)
+
 		const deviceInfo = unified.deviceInformation(device)
 
 		this.log = platform.log
@@ -52,10 +54,14 @@ class AirQualitySensor {
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
 
-		// TODO: enable logging? See also line 137
+		// TODO: enable logging? See also line 143
 		// if (platform.enableHistoryStorage) {
-		// 	const FakeGatoHistoryService = require("fakegato-history")(this.api)
-		// 	this.loggingService = new FakeGatoHistoryService('weather', this.accessory, { storage: 'fs', path: platform.persistPath })
+		// 	const FakeGatoHistoryService = require('fakegato-history')(this.api)
+
+		// 	this.loggingService = new FakeGatoHistoryService('weather', this.accessory, {
+		// 		storage: 'fs',
+		// 		path: platform.persistPath
+		// 	})
 		// }
 
 		this.accessory.context.roomName = this.roomName
@@ -134,7 +140,7 @@ class AirQualitySensor {
 	}
 
 	updateHomeKit() {
-		// TODO: add logging? See also line 55
+		// TODO: add logging? See also line 57
 		// log new state with FakeGato
 		// if (this.loggingService) {
 		// 	this.loggingService.addEntry({
@@ -144,54 +150,18 @@ class AirQualitySensor {
 		// 	})
 		// }
 
-		this.updateValue('AirQualitySensorService', 'AirQuality', this.state.airQuality)
-		this.updateValue('AirQualitySensorService', 'VOCDensity', this.state.VOCDensity)
-		this.updateValue('CarbonDioxideSensorService', 'CarbonDioxideDetected', this.state.carbonDioxideDetected)
-		this.updateValue('CarbonDioxideSensorService', 'CarbonDioxideLevel', this.state.carbonDioxideLevel)
+		if (!this.disableAirQuality) {
+			this.Utils.updateValue('AirQualitySensorService', 'AirQuality', this.state.airQuality)
+			this.Utils.updateValue('AirQualitySensorService', 'VOCDensity', this.state.VOCDensity)
+		}
+
+		if (!this.disableCarbonDioxide) {
+			this.Utils.updateValue('CarbonDioxideSensorService', 'CarbonDioxideDetected', this.state.carbonDioxideDetected)
+			this.Utils.updateValue('CarbonDioxideSensorService', 'CarbonDioxideLevel', this.state.carbonDioxideLevel)
+		}
 
 		// cache last state to storage
 		this.storage.setItem('state', this.cachedState)
-	}
-
-	updateValue (serviceName, characteristicName, newValue) {
-		this.log.easyDebug(`${this.roomName} - entered updateValue -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
-		const characteristic = this[serviceName]?.getCharacteristic(Characteristic[characteristicName])
-
-		if (typeof characteristic === 'undefined') {
-			this.log.easyDebug(`${this.roomName} - characteristic undefined -> serviceName: ${serviceName} and characteristicName: ${characteristicName}`)
-
-			return
-		}
-
-		if (newValue !== 0 && newValue !== false && (typeof newValue === 'undefined' || !newValue)) {
-			this.log.easyDebug(`${this.roomName} - WRONG VALUE -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
-
-			return
-		}
-
-		if (newValue === undefined || newValue === null) {
-			this.log.easyDebug(`${this.roomName} - Undefined/null value -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
-
-			return
-		}
-
-		// const minAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.minValue
-		// const maxAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.maxValue
-		// const validValues = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.validValues
-		// const currentValue = this[serviceName].getCharacteristic(Characteristic[characteristicName]).value
-		const currentValue = characteristic.value
-
-		// if (validValues && !validValues.includes(newValue))
-		// newValue = currentValue
-		// if (minAllowed && newValue < minAllowed)
-		// newValue = currentValue
-		// else if (maxAllowed && newValue > maxAllowed)
-		// newValue = currentValue
-
-		if (currentValue !== newValue) {
-			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
-		}
 	}
 
 }
