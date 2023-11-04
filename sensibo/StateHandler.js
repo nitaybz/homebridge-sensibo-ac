@@ -9,9 +9,13 @@ module.exports = (device, platform) => {
 
 	return {
 		get: (target, prop) => {
+			// log.easyDebug(`StateHandler GET ${prop} for ${JSON.stringify(target, null, 2)}`)
+
 			// check for last update and refresh state if needed
 			if (!platform.setProcessing) {
 				platform.refreshState()
+			} else {
+				log.easyDebug('setProcessing is set to true, skip refreshing state.')
 			}
 
 			// return a function to update state (multiple properties)
@@ -71,10 +75,10 @@ module.exports = (device, platform) => {
 				return
 			}
 
-			// Send Smart Mode command
+			// Send Climate React state command and refresh state
 			if (prop === 'smartMode') {
 				try {
-					log.easyDebug(`smartMode - updating ${device.name} to ${value}`)
+					log.easyDebug(`${device.name} - Setting Climate React state to ${value}`)
 					sensiboApi.enableDisableClimateReact(device.id, value)
 				} catch(err) {
 					log('Error occurred! -> Climate React state did not change')
@@ -82,15 +86,17 @@ module.exports = (device, platform) => {
 
 				if (!platform.setProcessing) {
 					platform.refreshState()
+				} else {
+					log.easyDebug('setProcessing is set to true, skipping state refresh due to Climate React set.')
 				}
 
 				return
 			}
 
-			// Send Pure Boost command
+			// Send Pure Boost state command and refresh state
 			if (prop === 'pureBoost') {
 				try {
-					log.easyDebug(`pureBoost - updating ${device.name} to ${value}`)
+					log.easyDebug(`${device.name} - Setting Pure Boost state to ${value}`)
 					sensiboApi.enableDisablePureBoost(device.id, value)
 				} catch(err) {
 					log('Error occurred! -> Pure Boost state did not change')
@@ -98,6 +104,8 @@ module.exports = (device, platform) => {
 
 				if (!platform.setProcessing) {
 					platform.refreshState()
+				} else {
+					log.easyDebug('setProcessing is set to true, skipping state refresh due to Pure Boost set.')
 				}
 
 				return
@@ -120,13 +128,24 @@ module.exports = (device, platform) => {
 					preventTurningOff = false
 				}
 
-				const sensiboNewState = unified.sensiboFormattedState(device, state)
+				const sensiboNewACState = unified.sensiboFormattedACState(device, state)
+				const sensiboNewClimateReactState = unified.sensiboFormattedClimateReactState(device, state)
 
-				log.easyDebug(`${device.name} -> Setting New State: ${JSON.stringify(sensiboNewState, null, 4)}`)
+				log.easyDebug(device.name, ' -> Setting New State:')
+				log.easyDebug(JSON.stringify(sensiboNewACState, null, 2))
+
+				if (platform.enableClimateReactAutoSetup) {
+					log.easyDebug(JSON.stringify(sensiboNewClimateReactState, null, 2))
+				}
 
 				try {
 					// send state command to Sensibo
-					await sensiboApi.setDeviceState(device.id, sensiboNewState)
+
+					if (platform.enableClimateReactAutoSetup) {
+						await sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
+					}
+
+					await sensiboApi.setDeviceACState(device.id, sensiboNewACState)
 				} catch(err) {
 					log(`${device.name} - ERROR setting ${prop} to ${value}`)
 					setTimeout(() => {

@@ -159,7 +159,7 @@ module.exports = {
 			targetTemperature: !device.acState.targetTemperature ? null : device.acState.temperatureUnit === 'C' ? device.acState.targetTemperature : toCelsius(device.acState.targetTemperature),
 			currentTemperature: device.measurements.temperature,
 			relativeHumidity: device.measurements.humidity,
-			smartMode: device.smartMode && device.smartMode.enabled,
+			smartMode: device.smartMode,
 			light: device.acState.light && device.acState.light !== 'off',
 			pureBoost: device.pureBoostConfig && device.pureBoostConfig.enabled
 		}
@@ -254,7 +254,7 @@ module.exports = {
 		return state
 	},
 
-	sensiboFormattedState: (device, state) => {
+	sensiboFormattedACState: (device, state) => {
 		device.log.easyDebug(`${device.name} -> sensiboFormattedState: ${JSON.stringify(state, null, 4)}`)
 		const acState = {
 			on: state.active,
@@ -292,6 +292,64 @@ module.exports = {
 		}
 
 		return acState
-	}
+	},
 
+	sensiboFormattedClimateReactState: (device, state) => {
+		const smartModeState = state.smartMode
+
+		const climateReactState = {
+			enabled: smartModeState.enabled,
+			type: smartModeState.type,
+			lowTemperatureThreshold: smartModeState.lowTemperatureThreshold,
+			lowTemperatureState:
+			{
+				on: smartModeState.lowTemperatureState.on,
+				light: smartModeState.lowTemperatureState.light ? 'on' : 'off',
+				temperatureUnit: device.temperatureUnit,
+				fanLevel: HKToFanLevel(state.fanSpeed, device.capabilities[state.mode].fanSpeeds),
+				mode: smartModeState.lowTemperatureState.mode.toLowerCase(),
+				targetTemperature: smartModeState.lowTemperatureState.targetTemperature
+			},
+			lowTemperatureWebhook: null,
+			highTemperatureThreshold: smartModeState.highTemperatureThreshold,
+			highTemperatureState:
+			{
+				on: smartModeState.highTemperatureState.on,
+				light: smartModeState.highTemperatureState.light ? 'on' : 'off',
+				temperatureUnit: device.temperatureUnit,
+				fanLevel: HKToFanLevel(state.fanSpeed, device.capabilities[state.mode].fanSpeeds),
+				mode: smartModeState.highTemperatureState.mode.toLowerCase(),
+				targetTemperature: smartModeState.highTemperatureState.targetTemperature
+			},
+			highTemperatureWebhook: null
+		}
+
+		if ('threeDimensionalSwing' in device.capabilities[state.mode]) {
+			if ((state.horizontalSwing === 'SWING_ENABLED') && (state.verticalSwing === 'SWING_ENABLED')) {
+				climateReactState.lowTemperatureState.swing = 'both'
+				climateReactState.highTemperatureState.swing = 'both'
+			} else if (state.verticalSwing === 'SWING_ENABLED') {
+				climateReactState.lowTemperatureState.swing = 'rangeFull'
+				climateReactState.highTemperatureState.swing = 'rangeFull'
+			} else if (state.horizontalSwing === 'SWING_ENABLED') {
+				climateReactState.lowTemperatureState.swing = 'horizontal'
+				climateReactState.highTemperatureState.swing = 'horizontal'
+			} else {
+				climateReactState.lowTemperatureState.swing = 'stopped'
+				climateReactState.highTemperatureState.swing = 'stopped'
+			}
+		} else {
+			if ('verticalSwing' in device.capabilities[state.mode]) {
+				climateReactState.lowTemperatureState.swing = state.verticalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+				climateReactState.highTemperatureState.swing = state.verticalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+			}
+
+			if ('horizontalSwing' in device.capabilities[state.mode]) {
+				climateReactState.lowTemperatureState.horizontalSwing = state.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+				climateReactState.highTemperatureState.horizontalSwing = state.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+			}
+		}
+
+		return climateReactState
+	}
 }

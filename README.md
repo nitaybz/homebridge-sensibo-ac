@@ -92,7 +92,9 @@ If you don't use Homebridge UI or HOOBS, or if you want to know more about the p
         "ignoreHomeKitDevices": false,
         "locationsToInclude": [],
         "modesToExclude": [],
-        "debug": false
+        "debug": false,
+        "climateReactSwitchInAccessory": false,
+        "enableClimateReactAutoSetup": false,
     }
 ]
 ```
@@ -109,25 +111,27 @@ See below the table for additional details on these settings.
 | `password`                 |  Your Sensibo account password                                   |     ✓*   |     -    |  String  |
 | `allowRepeatedCommands`    |  Allow the plugin to send the same state command again           |          |  `false` |  Boolean |
 | `carbonDioxideAlertThreshold` |  Value, in PPM, over which the Apple Home app will alert you to high CO2 readings. Requires the Carbon Dioxide Sensor be enabled  |          |  `1500` |  Integer |
-| `disableAirQuality`        |  When set to `true`, will remove Air Quality and TVOC readings   |          |  `false` |  Boolean |
-| `disableCarbonDioxide`     |  When set to `true`, will remove Carbon Dioxide readings and warnings       |          |  `false` |  Boolean |
-| `disableDry`               |  When set to `true`, will remove the DRY accessory               |          |  `false` |  Boolean |
+| `disableAirQuality`        |  When set to `true`, will remove Air Quality and TVOC readings   |          |  `false` |  Boolean |
+| `disableCarbonDioxide`     |  When set to `true`, will remove Carbon Dioxide readings and warnings       |          |  `false` |  Boolean |
+| `disableDry`               |  When set to `true`, will remove the DRY accessory               |          |  `false` |  Boolean |
 | `disableFan`               |  When set to `true`, will remove the FAN accessory               |          |  `false` |  Boolean |
 | `disableHumidity`          |  When set to `true`, will remove Current Relative Humidity readings from the AC / Heat Pump Accessory  |          |  `false` |  Boolean |
 | `disableLightSwitch`       |  When set to `true`, will remove the extra light bulb to control the AC Light  |          |  `false` |  Boolean |
-| `disableHorizontalSwing`   |  When set to `true`, will remove the horizontal swing switch     |          |  `false` |  Boolean |
-| `disableVerticalSwing`     |  When set to `true`, will remove the vertical swing control (Oscillate switch) from the Accessory  |          |  `false` |  Boolean |
+| `disableHorizontalSwing`   |  When set to `true`, will remove the horizontal swing switch     |          |  `false` |  Boolean |
+| `disableVerticalSwing`     |  When set to `true`, will remove the vertical swing control (Oscillate switch) from the Accessory  |          |  `false` |  Boolean |
 | `enableClimateReactSwitch` |  Adds a switch to enable/disable Climate React                   |          |  `false` |  Boolean |
-| `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app  |          |  `false` |   Boolean |
-| `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home         |          |  `false` |  Boolean  |
-| `enableSyncButton`         |  When set to `true`, adds a **AC Sync Switch** to toggle the state of the AC in Home app, without sending a command to the unit  |          |  `false` |  Boolean  |
-| `syncButtonInAccessory`    |  When set to `true`, adds an **AC Sync Switch** (like `enableSyncButton` above) but within the AC Accessory. It will also remove the standalone Sync Switch (if one exists)  |          |  `false` |  Boolean  |
-| `externalHumiditySensor`   |  Creates a separate Humidity sensor accessory, ignores the `disableHumidity` setting  |          |  `false` |  Boolean |
-| `devicesToExclude`         |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge  |          |     -    |  String[]  |
+| `enableHistoryStorage`     |  When set to `true`, all measurements (temperature & humidity) will be saved and viewable from the Eve app  |          |  `false` |   Boolean |
+| `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home         |          |  `false` |  Boolean  |
+| `enableSyncButton`         |  When set to `true`, adds a **AC Sync Switch** to toggle the state of the AC in Home app, without sending a command to the unit  |          |  `false` |  Boolean  |
+| `syncButtonInAccessory`    |  When set to `true`, adds an **AC Sync Switch** (like `enableSyncButton` above) but within the AC Accessory. It will also remove the standalone Sync Switch (if one exists)  |          |  `false` |  Boolean  |
+| `externalHumiditySensor`   |  Creates a separate Humidity sensor accessory, ignores the `disableHumidity` setting  |          |  `false` |  Boolean |
+| `devicesToExclude`         |  Add devices identifier (room name, ID from logs or serial from Home app) to exclude from homebridge  |          |     -    |  String[]  |
 | `ignoreHomeKitDevices`     |  Automatically ignore, skip or remove HomeKit supported devices  |          |  `false` |  Boolean |
-| `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)  |          |     -    |  String[]  |
-| `modesToExclude`           |  Modes to exclude from Home app when setting up Sensibo devices (leave empty to keep all available modes). Valid values: AUTO, COOL, DRY, FAN, HEAT  |          |     -    |  String[]  |
-| `debug`                    |  When set to `true`, the plugin will produce extra logs for debugging purposes  |          |  `false` |  Boolean  |
+| `locationsToInclude`       |  Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)  |          |     -    |  String[]  |
+| `modesToExclude`           |  Modes to exclude from Home app when setting up Sensibo devices (leave empty to keep all available modes). Valid values: AUTO, COOL, DRY, FAN, HEAT  |          |     -    |  String[]  |
+| `debug`                    |  When set to `true`, the plugin will produce extra logs for debugging purposes  |          |  `false` |  Boolean  |
+| `climateReactSwitchInAccessory`         |  When set to `true`, adds a **Climate React Button** (like `enableClimateReactSwitch` above) but within the AC Accessory. It will also remove the standalone AC Climate React switch (if one exists). Works only when `enableClimateReactSwitch` is also set to true  |          |  `false` |  Boolean  |
+| `enableClimateReactAutoSetup` |  When set to `true`, the plugin (whenever the AC state is set or changed) will update the Climate React configuration to match the new settings  |          |  `false` |  Boolean  |
 
 \* *only apiKey OR username / password are required, not both*
 
@@ -219,7 +223,7 @@ Note: Geofencing must be enabled in Sensibo app for it to work
 
 To enable the extra **Occupancy Sensor**, add `"enableOccupancySensor": true` to your config.
 
-### Climate React
+### Climate React Switch
 
 When enabled, an additional switch accessory will be added. The switch will enable or disable the "Climate React" mode you've set up in the Sensibo app.
 
@@ -227,7 +231,18 @@ Use this feature in conjunction with the occupancy sensor and you'll be able to 
 
 Note: This feature does not allow changing the actual logic (temperature, mode etc) of the "Climate React" mode, only enabling or disabling it. Therefore, it will not work if the "Climate React" was not set up in Sensibo app first.
 
-To enable the extra **Climate React** switch, add `"enableClimateReactSwitch": true` to your config.
+To enable the **Climate React switch**, add `"enableClimateReactSwitch": true` to your config.
+
+To attach the **Climate React switch** as a service within the AC accessory, instead of a separate switch, also add `"climateReactSwitchInAccessory": true` to your config.
+
+### Climate React Auto Setup
+When enabled, every time an AC's state is set or changed, the Climate React configuration will be updated such that the desired temperature is maintained.
+
+For example, if setting an AC to Cool to 25C, Climate React will be set up such that when the temperature rises above 25C the AC starts to cool and when the temperature drops below 24 (the target temperature minus 1 degree C, or the equivalent F delta), the AC will be turned off.
+
+When setting an AC to Heat with a target temprature, Climate React will be set up similarly.
+
+**To enable Climate React Auto Setup**, add `"enableClimateReactAutoSetup": true` to your config.
 
 ### Filter Cleaning Indication
 

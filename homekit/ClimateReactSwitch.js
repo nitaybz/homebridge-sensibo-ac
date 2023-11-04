@@ -32,6 +32,7 @@ class ClimateReactSwitch {
 			this.accessory.context.deviceId = this.id
 
 			platform.cachedAccessories.push(this.accessory)
+
 			// register the accessory
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
@@ -61,12 +62,12 @@ class ClimateReactSwitch {
 		}
 
 		this.ClimateReactService.getCharacteristic(Characteristic.On)
-			.on('get', this.stateManager.get.ClimateReact)
-			.on('set', this.stateManager.set.ClimateReact)
+			.on('get', this.stateManager.get.ClimateReactEnabledSwitch)
+			.on('set', this.stateManager.set.ClimateReactEnabledSwitch)
 	}
 
 	updateHomeKit() {
-		const smartModeState = this.state?.smartMode ?? false
+		const smartModeState = this.state?.smartMode.enabled ?? false
 
 		// update Climate React Service
 		this.updateValue('ClimateReactService', 'On', smartModeState)

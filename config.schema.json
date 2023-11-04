@@ -31,8 +31,8 @@
 				"title": "Username",
 				"description": "Your Sensibo account username/email",
 				"type": "string",
+				"required": false,				
 				"placeholder": "Username",
-				"required": false,
 				"condition": {
 					"functionBody": "return model.auth === \"usernamePassword\";"
 				}
@@ -135,6 +135,20 @@
 				"default": false,
 				"required": false
 			},
+            "enableClimateReactAutoSetup": {
+                "title": "Enable Climate React Auto Setup",
+                "description": "Enables setting up an appropriate Climate React configuration when AC state is set or changed",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },            
+            "climateReactSwitchInAccessory": {
+                "title": "Climate React Switch in AC Accessory",
+                "description": "Enabling this will remove the extra Climate React switch if it exists and will show \"Climate React Button\" attached as a service to the Same AC Accessory (only works when `enableClimateReactSwitch` is set to true)",
+                "type": "boolean",
+                "default": false,
+                "required": false                
+            },			
 			"enableOccupancySensor": {
 				"title": "Enable Occupancy Sensor",
 				"description": "Adds occupancy sensor to represent the state of someone at home/away",

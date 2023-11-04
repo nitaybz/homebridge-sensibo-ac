@@ -5,7 +5,6 @@
 		"port": 51826,
 		"pin": "012-45-789"
 	},
-
 	"description": "This is an example configuration for the sensibo-ac homebridge plugin",
 	"platforms": [
 		{
@@ -31,10 +30,11 @@
 			"ignoreHomeKitDevices": false,
 			"locationsToInclude": [],
 			"modesToExclude": [],
-			"debug": false
+			"debug": false,
+			"climateReactSwitchInAccessory": false,
+			"enableClimateReactAutoSetup": false
 		}
 	],
-
 	"accessories": [
 	]
 }

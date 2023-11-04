@@ -40,8 +40,7 @@ async function apiRequest(method, url, data) {
 				if (json.status && json.status == 'success') {
 					log.easyDebug(`Successful ${method.toUpperCase()} response:`)
 					if (json.result && json.result instanceof Array) {
-						// remove private address of users to prevent it appearing in logs
-						results = removePrivateAddress(json.result)
+						results = fixResponse(json.result)
 					} else {
 						results = json
 					}
@@ -72,6 +71,115 @@ async function apiRequest(method, url, data) {
 				reject(errorContent)
 			})
 	})
+}
+
+module.exports = async function (platform) {
+	log = platform.log
+	// TODO: check on scope of these
+	this.username = platform.username
+	this.password = platform.password
+	this.storage = platform.storage
+
+	if (platform.apiKey) {
+		axios.defaults.params = {
+			integration: integrationName,
+			apiKey: platform.apiKey
+		}
+	} else {
+		try {
+			const token = await getToken(platform.username, platform.password, platform.storage)
+
+			axios.defaults.headers = { 'Authorization': 'Bearer ' + token }
+			axios.defaults.params = { integration: integrationName }
+		} catch (err) {
+			log('The plugin was NOT able to find stored token or acquire one from Sensibo API ---> it will not be able to set or get the state !!')
+		}
+	}
+	axios.defaults.baseURL = baseURL
+
+	return {
+
+		getAllDevices: async () => {
+			const path = '/users/me/pods'
+			const queryString = 'fields=id,acState,measurements,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig,homekitSupported,remoteCapabilities,room,temperatureUnit,productModel'
+			let allDevices
+
+			try {
+				allDevices = await apiRequest('get', path + '?' + queryString)
+			} catch(err) {
+				log('getAllDevices ERR:', err.message)
+				throw err
+			}
+
+			// TODO: the below will return an exception if above "get" fails... null check?
+			return allDevices.filter(device => {
+				return (platform.locationsToInclude.length === 0
+								|| platform.locationsToInclude.includes(device.location.id)
+								|| platform.locationsToInclude.includes(device.location.name))
+							&& !platform.devicesToExclude.includes(device.id)
+							&& !platform.devicesToExclude.includes(device.serial)
+							&& !platform.devicesToExclude.includes(device.room.name)
+			})
+		},
+
+		getDevicesStates: async () => {
+			const path = '/users/me/pods'
+			const queryString = 'fields=id,acState,measurements,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig,homekitSupported'
+
+			return await apiRequest('get', path + '?' + queryString)
+		},
+
+		setDeviceClimateReactState: async (deviceId, climateReactState) => {
+			const path = `/pods/${deviceId}/smartmode`
+			const json = climateReactState
+
+			return await apiRequest('post', path, json)
+		},
+
+		setDeviceACState: async (deviceId, acState) => {
+			const path = `/pods/${deviceId}/acStates`
+			const json = { 'acState': acState }
+
+			return await apiRequest('post', path, json)
+		},
+
+		syncDeviceState: async (deviceId, value) => {
+			const path = `/pods/${deviceId}/acStates/on`
+			const json = {
+				'newValue': value,
+				'reason': 'StateCorrectionByUser'
+			}
+
+			return await apiRequest('patch', path, json)
+		},
+
+		enableDisableClimateReact: async (deviceId, enabled) => {
+			const path = `/pods/${deviceId}/smartmode`
+			const json = { 'enabled': enabled }
+
+			return await apiRequest('put', path, json)
+		},
+
+		enableDisablePureBoost: async (deviceId, enabled) => {
+			const path = `/pods/${deviceId}/pureboost`
+			const json = { 'enabled': enabled }
+
+			return await apiRequest('put', path, json)
+		},
+
+		setDevicePropertyState: async (deviceId, property, value) => {
+			const path = `/pods/${deviceId}/acStates/${property}`
+			const json = { 'newValue': value }
+
+			return await apiRequest('patch', path, json)
+		},
+
+		resetFilterIndicator: async (deviceId) => {
+			const path = `/pods/${deviceId}/cleanFiltersNotification`
+
+			return await apiRequest('delete', path)
+		}
+	}
 }
 
 function getToken(username, password, storage) {
@@ -137,116 +245,18 @@ function getToken(username, password, storage) {
 	})
 }
 
-function removePrivateAddress(results) {
-	return results.map(result => {
+function fixResponse(results) {
+	return results.map(result =>  {
+		// remove user's address to prevent it from appearing in logs
 		result.location && (result.location = {
 			occupancy: result.location.occupancy,
 			name: result.location.name,
 			id: result.location.id
 		})
 
+		// if climate react was never set up - this will return a 'null' value which will mess up some of the underlaying code so we fix it
+		!result.smartMode && (result.smartMode = { enabled: false })
+
 		return result
 	})
-}
-
-module.exports = async function (platform) {
-	log = platform.log
-	// TODO: check on scope of these
-	this.username = platform.username
-	this.password = platform.password
-	this.storage = platform.storage
-
-	if (platform.apiKey) {
-		axios.defaults.params = {
-			integration: integrationName,
-			apiKey: platform.apiKey
-		}
-	} else {
-		try {
-			const token = await getToken(platform.username, platform.password, platform.storage)
-
-			axios.defaults.headers = { 'Authorization': 'Bearer ' + token }
-			axios.defaults.params = { integration: integrationName }
-		} catch (err) {
-			log('The plugin was NOT able to find stored token or acquire one from Sensibo API ---> it will not be able to set or get the state !!')
-		}
-	}
-	axios.defaults.baseURL = baseURL
-
-	return {
-
-		getAllDevices: async () => {
-			const path = '/users/me/pods'
-			const queryString = 'fields=id,acState,measurements,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig,homekitSupported,remoteCapabilities,room,temperatureUnit,productModel'
-			let allDevices
-
-			try {
-				allDevices = await apiRequest('get', path + '?' + queryString)
-			} catch(err) {
-				log('getAllDevices ERR:', err.message)
-				throw err
-			}
-
-			// TODO: the below will return an exception if above "get" fails... null check?
-			return allDevices.filter(device => {
-				return (platform.locationsToInclude.length === 0
-								|| platform.locationsToInclude.includes(device.location.id)
-								|| platform.locationsToInclude.includes(device.location.name))
-							&& !platform.devicesToExclude.includes(device.id)
-							&& !platform.devicesToExclude.includes(device.serial)
-							&& !platform.devicesToExclude.includes(device.room.name)
-			})
-		},
-
-		getDevicesStates: async () => {
-			const path = '/users/me/pods'
-			const queryString = 'fields=id,acState,measurements,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig,homekitSupported'
-
-			return await apiRequest('get', path + '?' + queryString)
-		},
-
-		setDeviceState: async (deviceId, acState) => {
-			const path = `/pods/${deviceId}/acStates`
-			const json = { 'acState': acState }
-
-			return await apiRequest('post', path, json)
-		},
-
-		syncDeviceState: async (deviceId, value) => {
-			const path = `/pods/${deviceId}/acStates/on`
-			const json = {
-				'newValue': value,
-				'reason': 'StateCorrectionByUser'
-			}
-
-			return await apiRequest('patch', path, json)
-		},
-
-		enableDisableClimateReact: async (deviceId, enabled) => {
-			const path = `/pods/${deviceId}/smartmode`
-			const json = { 'enabled': enabled }
-
-			return await apiRequest('put', path, json)
-		},
-
-		enableDisablePureBoost: async (deviceId, enabled) => {
-			const path = `/pods/${deviceId}/pureboost`
-			const json = { 'enabled': enabled }
-
-			return await apiRequest('put', path, json)
-		},
-
-		setDevicePropertyState: async (deviceId, property, value) => {
-			const path = `/pods/${deviceId}/acStates/${property}`
-			const json = { 'newValue': value }
-
-			return await apiRequest('patch', path, json)
-		},
-
-		resetFilterIndicator: async (deviceId) => {
-			const path = `/pods/${deviceId}/cleanFiltersNotification`
-
-			return await apiRequest('delete', path)
-		}
-	}
 }
