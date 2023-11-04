@@ -1,0 +1,21 @@
+name: Run Linting 
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    # - name: Setup Node.js
+    #   uses: actions/setup-node@v4
+    #     with:
+    #       cache: 'npm'
+    - name: Run ESLint
+      run: npx eslint . --config .eslintrc.json
+
+
