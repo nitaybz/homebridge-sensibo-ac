@@ -56,7 +56,7 @@
 			},
 			"carbonDioxideAlertThreshold": {
 				"title": "Carbon Dioxide (CO2) Alert Threshold",
-				"description": "Value, in PPM, over which the Apple Home app will alert you to high CO2 readings.  Default is 1500. Requires the Carbon Dioxide Sensor be enabled",
+				"description": "Value, in PPM, over which the Apple Home app will alert you to high CO2 readings.  Default is 1500. Requires the Carbon Dioxide Sensor be enabled and a compatible device",
 				"type": "integer",
 				"minimum": 0,
 				"placeholder": 1500,
@@ -81,14 +81,14 @@
 			},
 			"disableDry": {
 				"title": "Disable Dry Accessory",
-				"description": "Disable DRY mode control - remove dehumidifier accessory",
+				"description": "*Deprecated* Remove dehumidifier (dry) mode from ACs",
 				"type": "boolean",
 				"default": false,
 				"required": false
 			},
 			"disableFan": {
 				"title": "Disable Fan Accessory",
-				"description": "Disable FAN mode control - remove fan accessory",
+				"description": "*Deprecated* Remove fan mode from ACs",
 				"type": "boolean",
 				"default": false,
 				"required": false
@@ -100,79 +100,86 @@
 				"default": false,
 				"required": false
 			},
+			"externalHumiditySensor": {
+				"title": "Enable External Humidity Sensor",
+				"description": "Add (additional) standalone Humidity Sensor accessory",
+				"type": "boolean",
+				"default": false,
+				"required": false
+			},
 			"disableLightSwitch": {
-				"title": "Disable AC Light Switch",
-				"description": "Disable the AC light control - remove extra light bulb",
+				"title": "Disable Light Switch",
+				"description": "Remove light switch",
 				"type": "boolean",
 				"default": false,
 				"required": false
 			},
 			"disableHorizontalSwing": {
 				"title": "Disable Horizontal Swing",
-				"description": "Disable horizontal swing control - remove extra switch",
+				"description": "Remove horizontal swing control switch",
 				"type": "boolean",
 				"default": false,
 				"required": false
 			},
 			"disableVerticalSwing": {
 				"title": "Disable Vertical Swing",
-				"description": "Disable vertical swing control - remove the 'Oscillate' control from the AC details",
+				"description": "Remove vertical swing (Oscillate) control switch from accessory",
 				"type": "boolean",
 				"default": false,
 				"required": false
 			},
 			"enableClimateReactSwitch": {
 				"title": "Enable Climate React Switch",
-				"description": "Adds a switch to enable/disable Climate React",
-				"type": "boolean",
-				"default": false,
-				"required": false
-			},
-			"enableHistoryStorage": {
-				"title": "Enable History Storage",
-				"description": "Records all temperature & humidity measurements history to be viewable in the Eve app",
+				"description": "Add Climate React (Smart mode) switch",
 				"type": "boolean",
 				"default": false,
 				"required": false
 			},
             "enableClimateReactAutoSetup": {
                 "title": "Enable Climate React Auto Setup",
-                "description": "Enables setting up an appropriate Climate React configuration when AC state is set or changed",
+                "description": "Auto-update the Climate React (Smart mode) configuration whenever the AC state is set or changed",
                 "type": "boolean",
                 "default": false,
                 "required": false
-            },            
+            },
             "climateReactSwitchInAccessory": {
                 "title": "Climate React Switch in AC Accessory",
-                "description": "Enabling this will remove the extra Climate React switch if it exists and will show \"Climate React Button\" attached as a service to the Same AC Accessory (only works when `enableClimateReactSwitch` is set to true)",
+                "description": "Show the Climate React (Smart mode) switch in ACs (only works when `enableClimateReactSwitch` is set to true)",
                 "type": "boolean",
                 "default": false,
-                "required": false                
-            },			
+                "required": false
+            },
+			"enableHistoryStorage": {
+				"title": "Enable History Storage",
+				"description": "Record temperature & humidity measurements over time, viewable as History in the Eve app",
+				"type": "boolean",
+				"default": false,
+				"required": false
+			},
 			"enableOccupancySensor": {
 				"title": "Enable Occupancy Sensor",
-				"description": "Adds occupancy sensor to represent the state of someone at home/away",
+				"description": "Add occupancy sensor to represent the state of someone at home/away",
 				"type": "boolean",
 				"default": false,
 				"required": false
 			},
 			"enableSyncButton": {
-				"title": "Enable Sync Button",
-				"description": "Adds a switch to toggle the state of the AC, without sending commands to the unit",
+				"title": "Enable Sync Switch",
+				"description": "Add a switch to toggle the state of the AC, without sending commands to the unit",
 				"type": "boolean",
 				"default": false,
 				"required": false
 			},
 			"syncButtonInAccessory": {
 				"title": "Sync Button in AC Accessory",
-				"description": "Remove the extra AC Sync switch (if it exists) and show \"AC Sync Button\" attached as a service to the AC accessory",
+				"description": "Show the AC Sync switch in accessory",
 				"type": "boolean",
 				"default": false,
 				"required": false
 			},
-			"externalHumiditySensor": {
-				"title": "Enable External Humidity Sensor",
-				"description": "Creates an additional standalone Humidity Sensor accessory",
+			"ignoreHomeKitDevices": {
+				"title": "Ignore HomeKit Devices",
+				"description": "Automatically ignore, skip or remove HomeKit supported devices",
 				"type": "boolean",
 				"default": false,
 				"required": false
@@ -185,16 +192,9 @@
 					"type": "string"
 				}
 			},
-			"ignoreHomeKitDevices": {
-				"title": "Ignore HomeKit Devices",
-				"description": "Automatically ignore, skip or remove HomeKit supported devices",
-				"type": "boolean",
-				"default": false,
-				"required": false
-			},
 			"locationsToInclude": {
 				"title": "Device Locations to Include",
-				"description": "Device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)",
+				"description": "Add device location IDs or names to include when discovering Sensibo devices (leave empty for all locations)",
 				"type": "array",
 				"items": {
 					"type": "string"
