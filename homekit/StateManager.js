@@ -54,7 +54,7 @@ module.exports = (device, platform) => {
 		device.state.smartMode.lowTemperatureWebhook = null
 
 		if (device.state.mode === 'COOL') {
-			device.state.smartMode.highTemperatureThreshold = device.state.targetTemperature
+			device.state.smartMode.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
 			device.state.smartMode.highTemperatureState = {
 				on: true,
 				targetTemperature: device.state.targetTemperature,
@@ -67,7 +67,6 @@ module.exports = (device, platform) => {
 			}
 
 			device.state.smartMode.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
-
 			device.state.smartMode.lowTemperatureState = {
 				on: false,
 				targetTemperature: device.state.targetTemperature,
@@ -91,7 +90,7 @@ module.exports = (device, platform) => {
 				light: device.state.light
 			}
 
-			device.state.smartMode.lowTemperatureThreshold = device.state.targetTemperature
+			device.state.smartMode.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
 			device.state.smartMode.lowTemperatureState = {
 				on: true,
 				targetTemperature: device.state.targetTemperature,
