@@ -709,6 +709,7 @@ module.exports = (device, platform) => {
 			ClimateReactEnabledSwitch: (state, callback) => {
 				log.easyDebug(device.name, '(SET) - Climate React Enabled Switch:', state)
 				device.state.smartMode.enabled = state
+				device.state.smartModeEnabled = state
 
 				callback()
 			},
