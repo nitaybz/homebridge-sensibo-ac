@@ -111,7 +111,8 @@ module.exports = (device, platform) => {
 		//
 		//       For example, if we set a property of smartMode directly, e.g. device.state.smartMode.enabled = true, StateHandler's
 		//       setter will not get called and so any changes will not take effect. This is why we MUST update a device's property as
-		//       a whole, and do it only once (otherwise's the setter will get called multiple times).
+		//       a whole, and do it only once (otherwise's the setter will get called multiple times which will send repeated commands
+		//       to the Sensibo devices).
 		device.state.smartMode = smartModeState
 	}
 
