@@ -1,13 +1,13 @@
 {
+  "displayName": "Sensibo for Homebridge",
   "name": "homebridge-sensibo-ac",
-  "description": "Homebridge plugin for Sensibo - Smart AC Control",
   "version": "2.5.0-alpha.0",
+  "description": "Homebridge plugin for Sensibo - Smart AC Control",
+  "license": "GNU",
   "repository": {
     "type": "git",
     "url": "git://github.com/nitaybz/homebridge-sensibo-ac.git"
   },
-  "license": "GNU",
-  "preferGlobal": true,
   "keywords": [
     "homebridge-plugin",
     "homebridge-sensibo-ac",
@@ -42,20 +42,6 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "watch": "nodemon"
-  },
-  "nodemonConfig": {
-    "watch": [
-      "."
-    ],
-    "ext": "js",
-    "ignore": [
-      "node_modules"
-    ],
-    "exec": "npx homebridge -I -D",
-    "signal": "SIGTERM",
-    "env": {
-      "NODE_OPTIONS": "--trace-warnings"
-    }
   },
   "funding": [
     {
