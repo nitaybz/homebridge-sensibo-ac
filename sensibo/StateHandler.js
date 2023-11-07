@@ -76,7 +76,7 @@ module.exports = (device, platform) => {
 			}
 
 			// Send Climate React state command and refresh state
-			if (prop === 'smartMode') {
+			if (prop === 'smartMode' || prop === 'smartModeEnabled') {
 				try {
 					log.easyDebug(`${device.name} - Setting Climate React state to ${value}`)
 					sensiboApi.enableDisableClimateReact(device.id, value)
@@ -132,10 +132,10 @@ module.exports = (device, platform) => {
 				const sensiboNewClimateReactState = unified.sensiboFormattedClimateReactState(device, state)
 
 				log.easyDebug(device.name, ' -> Setting New State:')
-				log.easyDebug(JSON.stringify(sensiboNewACState, null, 2))
+				log.easyDebug(JSON.stringify(sensiboNewACState, null, 4))
 
 				if (platform.enableClimateReactAutoSetup) {
-					log.easyDebug(JSON.stringify(sensiboNewClimateReactState, null, 2))
+					log.easyDebug(JSON.stringify(sensiboNewClimateReactState, null, 4))
 				}
 
 				try {

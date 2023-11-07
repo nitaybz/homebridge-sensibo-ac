@@ -438,9 +438,9 @@ class AirConditioner {
 	addLightSwitch() {
 		this.log.easyDebug(`${this.name} - Adding LightSwitchService`)
 
-		this.LightSwitchService = this.accessory.getService(this.roomName + ' AC Light')
+		this.LightSwitchService = this.accessory.getService(this.roomName + ' Light')
 		if (!this.LightSwitchService) {
-			this.LightSwitchService = this.accessory.addService(Service.Lightbulb, this.roomName + ' AC Light', 'LightSwitch')
+			this.LightSwitchService = this.accessory.addService(Service.Lightbulb, this.roomName + ' Light', 'LightSwitch')
 		}
 
 		this.LightSwitchService.getCharacteristic(Characteristic.On)
@@ -449,7 +449,7 @@ class AirConditioner {
 	}
 
 	removeLightSwitch() {
-		const LightSwitch = this.accessory.getService(this.roomName + ' AC Light')
+		const LightSwitch = this.accessory.getService(this.roomName + ' Light')
 
 		if (LightSwitch) {
 			// remove service
@@ -461,9 +461,9 @@ class AirConditioner {
 	addSyncButtonService() {
 		this.log.easyDebug(`${this.name} - Adding SyncButtonSwitchService`)
 
-		this.SyncButtonService = this.accessory.getService('SyncButton')
+		this.SyncButtonService = this.accessory.getService(this.roomName + ' Sync')
 		if (!this.SyncButtonService) {
-			this.SyncButtonService = this.accessory.addService(Service.Switch, this.name + ' Sync', 'SyncButton')
+			this.SyncButtonService = this.accessory.addService(Service.Switch, this.roomName + ' Sync', 'SyncButtonSwitch')
 		}
 
 		this.SyncButtonService.getCharacteristic(Characteristic.On)
@@ -479,7 +479,7 @@ class AirConditioner {
 	}
 
 	removeSyncButtonService() {
-		const SyncButtonService = this.accessory.getService('SyncButton')
+		const SyncButtonService = this.accessory.getService(this.roomName + ' Sync')
 
 		if (SyncButtonService) {
 			// remove service
@@ -491,18 +491,18 @@ class AirConditioner {
 	addClimateReactService() {
 		this.log.easyDebug(`${this.roomName} - Adding Climate React Switch Service`)
 
-		this.ClimateReactService = this.accessory.getService('ClimateReact')
+		this.ClimateReactService = this.accessory.getService(this.roomName + ' Climate React')
 		if (!this.ClimateReactService) {
-			this.ClimateReactService = this.accessory.addService(Service.Switch, this.roomName + ' Climate React' , 'ClimateReact')
+			this.ClimateReactService = this.accessory.addService(Service.Switch, this.roomName + ' Climate React' , 'ClimateReactSwitch')
 		}
 
 		this.ClimateReactService.getCharacteristic(Characteristic.On)
-			.on('get', this.stateManager.get.ClimateReactEnabledSwitch)
-			.on('set', this.stateManager.set.ClimateReactEnabledSwitch)
+			.on('get', this.stateManager.get.ClimateReactSwitch)
+			.on('set', this.stateManager.set.ClimateReactSwitch)
 	}
 
 	removeClimateReactService() {
-		const ClimateReactService = this.accessory.getService('ClimateReact')
+		const ClimateReactService = this.accessory.getService(this.roomName + ' Climate React')
 
 		if (ClimateReactService) {
 			// remove service
@@ -520,6 +520,12 @@ class AirConditioner {
 				temp: this.state.currentTemperature,
 				humidity: this.state.relativeHumidity
 			})
+		}
+
+		if (this.ClimateReactService) {
+			const smartModeState = this.state?.smartModeEnabled ?? false
+
+			this.Utils.updateValue('ClimateReactSwitchService', 'On', smartModeState)
 		}
 
 		if (this.HeaterCoolerService) {

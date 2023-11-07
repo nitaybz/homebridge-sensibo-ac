@@ -56,14 +56,14 @@ class ClimateReactSwitch {
 	addClimateReactService() {
 		this.log.easyDebug(`${this.name} - Adding ClimateReactService`)
 
-		this.ClimateReactService = this.accessory.getService(Service.Switch)
+		this.ClimateReactService = this.accessory.getService(this.name)
 		if (!this.ClimateReactService) {
-			this.ClimateReactService = this.accessory.addService(Service.Switch, this.name, this.type)
+			this.ClimateReactService = this.accessory.addService(Service.Switch, this.name, 'ClimateReact')
 		}
 
 		this.ClimateReactService.getCharacteristic(Characteristic.On)
-			.on('get', this.stateManager.get.ClimateReactEnabledSwitch)
-			.on('set', this.stateManager.set.ClimateReactEnabledSwitch)
+			.on('get', this.stateManager.get.ClimateReactSwitch)
+			.on('set', this.stateManager.set.ClimateReactSwitch)
 	}
 
 	updateHomeKit() {
