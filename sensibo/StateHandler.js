@@ -79,7 +79,9 @@ module.exports = (device, platform) => {
 			if (prop === 'smartMode') {
 				try {
 					log.easyDebug(`${device.name} - Setting Climate React state to ${value}`)
-					sensiboApi.enableDisableClimateReact(device.id, value)
+					const sensiboNewClimateReactState = unified.sensiboFormattedClimateReactState(device, state)
+
+					sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
 				} catch(err) {
 					log('Error occurred! -> Climate React state did not change')
 				}
