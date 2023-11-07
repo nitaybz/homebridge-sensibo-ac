@@ -48,14 +48,16 @@ module.exports = (device, platform) => {
 	const log = platform.log
 
 	function updateClimateReact() {
-		device.state.smartMode.enabled = device.state.active && device.state.mode !== 'AUTO'
-		device.state.smartMode.type = 'temperature'
-		device.state.smartMode.highTemperatureWebhook = null
-		device.state.smartMode.lowTemperatureWebhook = null
+		const smartModeState = device.state.smartMode
+
+		smartModeState.enabled = device.state.active && device.state.mode !== 'AUTO'
+		smartModeState.type = 'temperature'
+		smartModeState.highTemperatureWebhook = null
+		smartModeState.lowTemperatureWebhook = null
 
 		if (device.state.mode === 'COOL') {
-			device.state.smartMode.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
-			device.state.smartMode.highTemperatureState = {
+			smartModeState.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
+			smartModeState.highTemperatureState = {
 				on: true,
 				targetTemperature: device.state.targetTemperature,
 				temperatureUnit: device.temperatureUnit,
@@ -66,8 +68,8 @@ module.exports = (device, platform) => {
 				light: device.state.light
 			}
 
-			device.state.smartMode.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
-			device.state.smartMode.lowTemperatureState = {
+			smartModeState.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
+			smartModeState.lowTemperatureState = {
 				on: false,
 				targetTemperature: device.state.targetTemperature,
 				temperatureUnit: device.temperatureUnit,
@@ -78,8 +80,8 @@ module.exports = (device, platform) => {
 				light: device.state.light
 			}
 		} else if (device.state.mode === 'HEAT') {
-			device.state.smartMode.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
-			device.state.smartMode.highTemperatureState = {
+			smartModeState.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
+			smartModeState.highTemperatureState = {
 				on: false,
 				targetTemperature: device.state.targetTemperature,
 				temperatureUnit: device.temperatureUnit,
@@ -90,8 +92,8 @@ module.exports = (device, platform) => {
 				light: device.state.light
 			}
 
-			device.state.smartMode.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
-			device.state.smartMode.lowTemperatureState = {
+			smartModeState.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
+			smartModeState.lowTemperatureState = {
 				on: true,
 				targetTemperature: device.state.targetTemperature,
 				temperatureUnit: device.temperatureUnit,
@@ -102,6 +104,15 @@ module.exports = (device, platform) => {
 				light: device.state.light
 			}
 		}
+
+		// NOTE: device.state is of "type" StateHandler. When one of its properties is "set" (e.g. device.state.<property> = <val>),
+		//       that's where we actually send commands to the appropriate Sensibo devices. If a property is not set, the aformentioned
+		//       code will not execute and the changes would not take effect.
+		//
+		//       For example, if we set a property of smartMode directly, e.g. device.state.smartMode.enabled = true, StateHandler's
+		//       setter will not get called and so any changes will not take effect. This is why we MUST update a device's property as
+		//       a whole, and do it only once (otherwise's the setter will get called multiple times).
+		device.state.smartMode = smartModeState
 	}
 
 	return {
@@ -707,7 +718,13 @@ module.exports = (device, platform) => {
 			// CLIMATE REACT
 			ClimateReactEnabledSwitch: (state, callback) => {
 				log.easyDebug(device.name, '(SET) - Climate React Enabled Switch:', state)
-				device.state.smartMode.enabled = state
+				const smartModeState = device.state.smartMode
+
+				smartModeState.enabled = state
+
+				// NOTE: we must set the 'smartMode' property directly (and NOT for example like so: device.state.smartMode.enabled = true),
+				//       otherwise the StateHandler's setter code will not be executed and any changes will not take effect.
+				device.state.smartMode = smartModeState
 
 				callback()
 			},
