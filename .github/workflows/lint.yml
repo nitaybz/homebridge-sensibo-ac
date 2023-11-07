@@ -16,6 +16,5 @@ jobs:
     #     with:
     #       cache: 'npm'
     - name: Run ESLint
-      run: npx eslint . --config .eslintrc.json
-
-
+      # run: npx eslint . --config .eslintrc.json
+      run: npx -p @stylistic/eslint-plugin -p @eslint/js -p eslint -c 'eslint .'
