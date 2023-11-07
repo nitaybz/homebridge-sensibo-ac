@@ -140,7 +140,7 @@ class AirQualitySensor {
 	}
 
 	updateHomeKit() {
-		// TODO: add logging? See also line 57
+		// TODO: add logging of CO2 and VOCs? See also line 57
 		// log new state with FakeGato
 		// if (this.loggingService) {
 		// 	this.loggingService.addEntry({
