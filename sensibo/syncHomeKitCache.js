@@ -255,18 +255,18 @@ module.exports = (platform) => {
 			platform.api.unregisterPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, accessoriesToRemove)
 
 			// remove from cachedAccessories
-			platform.cachedAccessories = platform.cachedAccessories.filter( cachedAccessory => {
+			platform.cachedAccessories = platform.cachedAccessories.filter(cachedAccessory => {
 				return !accessoriesToRemove.find(accessory => {
 					return accessory.UUID === cachedAccessory.UUID
 				})
-			} )
+			})
 
 			// remove from activeAccessories
-			platform.activeAccessories = platform.activeAccessories.filter( activeAccessory => {
+			platform.activeAccessories = platform.activeAccessories.filter(activeAccessory => {
 				return !accessoriesToRemove.find(accessory => {
 					return accessory.UUID === activeAccessory.UUID
 				})
-			} )
+			})
 		}
 	}
 }

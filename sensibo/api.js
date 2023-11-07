@@ -2,10 +2,88 @@ const axiosLib = require('axios')
 const axios = axiosLib.create()
 const qs = require('qs')
 const version = require('./../package.json').version
-
 const integrationName = 'homebridge-sensibo-ac@' + version
 const baseURL = 'https://home.sensibo.com/api/v2'
 let log
+
+function getToken(username, password, storage) {
+	// TODO: check on if the below is required
+	// eslint-disable-next-line no-async-promise-executor
+	return new Promise(async (resolve, reject) => {
+		const token = await storage.getItem('token')
+
+		if (token && token.username && token.username === username && new Date().getTime() < token.expirationDate) {
+			log.easyDebug('Found valid token in storage')
+			resolve(token.key)
+
+			return
+		}
+
+		let data = {
+			username: username,
+			password: password,
+			grant_type: 'password',
+			client_id: 'bcrEwCG2mZTvm1vFJOD51DNdJHEaRemMitH1gCWc',
+			scope: 'read write'
+		}
+
+		data = qs.stringify(data)
+		const url = 'https://home.sensibo.com/o/token/'
+
+		axios.post(url, data)
+			.then(async response => {
+				if (response.data.access_token) {
+					const tokenObj = {
+						username: username,
+						key: response.data.access_token,
+						expirationDate: new Date().getTime() + response.data.expires_in*1000
+					}
+
+					log.easyDebug('Token successfully acquired from Sensibo API')
+					// log.easyDebug(tokenObj)
+					await storage.setItem('token', tokenObj)
+					resolve(tokenObj.key)
+				} else {
+					const error = `Inner Could NOT complete the the token request -> ERROR: "${response.data}"`
+
+					log(error)
+					reject(error)
+				}
+			})
+			.catch(err => {
+				const errorContent = {}
+
+				errorContent.message = `Could NOT complete the the token request - ERROR: "${err.response.data.error_description || err.response.data.error}"`
+
+				log('getToken:', errorContent.message)
+
+				if (err.response) {
+					log.easyDebug('Error response:')
+					log.easyDebug(err.response.data)
+					errorContent.response = err.response.data
+				}
+
+				// log.easyDebug(err)
+				reject(errorContent)
+			})
+	})
+}
+
+function fixResponse(results) {
+	return results.map(result =>  {
+		// remove user's address to prevent it from appearing in logs
+		result.location && (result.location = {
+			occupancy: result.location.occupancy,
+			name: result.location.name,
+			id: result.location.id
+		})
+
+		// if climate react was never set up - this will return a 'null' value which will mess up some of the underlaying code so we fix it
+		!result.smartMode && (result.smartMode = { enabled: false })
+
+		return result
+	})
+}
 
 async function apiRequest(method, url, data) {
 	if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
@@ -180,83 +258,4 @@ module.exports = async function (platform) {
 			return await apiRequest('delete', path)
 		}
 	}
-}
-
-function getToken(username, password, storage) {
-	// TODO: check on if the below is required
-	// eslint-disable-next-line no-async-promise-executor
-	return new Promise(async (resolve, reject) => {
-		const token = await storage.getItem('token')
-
-		if (token && token.username && token.username === username && new Date().getTime() < token.expirationDate) {
-			log.easyDebug('Found valid token in storage')
-			resolve(token.key)
-
-			return
-		}
-
-		let data = {
-			username: username,
-			password: password,
-			grant_type: 'password',
-			client_id: 'bcrEwCG2mZTvm1vFJOD51DNdJHEaRemMitH1gCWc',
-			scope: 'read write'
-		}
-
-		data = qs.stringify(data)
-		const url = 'https://home.sensibo.com/o/token/'
-
-		axios.post(url, data)
-			.then(async response => {
-				if (response.data.access_token) {
-					const tokenObj = {
-						username: username,
-						key: response.data.access_token,
-						expirationDate: new Date().getTime() + response.data.expires_in*1000
-					}
-
-					log.easyDebug('Token successfully acquired from Sensibo API')
-					// log.easyDebug(tokenObj)
-					await storage.setItem('token', tokenObj)
-					resolve(tokenObj.key)
-				} else {
-					const error = `Inner Could NOT complete the the token request -> ERROR: "${response.data}"`
-
-					log(error)
-					reject(error)
-				}
-			})
-			.catch(err => {
-				const errorContent = {}
-
-				errorContent.message = `Could NOT complete the the token request - ERROR: "${err.response.data.error_description || err.response.data.error}"`
-
-				log('getToken:', errorContent.message)
-
-				if (err.response) {
-					log.easyDebug('Error response:')
-					log.easyDebug(err.response.data)
-					errorContent.response = err.response.data
-				}
-
-				// log.easyDebug(err)
-				reject(errorContent)
-			})
-	})
-}
-
-function fixResponse(results) {
-	return results.map(result =>  {
-		// remove user's address to prevent it from appearing in logs
-		result.location && (result.location = {
-			occupancy: result.location.occupancy,
-			name: result.location.name,
-			id: result.location.id
-		})
-
-		// if climate react was never set up - this will return a 'null' value which will mess up some of the underlaying code so we fix it
-		!result.smartMode && (result.smartMode = { enabled: false })
-
-		return result
-	})
 }

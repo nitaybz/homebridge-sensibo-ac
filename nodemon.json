@@ -1,0 +1,14 @@
+{
+	"watch": [
+	  "."
+	],
+	"ext": "js",
+	"ignore": [
+		"node_modules"
+	],
+	"exec": "npx homebridge -I -D",
+	"signal": "SIGTERM",
+	"env": {
+	  "NODE_OPTIONS": "--trace-warnings"
+	}
+  }

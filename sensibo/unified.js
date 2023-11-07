@@ -296,7 +296,6 @@ module.exports = {
 
 	sensiboFormattedClimateReactState: (device, state) => {
 		const smartModeState = state.smartMode
-
 		const climateReactState = {
 			enabled: smartModeState.enabled,
 			type: smartModeState.type,
