@@ -153,6 +153,13 @@ module.exports = async function (platform) {
 			return await apiRequest('patch', path, json)
 		},
 
+		enableDisableClimateReact: async (deviceId, enabled) => {
+			const path = `/pods/${deviceId}/smartmode`
+			const json = { 'enabled': enabled }
+
+			return await apiRequest('put', path, json)
+		},
+
 		enableDisablePureBoost: async (deviceId, enabled) => {
 			const path = `/pods/${deviceId}/pureboost`
 			const json = { 'enabled': enabled }

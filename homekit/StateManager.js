@@ -42,79 +42,79 @@ function sanitize(service, characteristic, value) {
 	return value
 }
 
+function updateClimateReact(device) {
+	const smartModeState = device.state.smartMode
+
+	smartModeState.enabled = device.state.active && device.state.mode !== 'AUTO'
+	smartModeState.type = 'temperature'
+	smartModeState.highTemperatureWebhook = null
+	smartModeState.lowTemperatureWebhook = null
+
+	if (device.state.mode === 'COOL') {
+		smartModeState.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
+		smartModeState.highTemperatureState = {
+			on: true,
+			targetTemperature: device.state.targetTemperature,
+			temperatureUnit: device.temperatureUnit,
+			mode: device.state.mode,
+			fanSpeed: device.state.fanSpeed,
+			swing: device.state.verticalSwing,
+			horizontalSwing: device.state.horizontalSwing,
+			light: device.state.light
+		}
+
+		smartModeState.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
+		smartModeState.lowTemperatureState = {
+			on: false,
+			targetTemperature: device.state.targetTemperature,
+			temperatureUnit: device.temperatureUnit,
+			mode: device.state.mode,
+			fanSpeed: device.state.fanSpeed,
+			swing: device.state.verticalSwing,
+			horizontalSwing: device.state.horizontalSwing,
+			light: device.state.light
+		}
+	} else if (device.state.mode === 'HEAT') {
+		smartModeState.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
+		smartModeState.highTemperatureState = {
+			on: false,
+			targetTemperature: device.state.targetTemperature,
+			temperatureUnit: device.temperatureUnit,
+			mode: device.state.mode,
+			fanSpeed: device.state.fanSpeed,
+			swing: device.state.verticalSwing,
+			horizontalSwing: device.state.horizontalSwing,
+			light: device.state.light
+		}
+
+		smartModeState.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
+		smartModeState.lowTemperatureState = {
+			on: true,
+			targetTemperature: device.state.targetTemperature,
+			temperatureUnit: device.temperatureUnit,
+			mode: device.state.mode,
+			fanSpeed: device.state.fanSpeed,
+			swing: device.state.verticalSwing,
+			horizontalSwing: device.state.horizontalSwing,
+			light: device.state.light
+		}
+	}
+
+	// NOTE: device.state is of "type" StateHandler. When one of its properties is "set" (e.g. device.state.<property> = <val>),
+	//       that's where we actually send commands to the appropriate Sensibo devices. If a property is not set, the aformentioned
+	//       code will not execute and the changes would not take effect.
+	//
+	//       For example, if we set a property of smartMode directly, e.g. device.state.smartMode.enabled = true, StateHandler's
+	//       setter will not get called and so any changes will not take effect. This is why we MUST update a device's property as
+	//       a whole, and do it only once (otherwise's the setter will get called multiple times which will send repeated commands
+	//       to the Sensibo devices).
+	device.state.smartMode = smartModeState
+}
+
 // TODO: perhaps make this a class?
 module.exports = (device, platform) => {
 	Characteristic = platform.api.hap.Characteristic
 	const log = platform.log
-
-	function updateClimateReact() {
-		const smartModeState = device.state.smartMode
-
-		smartModeState.enabled = device.state.active && device.state.mode !== 'AUTO'
-		smartModeState.type = 'temperature'
-		smartModeState.highTemperatureWebhook = null
-		smartModeState.lowTemperatureWebhook = null
-
-		if (device.state.mode === 'COOL') {
-			smartModeState.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
-			smartModeState.highTemperatureState = {
-				on: true,
-				targetTemperature: device.state.targetTemperature,
-				temperatureUnit: device.temperatureUnit,
-				mode: device.state.mode,
-				fanSpeed: device.state.fanSpeed,
-				swing: device.state.verticalSwing,
-				horizontalSwing: device.state.horizontalSwing,
-				light: device.state.light
-			}
-
-			smartModeState.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
-			smartModeState.lowTemperatureState = {
-				on: false,
-				targetTemperature: device.state.targetTemperature,
-				temperatureUnit: device.temperatureUnit,
-				mode: device.state.mode,
-				fanSpeed: device.state.fanSpeed,
-				swing: device.state.verticalSwing,
-				horizontalSwing: device.state.horizontalSwing,
-				light: device.state.light
-			}
-		} else if (device.state.mode === 'HEAT') {
-			smartModeState.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
-			smartModeState.highTemperatureState = {
-				on: false,
-				targetTemperature: device.state.targetTemperature,
-				temperatureUnit: device.temperatureUnit,
-				mode: device.state.mode,
-				fanSpeed: device.state.fanSpeed,
-				swing: device.state.verticalSwing,
-				horizontalSwing: device.state.horizontalSwing,
-				light: device.state.light
-			}
-
-			smartModeState.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
-			smartModeState.lowTemperatureState = {
-				on: true,
-				targetTemperature: device.state.targetTemperature,
-				temperatureUnit: device.temperatureUnit,
-				mode: device.state.mode,
-				fanSpeed: device.state.fanSpeed,
-				swing: device.state.verticalSwing,
-				horizontalSwing: device.state.horizontalSwing,
-				light: device.state.light
-			}
-		}
-
-		// NOTE: device.state is of "type" StateHandler. When one of its properties is "set" (e.g. device.state.<property> = <val>),
-		//       that's where we actually send commands to the appropriate Sensibo devices. If a property is not set, the aformentioned
-		//       code will not execute and the changes would not take effect.
-		//
-		//       For example, if we set a property of smartMode directly, e.g. device.state.smartMode.enabled = true, StateHandler's
-		//       setter will not get called and so any changes will not take effect. This is why we MUST update a device's property as
-		//       a whole, and do it only once (otherwise's the setter will get called multiple times which will send repeated commands
-		//       to the Sensibo devices).
-		device.state.smartMode = smartModeState
-	}
 
 	return {
 
@@ -476,7 +476,7 @@ module.exports = (device, platform) => {
 					device.state.active = false
 				}
 
-				updateClimateReact()
+				updateClimateReact(device)
 
 				callback()
 			},
@@ -486,7 +486,7 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - Pure Active State:', state)
 				device.state.active = state
 
-				updateClimateReact()
+				updateClimateReact(device)
 
 				callback()
 			},
@@ -498,7 +498,7 @@ module.exports = (device, platform) => {
 				device.state.mode = mode
 				device.state.active = true
 
-				updateClimateReact()
+				updateClimateReact(device)
 
 				callback()
 			},
@@ -518,7 +518,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				device.state.mode = mode
 
-				updateClimateReact()
+				updateClimateReact(device)
 
 				callback()
 			},
@@ -538,7 +538,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				device.state.mode = mode
 
-				updateClimateReact()
+				updateClimateReact(device)
 
 				callback()
 			},
@@ -555,7 +555,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				device.state.mode = mode
 
-				updateClimateReact()
+				updateClimateReact(device)
 
 				callback()
 			},
@@ -571,7 +571,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				device.state.mode = mode
 
-				updateClimateReact()
+				updateClimateReact(device)
 
 				callback()
 			},
@@ -585,7 +585,7 @@ module.exports = (device, platform) => {
 					device.state.active = false
 				}
 
-				updateClimateReact()
+				updateClimateReact(device)
 
 				callback()
 			},
@@ -690,7 +690,7 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - Horizontal Swing Swing:', state)
 				device.state.horizontalSwing = state
 
-				updateClimateReact()
+				updateClimateReact(device)
 
 				callback()
 			},
@@ -700,7 +700,7 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - Light to', state ? 'ON' : 'OFF')
 				device.state.light = state
 
-				updateClimateReact()
+				updateClimateReact(device)
 
 				callback()
 			},
