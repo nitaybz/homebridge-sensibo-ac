@@ -217,7 +217,7 @@
 			},
 			"debug": {
 				"title": "Enable Debug Logs",
-				"description": "When ticked, the plugin will write extra logs for debugging purposes",
+				"description": "Enable extra logging for debugging purposes",
 				"type": "boolean",
 				"default": false,
 				"required": false

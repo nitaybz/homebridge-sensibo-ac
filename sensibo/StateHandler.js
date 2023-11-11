@@ -9,7 +9,7 @@ module.exports = (device, platform) => {
 
 	return {
 		get: (target, prop) => {
-			// log.easyDebug(`StateHandler GET ${prop} for ${JSON.stringify(target, null, 2)}`)
+			// log.easyDebug(`StateHandler GET ${prop} for ${JSON.stringify(target, null, 0)}`)
 
 			// check for last update and refresh state if needed
 			if (!platform.setProcessing) {
@@ -51,7 +51,7 @@ module.exports = (device, platform) => {
 		},
 
 		set: (state, prop, value) => {
-			log.easyDebug(`StateHandler SET ${prop} ${value} for ${JSON.stringify(state, null, 4)}`)
+			log.easyDebug(`StateHandler SET ${prop} ${value} for ${JSON.stringify(state, null, 0)}`)
 
 			if (!platform.allowRepeatedCommands && prop in state && state[prop] === value) {
 				log.easyDebug(`Repeat command while updating ${device.name}, returning`)
@@ -79,7 +79,9 @@ module.exports = (device, platform) => {
 			if (prop === 'smartMode') {
 				try {
 					log.easyDebug(`${device.name} - Setting Climate React state to ${value}`)
-					sensiboApi.enableDisableClimateReact(device.id, value)
+					const sensiboNewClimateReactState = unified.sensiboFormattedClimateReactState(device, state)
+
+					sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
 				} catch(err) {
 					log('Error occurred! -> Climate React state did not change')
 				}
@@ -132,10 +134,10 @@ module.exports = (device, platform) => {
 				const sensiboNewClimateReactState = unified.sensiboFormattedClimateReactState(device, state)
 
 				log.easyDebug(device.name, ' -> Setting New State:')
-				log.easyDebug(JSON.stringify(sensiboNewACState, null, 2))
+				log.easyDebug(JSON.stringify(sensiboNewACState, null, 0))
 
 				if (platform.enableClimateReactAutoSetup) {
-					log.easyDebug(JSON.stringify(sensiboNewClimateReactState, null, 2))
+					log.easyDebug(JSON.stringify(sensiboNewClimateReactState, null, 0))
 				}
 
 				try {
