@@ -9,7 +9,7 @@ module.exports = (device, platform) => {
 
 	return {
 		get: (target, prop) => {
-			// log.easyDebug(`StateHandler GET ${prop} for ${JSON.stringify(target, null, 0)}`)
+			// log.easyDebug(`StateHandler GET ${prop} for ${JSON.stringify(target, null, 4)}`)
 
 			// check for last update and refresh state if needed
 			if (!platform.setProcessing) {
@@ -51,7 +51,7 @@ module.exports = (device, platform) => {
 		},
 
 		set: (state, prop, value) => {
-			log.easyDebug(`StateHandler SET ${prop} ${value} for ${JSON.stringify(state, null, 0)}`)
+			log.easyDebug(`StateHandler SET ${prop} ${value} for ${JSON.stringify(state, null, 4)}`)
 
 			if (!platform.allowRepeatedCommands && prop in state && state[prop] === value) {
 				log.easyDebug(`Repeat command while updating ${device.name}, returning`)

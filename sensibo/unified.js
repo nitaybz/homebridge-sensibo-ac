@@ -255,7 +255,7 @@ module.exports = {
 	},
 
 	sensiboFormattedACState: (device, state) => {
-		device.log.easyDebug(`${device.name} -> sensiboFormattedState: ${JSON.stringify(state, null, 0)}`)
+		device.log.easyDebug(`${device.name} -> sensiboFormattedState: ${JSON.stringify(state, null, 4)}`)
 		const acState = {
 			on: state.active,
 			mode: state.mode.toLowerCase(),

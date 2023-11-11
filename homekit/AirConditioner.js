@@ -523,9 +523,10 @@ class AirConditioner {
 		}
 
 		if (this.ClimateReactService) {
-			const smartModeState = this.state?.smartModeEnabled ?? false
+			const smartModeEnabledState = this.state?.smartMode?.enabled ?? false
 
-			this.Utils.updateValue('ClimateReactSwitchService', 'On', smartModeState)
+			// update Climate React Service
+			this.updateValue('ClimateReactService', 'On', smartModeEnabledState)
 		}
 
 		if (this.HeaterCoolerService) {
