@@ -67,10 +67,10 @@ class ClimateReactSwitch {
 	}
 
 	updateHomeKit() {
-		const smartModeState = this.state?.smartMode.enabled ?? false
+		const smartModeEnabledState = this.state.smartMode.enabled ?? false
 
 		// update Climate React Service
-		this.updateValue('ClimateReactService', 'On', smartModeState)
+		this.updateValue('ClimateReactService', 'On', smartModeEnabledState)
 	}
 
 	updateValue (serviceName, characteristicName, newValue) {
