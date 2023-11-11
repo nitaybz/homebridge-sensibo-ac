@@ -51,7 +51,7 @@ module.exports = (device, platform) => {
 		},
 
 		set: (state, prop, value) => {
-			log.easyDebug(`StateHandler SET ${prop} ${value} for ${JSON.stringify(state, null, 4)}`)
+			log.easyDebug(`StateHandler SET ${prop} ${value} for ${JSON.stringify(state, null, 0)}`)
 
 			if (!platform.allowRepeatedCommands && prop in state && state[prop] === value) {
 				log.easyDebug(`Repeat command while updating ${device.name}, returning`)
