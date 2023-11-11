@@ -116,7 +116,7 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 
 // TODO: perhaps make this a class?
 module.exports = (device, platform) => {
-	const Characteristic = platform.api.hap.Characteristic
+	Characteristic = platform.api.hap.Characteristic
 	const log = platform.log
 	const enableClimateReactAutoSetup = platform.enableClimateReactAutoSetup
 
@@ -747,4 +747,3 @@ module.exports = (device, platform) => {
 
 	}
 }
-
