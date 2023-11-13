@@ -1,5 +1,4 @@
-const axiosLib = require('axios')
-const axios = axiosLib.create()
+const axios = require('axios').default
 const qs = require('qs')
 const version = require('./../package.json').version
 const integrationName = 'homebridge-sensibo-ac@' + version
@@ -107,9 +106,9 @@ async function apiRequest(method, url, data) {
 		}
 
 		axios({
+			method,
 			url,
-			data,
-			method
+			data
 		})
 			.then(response => {
 				const json = response.data
