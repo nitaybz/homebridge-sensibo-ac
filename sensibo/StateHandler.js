@@ -14,8 +14,6 @@ module.exports = (device, platform) => {
 			// check for last update and refresh state if needed
 			if (!platform.setProcessing) {
 				platform.refreshState()
-			} else {
-				log.easyDebug('setProcessing is set to true, skip refreshing state.')
 			}
 
 			// return a function to update state (multiple properties)
@@ -131,19 +129,27 @@ module.exports = (device, platform) => {
 				}
 
 				const sensiboNewACState = unified.sensiboFormattedACState(device, state)
-				const sensiboNewClimateReactState = unified.sensiboFormattedClimateReactState(device, state)
 
 				log.easyDebug(device.name, ' -> Setting New State:')
 				log.easyDebug(JSON.stringify(sensiboNewACState, null, 0))
-
-				if (platform.enableClimateReactAutoSetup) {
-					log.easyDebug(JSON.stringify(sensiboNewClimateReactState, null, 0))
-				}
 
 				try {
 					// send state command to Sensibo
 
 					if (platform.enableClimateReactAutoSetup) {
+						// NOTE: This below will NOT trigger the above setter, which is exactly what we want,
+						//       otherwise we could get into an infinite loop.
+						//
+						//       Essentially, if Climate React Auto Setup is enabled, Climate React will be
+						//       configured (and enabled) any time an AC state setting is changed.
+						//
+						//       That means that even if a user turned Climate React off via the appropriate
+						//       switch, the next AC state setting that is changed will re-enable it.
+
+						device.state.smartMode.enabled = true
+						const sensiboNewClimateReactState = unified.sensiboFormattedClimateReactState(device, state)
+
+						log.easyDebug(JSON.stringify(sensiboNewClimateReactState, null, 0))
 						await sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
 					}
 

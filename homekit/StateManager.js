@@ -45,7 +45,6 @@ function sanitize(service, characteristic, value) {
 function updateClimateReact(device) {
 	const smartModeState = device.state.smartMode
 
-	smartModeState.enabled = device.state.active && device.state.mode !== 'AUTO'
 	smartModeState.type = 'temperature'
 	smartModeState.highTemperatureWebhook = null
 	smartModeState.lowTemperatureWebhook = null
