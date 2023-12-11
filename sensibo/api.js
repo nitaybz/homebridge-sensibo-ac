@@ -18,6 +18,7 @@ function getToken(username, password, storage) {
 			return
 		}
 
+		const tokenURL = 'https://home.sensibo.com/o/token/'
 		let data = {
 			username: username,
 			password: password,
@@ -27,9 +28,8 @@ function getToken(username, password, storage) {
 		}
 
 		data = qs.stringify(data)
-		const url = 'https://home.sensibo.com/o/token/'
 
-		axios.post(url, data)
+		axios.post(tokenURL, data)
 			.then(async response => {
 				if (response.data.access_token) {
 					const tokenObj = {
@@ -85,6 +85,7 @@ function fixResponse(results) {
 }
 
 async function apiRequest(method, url, data) {
+	// TODO: can we use getToken instead? I think this only runs during first load...
 	if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
 		log.easyDebug('apiReqest error: No API Token or Authorization Header found')
 
@@ -169,7 +170,7 @@ module.exports = async function (platform) {
 			axios.defaults.headers = { 'Authorization': 'Bearer ' + token }
 			axios.defaults.params = { integration: integrationName }
 		} catch (err) {
-			log('The plugin was NOT able to find stored token or acquire one from Sensibo API ---> it will not be able to set or get the state !!')
+			log('The plugin was NOT able to find stored token or acquire one from Sensibo API -> it will not be able to set or get the state !!')
 		}
 	}
 	axios.defaults.baseURL = baseURL

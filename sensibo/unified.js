@@ -263,6 +263,7 @@ module.exports = {
 			targetTemperature: device.usesFahrenheit ? toFahrenheit(state.targetTemperature) : state.targetTemperature
 		}
 
+		// TODO: this is duplicated in sensiboFormattedClimateReactState below, could it be a helper function instead?
 		if ('threeDimensionalSwing' in device.capabilities[state.mode]) {
 			if ((state.horizontalSwing === 'SWING_ENABLED') && (state.verticalSwing === 'SWING_ENABLED')) {
 				acState.swing = 'both'
