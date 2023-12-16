@@ -14,8 +14,6 @@ module.exports = (device, platform) => {
 			// check for last update and refresh state if needed
 			if (!platform.setProcessing) {
 				platform.refreshState()
-			} else {
-				log.easyDebug('setProcessing is set to true, skip refreshing state.')
 			}
 
 			// return a function to update state (multiple properties)
@@ -131,22 +129,12 @@ module.exports = (device, platform) => {
 				}
 
 				const sensiboNewACState = unified.sensiboFormattedACState(device, state)
-				const sensiboNewClimateReactState = unified.sensiboFormattedClimateReactState(device, state)
 
 				log.easyDebug(device.name, ' -> Setting New State:')
 				log.easyDebug(JSON.stringify(sensiboNewACState, null, 0))
 
-				if (platform.enableClimateReactAutoSetup) {
-					log.easyDebug(JSON.stringify(sensiboNewClimateReactState, null, 0))
-				}
-
 				try {
 					// send state command to Sensibo
-
-					if (platform.enableClimateReactAutoSetup) {
-						await sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
-					}
-
 					await sensiboApi.setDeviceACState(device.id, sensiboNewACState)
 				} catch(err) {
 					log(`${device.name} - ERROR setting ${prop} to ${value}`)
