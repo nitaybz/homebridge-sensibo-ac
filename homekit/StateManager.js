@@ -42,7 +42,11 @@ function sanitize(service, characteristic, value) {
 	return value
 }
 
-function updateClimateReact(device) {
+function updateClimateReact(device, enableClimateReactAutoSetup) {
+	if (!enableClimateReactAutoSetup) {
+		return
+	}
+
 	const smartModeState = device.state.smartMode
 
 	smartModeState.type = 'temperature'
@@ -112,8 +116,9 @@ function updateClimateReact(device) {
 
 // TODO: perhaps make this a class?
 module.exports = (device, platform) => {
-	Characteristic = platform.api.hap.Characteristic
+	const Characteristic = platform.api.hap.Characteristic
 	const log = platform.log
+	const enableClimateReactAutoSetup = platform.enableClimateReactAutoSetup
 
 	return {
 
@@ -475,7 +480,7 @@ module.exports = (device, platform) => {
 					device.state.active = false
 				}
 
-				updateClimateReact(device)
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
@@ -485,7 +490,7 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - Pure Active State:', state)
 				device.state.active = state
 
-				updateClimateReact(device)
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
@@ -497,7 +502,7 @@ module.exports = (device, platform) => {
 				device.state.mode = mode
 				device.state.active = true
 
-				updateClimateReact(device)
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
@@ -517,7 +522,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				device.state.mode = mode
 
-				updateClimateReact(device)
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
@@ -537,7 +542,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				device.state.mode = mode
 
-				updateClimateReact(device)
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
@@ -554,7 +559,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				device.state.mode = mode
 
-				updateClimateReact(device)
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
@@ -570,7 +575,7 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				device.state.mode = mode
 
-				updateClimateReact(device)
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
@@ -584,7 +589,7 @@ module.exports = (device, platform) => {
 					device.state.active = false
 				}
 
-				updateClimateReact(device)
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
@@ -689,7 +694,7 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - Horizontal Swing Swing:', state)
 				device.state.horizontalSwing = state
 
-				updateClimateReact(device)
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
@@ -699,7 +704,7 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - Light to', state ? 'ON' : 'OFF')
 				device.state.light = state
 
-				updateClimateReact(device)
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
