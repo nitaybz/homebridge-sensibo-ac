@@ -7,6 +7,8 @@ class OccupancySensor {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
 
+		this.Utils = require('../sensibo/Utils')(this, platform)
+
 		const deviceInfo = unified.deviceInformation(device)
 		const locationInfo = unified.locationInformation(device.location)
 
@@ -76,17 +78,10 @@ class OccupancySensor {
 
 	updateHomeKit() {
 		// update measurements
-		this.updateValue('OccupancySensorService', 'OccupancyDetected', Characteristic.OccupancyDetected[this.state.occupancy])
+		this.Utils.updateValue('OccupancySensorService', 'OccupancyDetected', Characteristic.OccupancyDetected[this.state.occupancy])
 
 		// cache last state to storage
 		this.storage.setItem('state', this.cachedState)
-	}
-
-	updateValue (serviceName, characteristicName, newValue) {
-		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
-			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
-		}
 	}
 
 }

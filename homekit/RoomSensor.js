@@ -8,6 +8,8 @@ class RoomSensor {
 		Characteristic = platform.api.hap.Characteristic
 		FAHRENHEIT_UNIT = platform.FAHRENHEIT_UNIT
 
+		this.Utils = require('../sensibo/Utils')(this, platform)
+
 		const deviceInfo = unified.deviceInformation(device)
 		const sensorInfo = unified.sensorInformation(sensor)
 
@@ -139,24 +141,17 @@ class RoomSensor {
 		}
 
 		// update measurements
-		this.updateValue('MotionSensorService', 'MotionDetected', this.state.motionDetected)
-		this.updateValue('TemperatureSensorService', 'CurrentTemperature', this.state.currentTemperature)
-		this.updateValue('HumiditySensorService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
+		this.Utils.updateValue('MotionSensorService', 'MotionDetected', this.state.motionDetected)
+		this.Utils.updateValue('TemperatureSensorService', 'CurrentTemperature', this.state.currentTemperature)
+		this.Utils.updateValue('HumiditySensorService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
 
 		// update Low Battery Status
-		this.updateValue('MotionSensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
-		this.updateValue('TemperatureSensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
-		this.updateValue('HumiditySensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
+		this.Utils.updateValue('MotionSensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
+		this.Utils.updateValue('TemperatureSensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
+		this.Utils.updateValue('HumiditySensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
 
 		// cache last state to storage
 		this.storage.setItem('state', this.cachedState)
-	}
-
-	updateValue (serviceName, characteristicName, newValue) {
-		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
-			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
-		}
 	}
 
 }

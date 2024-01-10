@@ -7,6 +7,8 @@ class AirPurifier {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
 
+		this.Utils = require('../sensibo/Utils')(this, platform)
+
 		const deviceInfo = unified.deviceInformation(device)
 
 		this.log = platform.log
@@ -136,6 +138,7 @@ class AirPurifier {
 			// remove service
 			this.log.easyDebug(`${this.name} - Removing LightSwitchService`)
 			this.accessory.removeService(LightSwitch)
+			delete this.PureLightSwitchService
 		}
 	}
 
@@ -152,59 +155,33 @@ class AirPurifier {
 
 		// if status is OFF, set all services to INACTIVE
 		if (!this.state.active) {
-			this.updateValue('AirPurifierService', 'Active', 0)
-			this.updateValue('AirPurifierService', 'CurrentAirPurifierState', Characteristic.CurrentAirPurifierState.INACTIVE)
+			this.Utils.updateValue('AirPurifierService', 'Active', 0)
+			this.Utils.updateValue('AirPurifierService', 'CurrentAirPurifierState', Characteristic.CurrentAirPurifierState.INACTIVE)
 		} else {
-			this.updateValue('AirPurifierService', 'Active', 1)
-			this.updateValue('AirPurifierService', 'CurrentAirPurifierState', Characteristic.CurrentAirPurifierState.PURIFYING_AIR)
+			this.Utils.updateValue('AirPurifierService', 'Active', 1)
+			this.Utils.updateValue('AirPurifierService', 'CurrentAirPurifierState', Characteristic.CurrentAirPurifierState.PURIFYING_AIR)
 
 			// update fanSpeed for AirPurifierService
-			this.updateValue('AirPurifierService', 'RotationSpeed', this.state.fanSpeed)
+			this.Utils.updateValue('AirPurifierService', 'RotationSpeed', this.state.fanSpeed)
 		}
 
-		this.updateValue('AirPurifierService', 'TargetAirPurifierState', this.state.pureBoost ? 1 : 0)
+		this.Utils.updateValue('AirPurifierService', 'TargetAirPurifierState', this.state.pureBoost ? 1 : 0)
 
 		// update filter characteristics for AirPurifierService
 		if (this.filterService) {
-			this.updateValue('AirPurifierService', 'FilterChangeIndication', Characteristic.FilterChangeIndication[this.state.filterChange])
-			this.updateValue('AirPurifierService', 'FilterLifeLevel', this.state.filterLifeLevel)
+			this.Utils.updateValue('AirPurifierService', 'FilterChangeIndication', Characteristic.FilterChangeIndication[this.state.filterChange])
+			this.Utils.updateValue('AirPurifierService', 'FilterLifeLevel', this.state.filterLifeLevel)
 		}
 
 		// update light switch for AirPurifierService
 		if (this.PureLightSwitchService) {
 			const switchValue = this.state?.light ?? false
 
-			this.updateValue('PureLightSwitchService', 'On', switchValue)
+			this.Utils.updateValue('PureLightSwitchService', 'On', switchValue)
 		}
 
 		// cache last state to storage
 		this.storage.setItem('state', this.cachedState)
-	}
-
-	updateValue (serviceName, characteristicName, newValue) {
-		if (newValue !== 0 && newValue !== false && (typeof newValue === 'undefined' || !newValue)) {
-			this.log.easyDebug(`${this.roomName} - WRONG VALUE -> '${characteristicName}' for ${serviceName} with VALUE: ${newValue}`)
-
-			return
-		}
-		const minAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.minValue
-		const maxAllowed = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.maxValue
-		const validValues = this[serviceName].getCharacteristic(Characteristic[characteristicName]).props.validValues
-		const currentValue = this[serviceName].getCharacteristic(Characteristic[characteristicName]).value
-
-		if (validValues && !validValues.includes(newValue)) {
-			newValue = currentValue
-		}
-		if (minAllowed && newValue < minAllowed) {
-			newValue = currentValue
-		} else if (maxAllowed && newValue > maxAllowed) {
-			newValue = currentValue
-		}
-
-		if (currentValue !== newValue) {
-			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
-			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-		}
 	}
 
 }

@@ -6,6 +6,8 @@ class ClimateReactSwitch {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
 
+		this.Utils = require('../sensibo/Utils')(this, platform)
+
 		this.log = airConditioner.log
 		this.api = airConditioner.api
 		this.id = airConditioner.id
@@ -70,14 +72,7 @@ class ClimateReactSwitch {
 		const smartModeEnabledState = this.state?.smartMode?.enabled ?? false
 
 		// update Climate React Service
-		this.updateValue('ClimateReactService', 'On', smartModeEnabledState)
-	}
-
-	updateValue (serviceName, characteristicName, newValue) {
-		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
-			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
-		}
+		this.Utils.updateValue('ClimateReactService', 'On', smartModeEnabledState)
 	}
 
 }
