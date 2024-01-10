@@ -1,6 +1,6 @@
 # homebridge-sensibo-ac
 
-<img src="branding/sensibo_homebridge.png" width="500px">
+<img src="branding/sensibo_homebridge.png" width="500" alt="Sensibo and Homebridge logos" />
 
 [![Downloads](https://img.shields.io/npm/dt/homebridge-sensibo-ac.svg?color=critical)](https://www.npmjs.com/package/homebridge-sensibo-ac) [![Version](https://img.shields.io/npm/v/homebridge-sensibo-ac)](https://www.npmjs.com/package/homebridge-sensibo-ac)
 
@@ -10,7 +10,7 @@
 
 [Homebridge](https://github.com/homebridge/homebridge) plugin for Sensibo - Smart AC Controller and Air Purifier
 
-<img src="branding/products.jpg" width="500px">
+<img src="branding/products.jpg" width="500" alt="Sensibo products" />
 
 ## Requirements
 
