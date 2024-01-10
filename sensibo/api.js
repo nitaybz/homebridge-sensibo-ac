@@ -1,5 +1,4 @@
 const axios = require('axios').default
-const qs = require('qs')
 const version = require('./../package.json').version
 const integrationName = 'homebridge-sensibo-ac@' + version
 const baseURL = 'https://home.sensibo.com/api/v2'
@@ -19,7 +18,7 @@ function getToken(username, password, storage) {
 		}
 
 		const tokenURL = 'https://home.sensibo.com/o/token/'
-		let data = {
+		const data = {
 			username: username,
 			password: password,
 			grant_type: 'password',
@@ -27,9 +26,10 @@ function getToken(username, password, storage) {
 			scope: 'read write'
 		}
 
-		data = qs.stringify(data)
-
-		axios.post(tokenURL, data)
+		axios.post(
+			tokenURL,
+			data,
+			{ headers: { 'content-type': 'application/x-www-form-urlencoded' } })
 			.then(async response => {
 				if (response.data.access_token) {
 					const tokenObj = {
@@ -77,7 +77,8 @@ function fixResponse(results) {
 			id: result.location.id
 		})
 
-		// if climate react was never set up - this will return a 'null' value which will mess up some of the underlaying code so we fix it
+		// if climate react was never set up - this will return a 'null' value which will
+		// break other code, so we fix it
 		!result.smartMode && (result.smartMode = { enabled: false })
 
 		return result
@@ -85,7 +86,9 @@ function fixResponse(results) {
 }
 
 async function apiRequest(method, url, data) {
-	// TODO: can we use getToken instead? I think this only runs during first load...
+	// TODO: Authorization header (token) expiry isn't checked... could result in API failures
+	// Looks like Token expiry might be 15 years?!
+	// maybe https://www.thedutchlab.com/en/insights/using-axios-interceptors-for-refreshing-your-api-token
 	if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
 		log.easyDebug('apiReqest error: No API Token or Authorization Header found')
 
@@ -117,6 +120,10 @@ async function apiRequest(method, url, data) {
 
 				if (json.status && json.status == 'success') {
 					log.easyDebug(`Successful ${method.toUpperCase()} response:`)
+
+					// TODO: The below is only relevant for getAllDevices and getDevicesStates (and should be moved)
+					// It prevents address details being logged though (and adds ClimateReact if missing),
+					// so the logger would also need to be moved...
 					if (json.result && json.result instanceof Array) {
 						results = fixResponse(json.result)
 					} else {
@@ -158,6 +165,7 @@ module.exports = async function (platform) {
 	this.password = platform.password
 	this.storage = platform.storage
 
+	// TODO: can we use getToken instead? I think this only runs during first load...
 	if (platform.apiKey) {
 		axios.defaults.params = {
 			integration: integrationName,
@@ -200,6 +208,7 @@ module.exports = async function (platform) {
 			})
 		},
 
+		//TODO: Not used, retire?
 		getDevicesStates: async () => {
 			const path = '/users/me/pods'
 			const queryString = 'fields=id,acState,measurements,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig,homekitSupported'
@@ -231,6 +240,7 @@ module.exports = async function (platform) {
 			return await apiRequest('patch', path, json)
 		},
 
+		//TODO: Not used, retire?
 		enableDisableClimateReact: async (deviceId, enabled) => {
 			const path = `/pods/${deviceId}/smartmode`
 			const json = { 'enabled': enabled }
