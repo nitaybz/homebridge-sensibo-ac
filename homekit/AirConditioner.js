@@ -192,7 +192,9 @@ class AirConditioner {
 		this.addCharacteristicToService('HeaterCooler', 'TemperatureDisplayUnits', null, false)
 
 		if (!this.disableHumidity) {
-			//TODO: check on this warning...
+			//TODO: check on warning... Humidity isn't a supported Characteristic of HeaterCooler
+			// Could we create a new custom Characteristic?
+			// const customHumidity = new Characteristic('CustomHumidity', this.api.hap.uuid.generate('CustomHumidity'+this.id))
 			this.addCharacteristicToService('HeaterCooler', 'CurrentRelativeHumidity', null, false)
 		} else {
 			this.log.easyDebug(`${this.name} - Removing Humidity characteristic`)
@@ -284,6 +286,12 @@ class AirConditioner {
 			this.log.easyDebug('Removing Vertical Swing (Oscillate) button')
 			// TODO: WIP trying to find a way to remove the Oscillate switch immediately, without needing the user to
 			// remove / reset the accessory... there doesn't seem to be a way to force a 'refresh'
+			// Could we: 1. hide the characteristic from the user? HMCharacteristicPropertyHidden
+			// 2. Error the Characteristic?
+			// this.HeaterCoolerService.updateCharacteristic(Characteristic.SwingMode, new Error('A placeholder error object'))
+			// 3. Remove and re-add the whole service or accessory?
+			// 4. Try to see if the characteristic exists? this.HeaterCoolerService.testCharacteristic(Characteristic.SwingMode)
+			// 5. Set StatusActive Characteristic - https://github.com/homebridge/HAP-NodeJS/wiki/Presenting-Erroneous-Accessory-State-to-the-User
 			this.HeaterCoolerService.removeCharacteristic(Characteristic.SwingMode)
 		}
 

@@ -11,4 +11,4 @@
 	"env": {
 	  "NODE_OPTIONS": "--trace-warnings"
 	}
-  }
+}
