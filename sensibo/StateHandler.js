@@ -141,7 +141,7 @@ module.exports = (device, platform) => {
 					setTimeout(() => {
 						platform.setProcessing = false
 						platform.refreshState()
-					}, 1000)
+					}, setTimeoutDelay)
 
 					return
 				}
