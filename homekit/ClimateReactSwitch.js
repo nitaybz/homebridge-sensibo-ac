@@ -16,10 +16,9 @@ class ClimateReactSwitch {
 		this.manufacturer = airConditioner.manufacturer
 		this.roomName = airConditioner.roomName
 		this.name = this.roomName + ' ClimateReact'
-		this.type = 'ClimateReact'
-		this.displayName = this.name
-		this.state = airConditioner.state
+		this.type = 'ClimateReactSwitch'
 
+		this.state = airConditioner.state
 		this.stateManager = airConditioner.stateManager
 
 		this.UUID = this.api.hap.uuid.generate(this.id + '_CR')
@@ -60,7 +59,7 @@ class ClimateReactSwitch {
 
 		this.ClimateReactSwitchService = this.accessory.getService(this.name)
 		if (!this.ClimateReactSwitchService) {
-			this.ClimateReactSwitchService = this.accessory.addService(Service.Switch, this.name, 'ClimateReactSwitch')
+			this.ClimateReactSwitchService = this.accessory.addService(Service.Switch, this.name, this.type)
 		}
 
 		this.ClimateReactSwitchService.getCharacteristic(Characteristic.On)

@@ -17,9 +17,8 @@ class HumiditySensor {
 		this.roomName = airConditioner.roomName
 		this.name = this.roomName + ' Humidity'
 		this.type = 'HumiditySensor'
-		this.displayName = this.name
-		this.state = airConditioner.state
 
+		this.state = airConditioner.state
 		this.stateManager = airConditioner.stateManager
 
 		this.UUID = this.api.hap.uuid.generate(this.id + '_humidity')
@@ -34,6 +33,7 @@ class HumiditySensor {
 			this.accessory.context.deviceId = this.id
 
 			platform.cachedAccessories.push(this.accessory)
+
 			// register the accessory
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
@@ -65,6 +65,7 @@ class HumiditySensor {
 
 	addHumiditySensorService() {
 		this.log.easyDebug(`${this.name} - Adding HumiditySensorService`)
+
 		this.HumiditySensorService = this.accessory.getService(Service.HumiditySensor)
 		if (!this.HumiditySensorService) {
 			this.HumiditySensorService = this.accessory.addService(Service.HumiditySensor, this.name, this.type)

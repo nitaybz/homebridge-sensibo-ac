@@ -729,7 +729,7 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - Climate React Enabled Switch:', state)
 				const smartModeState = device.state.smartMode
 
-				smartModeState.enabled = state
+				smartModeState.enabled = !!state
 
 				// NOTE: we must set the 'smartMode' property directly (and NOT for example like so: device.state.smartMode.enabled = true),
 				//       otherwise the StateHandler's setter code will not be executed and any changes will not take effect.

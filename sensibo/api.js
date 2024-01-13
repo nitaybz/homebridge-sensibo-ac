@@ -257,6 +257,7 @@ module.exports = async function (platform) {
 			return await apiRequest('put', path, json)
 		},
 
+		//TODO: Not used, retire?
 		setDevicePropertyState: async (deviceId, property, value) => {
 			const path = `/pods/${deviceId}/acStates/${property}`
 			const json = { 'newValue': value }

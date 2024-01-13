@@ -25,7 +25,6 @@ class AirConditioner {
 		this.roomName = deviceInfo.roomName
 		this.name = this.roomName + ' AC'
 		this.type = 'AirConditioner'
-		this.displayName = this.name
 		this.disableHumidity = platform.disableHumidity
 		this.modesToExclude = platform.modesToExclude
 		this.temperatureUnit = deviceInfo.temperatureUnit
@@ -42,7 +41,7 @@ class AirConditioner {
 		this.filterService = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device, platform)
 
-		const StateHandler = require('../sensibo/StateHandler')(this, platform)
+		const StateHandler = require('./StateHandler')(this, platform)
 
 		this.state = this.cachedState.devices[this.id] = unified.acState(device)
 		this.state = new Proxy(this.state, StateHandler)
@@ -60,6 +59,7 @@ class AirConditioner {
 			this.accessory.context.deviceId = this.id
 
 			platform.cachedAccessories.push(this.accessory)
+
 			// register the accessory
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
@@ -378,6 +378,7 @@ class AirConditioner {
 			.on('get', this.stateManager.get.DryActive)
 			.on('set', this.stateManager.set.DryActive)
 
+		// CurrentRelativeHumidity is required on HumidifierDehumidifier, so we add regardless of "disableHumidity"
 		this.DryService.getCharacteristic(Characteristic.CurrentRelativeHumidity)
 			.on('get', this.stateManager.get.CurrentRelativeHumidity)
 
@@ -540,11 +541,13 @@ class AirConditioner {
 		if (this.HeaterCoolerService) {
 			// update measurements
 			this.Utils.updateValue('HeaterCoolerService', 'CurrentTemperature', this.state.currentTemperature)
-			this.Utils.updateValue('HeaterCoolerService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
+
+			if (!this.disableHumidity) {
+				this.Utils.updateValue('HeaterCoolerService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
+			}
 		}
 
-		// TODO: could this just check this.DryService?
-		if (this.capabilities.DRY && !this.disableDry) {
+		if (this.DryService) {
 			this.Utils.updateValue('DryService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
 		}
 

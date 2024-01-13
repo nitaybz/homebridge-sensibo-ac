@@ -26,16 +26,13 @@ class RoomSensor {
 		this.roomName = deviceInfo.roomName
 		this.name = this.roomName + ' Sensor'
 		this.type = 'RoomSensor'
-		this.displayName = this.name
 		this.temperatureUnit = deviceInfo.temperatureUnit
 		this.usesFahrenheit = this.temperatureUnit === FAHRENHEIT_UNIT
 
+		const StateHandler = require('./StateHandler')(this, platform)
+
 		this.state = this.cachedState.sensors[this.id] = unified.sensorState(sensor)
-
-		const StateHandler = require('../sensibo/StateHandler')(this, platform)
-
 		this.state = new Proxy(this.state, StateHandler)
-
 		this.stateManager = require('./StateManager')(this, platform)
 
 		this.UUID = this.api.hap.uuid.generate(this.id)
@@ -80,11 +77,13 @@ class RoomSensor {
 
 		this.addMotionSensor()
 		this.addTemperatureSensor()
+		// TODO: don't add humidity if disabled
 		this.addHumiditySensor()
 	}
 
 	addMotionSensor() {
 		this.log.easyDebug(`${this.name} - Adding MotionSensorService`)
+
 		this.MotionSensorService = this.accessory.getService(Service.MotionSensor)
 		if (!this.MotionSensorService) {
 			this.MotionSensorService = this.accessory.addService(Service.MotionSensor, this.roomName + ' Motion Sensor', this.type)
@@ -99,6 +98,7 @@ class RoomSensor {
 
 	addTemperatureSensor() {
 		this.log.easyDebug(`${this.name} - Adding TemperatureSensorService`)
+
 		this.TemperatureSensorService = this.accessory.getService(Service.TemperatureSensor)
 		if (!this.TemperatureSensorService) {
 			this.TemperatureSensorService = this.accessory.addService(Service.TemperatureSensor, this.name + ' Temperature', 'TemperatureSensor')
@@ -118,6 +118,7 @@ class RoomSensor {
 
 	addHumiditySensor() {
 		this.log.easyDebug(`${this.name} - Adding HumiditySensorService`)
+
 		this.HumiditySensorService = this.accessory.getService(Service.HumiditySensor)
 		if (!this.HumiditySensorService) {
 			this.HumiditySensorService = this.accessory.addService(Service.HumiditySensor, this.name + ' Humidity', 'HumiditySensor')

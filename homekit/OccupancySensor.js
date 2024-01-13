@@ -23,14 +23,11 @@ class OccupancySensor {
 		this.locationName = locationInfo.name
 		this.name = this.locationName + ' Occupancy'
 		this.type = 'OccupancySensor'
-		this.displayName = this.name
+
+		const StateHandler = require('./StateHandler')(this, platform)
 
 		this.state = this.cachedState.occupancy[this.id] = unified.occupancyState(device.location)
-
-		const StateHandler = require('../sensibo/StateHandler')(this, platform)
-
 		this.state = new Proxy(this.state, StateHandler)
-
 		this.stateManager = require('./StateManager')(this, platform)
 
 		this.UUID = this.api.hap.uuid.generate(this.id)
@@ -45,6 +42,7 @@ class OccupancySensor {
 			this.accessory.context.locationId = this.id
 
 			platform.cachedAccessories.push(this.accessory)
+
 			// register the accessory
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
@@ -67,6 +65,7 @@ class OccupancySensor {
 
 	addOccupancySensor() {
 		this.log.easyDebug(`${this.name} - Adding OccupancySensorService`)
+
 		this.OccupancySensorService = this.accessory.getService(Service.OccupancySensor)
 		if (!this.OccupancySensorService) {
 			this.OccupancySensorService = this.accessory.addService(Service.OccupancySensor, this.name, this.type)

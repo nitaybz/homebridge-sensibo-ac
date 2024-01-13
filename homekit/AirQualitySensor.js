@@ -26,16 +26,13 @@ class AirQualitySensor {
 		this.roomName = deviceInfo.roomName
 		this.name = this.roomName + ' Air Quality'
 		this.type = 'AirQualitySensor'
-		this.displayName = this.name
 		this.disableAirQuality = platform.disableAirQuality
 		this.disableCarbonDioxide = platform.disableCarbonDioxide
 
+		const StateHandler = require('./StateHandler')(this, platform)
+
 		this.state = this.cachedState.devices[this.id] = unified.airQualityState(device, Constants)
-
-		const StateHandler = require('../sensibo/StateHandler')(this, platform)
-
 		this.state = new Proxy(this.state, StateHandler)
-
 		this.stateManager = require('./StateManager')(this, platform)
 
 		this.UUID = this.api.hap.uuid.generate(this.id + '_airQuality')
@@ -50,6 +47,7 @@ class AirQualitySensor {
 			this.accessory.context.deviceId = this.id
 
 			platform.cachedAccessories.push(this.accessory)
+
 			// register the accessory
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
