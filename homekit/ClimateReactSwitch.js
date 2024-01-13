@@ -15,7 +15,7 @@ class ClimateReactSwitch {
 		this.serial = airConditioner.serial + '_CR'
 		this.manufacturer = airConditioner.manufacturer
 		this.roomName = airConditioner.roomName
-		this.name = this.roomName + ' Climate React'
+		this.name = this.roomName + ' ClimateReact'
 		this.type = 'ClimateReact'
 		this.displayName = this.name
 		this.state = airConditioner.state
@@ -52,18 +52,18 @@ class ClimateReactSwitch {
 			.setCharacteristic(Characteristic.Model, this.model)
 			.setCharacteristic(Characteristic.SerialNumber, this.serial)
 
-		this.addClimateReactService()
+		this.addClimateReactSwitchService()
 	}
 
-	addClimateReactService() {
-		this.log.easyDebug(`${this.name} - Adding ClimateReactService`)
+	addClimateReactSwitchService() {
+		this.log.easyDebug(`${this.name} - Adding ClimateReactSwitchService`)
 
-		this.ClimateReactService = this.accessory.getService(this.name)
-		if (!this.ClimateReactService) {
-			this.ClimateReactService = this.accessory.addService(Service.Switch, this.name, 'ClimateReact')
+		this.ClimateReactSwitchService = this.accessory.getService(this.name)
+		if (!this.ClimateReactSwitchService) {
+			this.ClimateReactSwitchService = this.accessory.addService(Service.Switch, this.name, 'ClimateReactSwitch')
 		}
 
-		this.ClimateReactService.getCharacteristic(Characteristic.On)
+		this.ClimateReactSwitchService.getCharacteristic(Characteristic.On)
 			.on('get', this.stateManager.get.ClimateReactSwitch)
 			.on('set', this.stateManager.set.ClimateReactSwitch)
 	}
@@ -72,7 +72,7 @@ class ClimateReactSwitch {
 		const smartModeEnabledState = this.state?.smartMode?.enabled ?? false
 
 		// update Climate React Service
-		this.Utils.updateValue('ClimateReactService', 'On', smartModeEnabledState)
+		this.Utils.updateValue('ClimateReactSwitchService', 'On', smartModeEnabledState)
 	}
 
 }

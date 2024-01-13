@@ -103,6 +103,9 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 		}
 	}
 
+	// StateHandler is invoked as a Proxy, and therefore overwrites/intercepts the default get()/set() commands [traps]
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+
 	// NOTE: device.state is of "type" StateHandler. When one of its properties is "set" (e.g. device.state.<property> = <val>),
 	//       that's where we actually send commands to the appropriate Sensibo devices. If a property is not set, the aformentioned
 	//       code will not execute and the changes would not take effect.
@@ -123,6 +126,7 @@ module.exports = (device, platform) => {
 	return {
 
 		get: {
+			// TODO: refactor this similar to PureActive below?
 			ACActive: (callback) => {
 				const active = device.state.active
 				const mode = device.state.mode

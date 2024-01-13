@@ -18,6 +18,8 @@ module.exports = (device, platform) => {
 
 			// return a function to update state (multiple properties)
 			if (prop === 'update') {
+				// 'state' below is the value passed when the update() function is called
+				// see refreshState.js, e.g. airConditioner.state.update(unified.acState(device))
 				return (state) => {
 					if (!platform.setProcessing) {
 						Object.keys(state).forEach(key => {
@@ -31,7 +33,7 @@ module.exports = (device, platform) => {
 			}
 
 			// return a function to sync ac state
-			// TODO: should  be moved to be a 'set' below, see also StateManager line 576
+			// TODO: should be moved to be a 'set' below, see also StateManager line 576
 			if (prop === 'syncState') {
 				return async() => {
 					try {
@@ -77,6 +79,7 @@ module.exports = (device, platform) => {
 			if (prop === 'smartMode') {
 				try {
 					log.easyDebug(`${device.name} - Setting Climate React state to ${value}`)
+					log.easyDebug(`${device.name} - Object: ${JSON.stringify(value, null, 4)}`)
 					const sensiboNewClimateReactState = unified.sensiboFormattedClimateReactState(device, state)
 
 					sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
@@ -87,7 +90,7 @@ module.exports = (device, platform) => {
 				if (!platform.setProcessing) {
 					platform.refreshState()
 				} else {
-					log.easyDebug('setProcessing is set to true, skipping state refresh due to Climate React set.')
+					log.easyDebug('setProcessing is true, skipping refreshState() after Climate React SET')
 				}
 
 				return
@@ -105,7 +108,7 @@ module.exports = (device, platform) => {
 				if (!platform.setProcessing) {
 					platform.refreshState()
 				} else {
-					log.easyDebug('setProcessing is set to true, skipping state refresh due to Pure Boost set.')
+					log.easyDebug('setProcessing is true, skipping refreshState() after Pure Boost SET')
 				}
 
 				return

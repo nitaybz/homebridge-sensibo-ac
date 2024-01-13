@@ -69,7 +69,7 @@ function getToken(username, password, storage) {
 }
 
 function fixResponse(results) {
-	return results.map(result =>  {
+	return results.map(result => {
 		// remove user's address to prevent it from appearing in logs
 		result.location && (result.location = {
 			occupancy: result.location.occupancy,
@@ -77,9 +77,11 @@ function fixResponse(results) {
 			id: result.location.id
 		})
 
-		// if climate react was never set up - this will return a 'null' value which will
-		// break other code, so we fix it
-		!result.smartMode && (result.smartMode = { enabled: false })
+		// If climate react was never set up, or not valid for the device, result.smartMode will return
+		// a 'null' value which will break other code, so we fix it
+		if (result.smartMode === null) {
+			result.smartMode = { enabled: false }
+		}
 
 		return result
 	})

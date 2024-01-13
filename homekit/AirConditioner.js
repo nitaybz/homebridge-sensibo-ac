@@ -283,7 +283,7 @@ class AirConditioner {
 				.on('get', this.stateManager.get.ACSwing)
 				.on('set', this.stateManager.set.ACSwing)
 		} else {
-			this.log.easyDebug('Removing Vertical Swing (Oscillate) button')
+			this.log.easyDebug(`${this.name} - Removing Vertical Swing (Oscillate) button`)
 			// TODO: WIP trying to find a way to remove the Oscillate switch immediately, without needing the user to
 			// remove / reset the accessory... there doesn't seem to be a way to force a 'refresh'
 			// Could we: 1. hide the characteristic from the user? HMCharacteristicPropertyHidden
@@ -497,11 +497,11 @@ class AirConditioner {
 	}
 
 	addClimateReactService() {
-		this.log.easyDebug(`${this.roomName} - Adding Climate React Switch Service`)
+		this.log.easyDebug(`${this.roomName} - Adding Climate React Service`)
 
 		this.ClimateReactService = this.accessory.getService(this.roomName + ' Climate React')
 		if (!this.ClimateReactService) {
-			this.ClimateReactService = this.accessory.addService(Service.Switch, this.roomName + ' Climate React' , 'ClimateReactSwitch')
+			this.ClimateReactService = this.accessory.addService(Service.Switch, this.roomName + ' Climate React' , 'ClimateReact')
 		}
 
 		this.ClimateReactService.getCharacteristic(Characteristic.On)
