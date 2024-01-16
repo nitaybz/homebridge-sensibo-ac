@@ -49,7 +49,8 @@ function swingMode(deviceCapabilities, state) {
 }
 
 function sensiboFormattedACState(device, state) {
-	device.log.easyDebug(`${device.name} -> sensiboFormattedACState start: ${JSON.stringify(state, null, 4)}`)
+	device.log.easyDebug(`${device.name} -> sensiboFormattedACState start`)
+	// device.log.easyDebug(`${device.name} -> sensiboFormattedACState acState: ${JSON.stringify(acState, null, 4)}`)
 
 	const acState = {
 		on: state.active,
@@ -69,11 +70,14 @@ function sensiboFormattedACState(device, state) {
 		acState.light = state.light ? 'on' : 'off'
 	}
 
+	// device.log.easyDebug(`${device.name} -> sensiboFormattedACState acState: ${JSON.stringify(acState, null, 4)}`)
+
 	return acState
 }
 
 function sensiboFormattedClimateReactState(device, state) {
-	device.log.easyDebug(`${device.name} -> sensiboFormattedClimateReactState start: ${JSON.stringify(state, null, 4)}`)
+	device.log.easyDebug(`${device.name} -> sensiboFormattedClimateReactState start`)
+	// device.log.easyDebug(`${device.name} -> sensiboFormattedClimateReactState incoming state: ${JSON.stringify(state, null, 4)}`)
 
 	const smartModeState = state.smartMode
 	const climateReactState = {
@@ -104,6 +108,8 @@ function sensiboFormattedClimateReactState(device, state) {
 
 	Object.assign(climateReactState.lowTemperatureState, swingModes)
 	Object.assign(climateReactState.highTemperatureState, swingModes)
+
+	// device.log.easyDebug(`${device.name} -> sensiboFormattedClimateReactState climateReactState: ${JSON.stringify(climateReactState, null, 4)}`)
 
 	return climateReactState
 }
@@ -207,6 +213,7 @@ module.exports = (device, platform) => {
 					sensiboApi.resetFilterIndicator(device.id)
 				} catch(err) {
 					log(`${device.name} - filterChange - Error occurred! -> Could not reset filter indicator`)
+					log.easyDebug(`${device.name} - Error: ${err}`)
 				}
 
 				return true
@@ -216,25 +223,30 @@ module.exports = (device, platform) => {
 
 			// Send Climate React state command and refresh state
 			if (prop === 'smartMode') {
-				try {
-					const sensiboNewClimateReactState = sensiboFormattedClimateReactState(device, state)
+				(async () => {
+					try {
+						const sensiboNewClimateReactState = sensiboFormattedClimateReactState(device, state)
 
-					log.easyDebug(`${device.name} - smartMode - before calling API to set new Climate React`)
-					// log.easyDebug(JSON.stringify(value, null, 4))
+						log.easyDebug(`${device.name} - smartMode - before calling API to set new Climate React`)
+						// log.easyDebug(JSON.stringify(value, null, 4))
 
-					sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
-				} catch(err) {
-					log(`${device.name} - smartMode - Error occurred! -> Climate React state did not change`)
-				}
+						sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
+					} catch(err) {
+						log(`${device.name} - smartMode - Error occurred! -> Climate React state did not change`)
+						log.easyDebug(`${device.name} - Error: ${JSON.stringify(err, null, 4)}`)
+					}
 
-				if (!platform.setProcessing) {
-					platform.refreshState()
-				} else {
-					log.easyDebug(`${device.name} - setProcessing is true, skipping refreshState() after Climate React SET`)
-				}
+					if (!platform.setProcessing) {
+						platform.refreshState()
+					} else {
+						log.easyDebug(`${device.name} - setProcessing is true, skipping refreshState() after Climate React SET`)
+					}
 
-				delete state.smartMode.running
+					delete state.smartMode.running
+				})()
 
+				// TODO: should we "catch" if the API calls fail and prevent it from updating state (e.g. line 200)
+				//       and return false instead?
 				return true
 			}
 
@@ -245,6 +257,7 @@ module.exports = (device, platform) => {
 					sensiboApi.enableDisablePureBoost(device.id, value)
 				} catch(err) {
 					log(`${device.name} - pureBoost - Error occurred! -> Pure Boost state did not change`)
+					log.easyDebug(`${device.name} - Error: ${err}`)
 				}
 
 				if (!platform.setProcessing) {
@@ -256,6 +269,7 @@ module.exports = (device, platform) => {
 				return true
 			}
 
+			log.easyDebug(`${device.name} - updating setProcessing to true, Prop: ${prop}`)
 			platform.setProcessing = true
 
 			// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
@@ -283,17 +297,19 @@ module.exports = (device, platform) => {
 					await sensiboApi.setDeviceACState(device.id, sensiboNewACState)
 				} catch(err) {
 					log(`${device.name} - ERROR setting ${prop} to ${value}`)
+					log.easyDebug(`${device.name} - Error: ${JSON.stringify(err, null, 4)}`)
+
 					setTimeout(() => {
 						platform.setProcessing = false
 						platform.refreshState()
 					}, setTimeoutDelay)
 
-					return true
+					return
 				}
 
 				setTimeout(() => {
-					device.updateHomeKit()
 					platform.setProcessing = false
+					device.updateHomeKit()
 				}, (setTimeoutDelay / 2))
 			}, setTimeoutDelay)
 

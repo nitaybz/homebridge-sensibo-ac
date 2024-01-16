@@ -21,6 +21,7 @@ module.exports = (platform) => {
 
 					return
 				}
+
 				if (platform.setProcessing) {
 					platform.processingState = false
 

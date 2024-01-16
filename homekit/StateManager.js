@@ -522,7 +522,8 @@ module.exports = (device, platform) => {
 				const mode = characteristicToMode(lastMode)
 
 				device.state.targetTemperature = targetTemp
-				log.easyDebug(device.name, '(SET) - target HeaterCooler State:', mode)
+				// TODO: do we need the below? Does it turn the unit on if it's currently off?
+				log.easyDebug(device.name, '(SET) - Target HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
 

@@ -145,13 +145,14 @@ async function apiRequest(method, url, data) {
 			.catch(err => {
 				const errorContent = {}
 
+				errorContent.errorURL = baseURL + url
 				errorContent.message = err.message
-				log(`ERROR: ${errorContent.message}`)
+				log(`Error URL: ${errorContent.errorURL}`)
+				log(`Error message: ${errorContent.message}`)
 
 				if (err.response) {
-					log.easyDebug('Error response:')
-					log.easyDebug(err.response.data)
 					errorContent.response = err.response.data
+					log.easyDebug(`Error response: ${JSON.stringify(errorContent.response, null, 4)}`)
 				}
 
 				// log.easyDebug(err)
