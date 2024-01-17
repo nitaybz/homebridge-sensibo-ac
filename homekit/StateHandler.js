@@ -230,7 +230,7 @@ module.exports = (device, platform) => {
 						log.easyDebug(`${device.name} - smartMode - before calling API to set new Climate React`)
 						// log.easyDebug(JSON.stringify(value, null, 4))
 
-						sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
+						await sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
 					} catch(err) {
 						log(`${device.name} - smartMode - Error occurred! -> Climate React state did not change`)
 						log.easyDebug(`${device.name} - Error: ${JSON.stringify(err, null, 4)}`)
