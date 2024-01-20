@@ -535,7 +535,7 @@ class AirConditioner {
 			const smartModeEnabledState = this.state?.smartMode?.enabled ?? false
 
 			// update Climate React Service
-			this.updateValue('ClimateReactService', 'On', smartModeEnabledState)
+			this.Utils.updateValue('ClimateReactService', 'On', smartModeEnabledState)
 		}
 
 		if (this.HeaterCoolerService) {
