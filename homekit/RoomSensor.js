@@ -8,6 +8,8 @@ class RoomSensor {
 		Characteristic = platform.api.hap.Characteristic
 		FAHRENHEIT_UNIT = platform.FAHRENHEIT_UNIT
 
+		this.Utils = require('../sensibo/Utils')(this, platform)
+
 		const deviceInfo = unified.deviceInformation(device)
 		const sensorInfo = unified.sensorInformation(sensor)
 
@@ -24,16 +26,13 @@ class RoomSensor {
 		this.roomName = deviceInfo.roomName
 		this.name = this.roomName + ' Sensor'
 		this.type = 'RoomSensor'
-		this.displayName = this.name
 		this.temperatureUnit = deviceInfo.temperatureUnit
 		this.usesFahrenheit = this.temperatureUnit === FAHRENHEIT_UNIT
 
+		const StateHandler = require('./StateHandler')(this, platform)
+
 		this.state = this.cachedState.sensors[this.id] = unified.sensorState(sensor)
-
-		const StateHandler = require('../sensibo/StateHandler')(this, platform)
-
 		this.state = new Proxy(this.state, StateHandler)
-
 		this.stateManager = require('./StateManager')(this, platform)
 
 		this.UUID = this.api.hap.uuid.generate(this.id)
@@ -78,11 +77,13 @@ class RoomSensor {
 
 		this.addMotionSensor()
 		this.addTemperatureSensor()
+		// TODO: don't add humidity if disabled
 		this.addHumiditySensor()
 	}
 
 	addMotionSensor() {
 		this.log.easyDebug(`${this.name} - Adding MotionSensorService`)
+
 		this.MotionSensorService = this.accessory.getService(Service.MotionSensor)
 		if (!this.MotionSensorService) {
 			this.MotionSensorService = this.accessory.addService(Service.MotionSensor, this.roomName + ' Motion Sensor', this.type)
@@ -97,6 +98,7 @@ class RoomSensor {
 
 	addTemperatureSensor() {
 		this.log.easyDebug(`${this.name} - Adding TemperatureSensorService`)
+
 		this.TemperatureSensorService = this.accessory.getService(Service.TemperatureSensor)
 		if (!this.TemperatureSensorService) {
 			this.TemperatureSensorService = this.accessory.addService(Service.TemperatureSensor, this.name + ' Temperature', 'TemperatureSensor')
@@ -116,6 +118,7 @@ class RoomSensor {
 
 	addHumiditySensor() {
 		this.log.easyDebug(`${this.name} - Adding HumiditySensorService`)
+
 		this.HumiditySensorService = this.accessory.getService(Service.HumiditySensor)
 		if (!this.HumiditySensorService) {
 			this.HumiditySensorService = this.accessory.addService(Service.HumiditySensor, this.name + ' Humidity', 'HumiditySensor')
@@ -139,24 +142,17 @@ class RoomSensor {
 		}
 
 		// update measurements
-		this.updateValue('MotionSensorService', 'MotionDetected', this.state.motionDetected)
-		this.updateValue('TemperatureSensorService', 'CurrentTemperature', this.state.currentTemperature)
-		this.updateValue('HumiditySensorService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
+		this.Utils.updateValue('MotionSensorService', 'MotionDetected', this.state.motionDetected)
+		this.Utils.updateValue('TemperatureSensorService', 'CurrentTemperature', this.state.currentTemperature)
+		this.Utils.updateValue('HumiditySensorService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
 
 		// update Low Battery Status
-		this.updateValue('MotionSensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
-		this.updateValue('TemperatureSensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
-		this.updateValue('HumiditySensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
+		this.Utils.updateValue('MotionSensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
+		this.Utils.updateValue('TemperatureSensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
+		this.Utils.updateValue('HumiditySensorService', 'StatusLowBattery', Characteristic.StatusLowBattery[this.state.lowBattery])
 
 		// cache last state to storage
 		this.storage.setItem('state', this.cachedState)
-	}
-
-	updateValue (serviceName, characteristicName, newValue) {
-		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
-			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
-		}
 	}
 
 }

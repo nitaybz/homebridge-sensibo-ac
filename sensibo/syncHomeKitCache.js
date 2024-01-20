@@ -130,7 +130,7 @@ module.exports = (platform) => {
 
 		platform.cachedAccessories.forEach(accessory => {
 			if (!accessory.context.type) {
-				platform.log.easyDebug(`Old cached accessory to be removed, name: ${accessory.displayName}`)
+				platform.log.easyDebug(`Old cached accessory to be removed, name: ${accessory.name}`)
 				accessoriesToRemove.push(accessory)
 			}
 
@@ -140,7 +140,7 @@ module.exports = (platform) => {
 
 			if (!isActive) {
 				// TODO: should we remove non-active accessories immediately? see also AirQualitySensor below
-				platform.log.easyDebug(`Accessory, ${accessory.displayName}, not in activeAccessories[]`)
+				platform.log.easyDebug(`Accessory, ${accessory.name}, not in activeAccessories[]`)
 			}
 
 			let deviceExists, sensorExists, locationExists
@@ -156,7 +156,7 @@ module.exports = (platform) => {
 									|| device.productModel.includes('sky'))
 					})
 					if (!deviceExists) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
@@ -166,7 +166,7 @@ module.exports = (platform) => {
 						return device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel === 'pure'
 					})
 					if (!deviceExists) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
@@ -177,7 +177,7 @@ module.exports = (platform) => {
 					})
 					// TODO: should disabled check be moved out? see also isActive above
 					if (!deviceExists || (deviceExists && platform.disableAirQuality && platform.disableCarbonDioxide)) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
@@ -187,14 +187,14 @@ module.exports = (platform) => {
 						return device.id === accessory.context.deviceId
 					})
 					if (!deviceExists || !Array.isArray(deviceExists.motionSensors)) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
 						accessoriesToRemove.push(accessory)
 					} else {
 						sensorExists = deviceExists.motionSensors.find(sensor => {
 							return sensor.id === accessory.context.sensorId
 						})
 						if (!sensorExists) {
-							platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+							platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
 							accessoriesToRemove.push(accessory)
 						}
 					}
@@ -205,7 +205,7 @@ module.exports = (platform) => {
 						return device.id === accessory.context.deviceId && device.remoteCapabilities
 					})
 					if (!deviceExists || !platform.externalHumiditySensor) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
@@ -215,7 +215,7 @@ module.exports = (platform) => {
 						return device.id === accessory.context.deviceId && device.remoteCapabilities
 					})
 					if (!deviceExists || !platform.enableSyncButton || platform.syncButtonInAccessory) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
@@ -226,7 +226,7 @@ module.exports = (platform) => {
 					})
 
 					if (!deviceExists || !platform.enableClimateReactSwitch || platform.climateReactSwitchInAccessory) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
@@ -236,7 +236,7 @@ module.exports = (platform) => {
 						return device.location.id === accessory.context.locationId
 					})
 					if (!locationExists || !platform.enableOccupancySensor) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
 						accessoriesToRemove.push(accessory)
 						// TODO: check why platform.locations is updated below
 						platform.locations = platform.locations.filter(location => {
@@ -255,18 +255,18 @@ module.exports = (platform) => {
 			platform.api.unregisterPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, accessoriesToRemove)
 
 			// remove from cachedAccessories
-			platform.cachedAccessories = platform.cachedAccessories.filter( cachedAccessory => {
+			platform.cachedAccessories = platform.cachedAccessories.filter(cachedAccessory => {
 				return !accessoriesToRemove.find(accessory => {
 					return accessory.UUID === cachedAccessory.UUID
 				})
-			} )
+			})
 
 			// remove from activeAccessories
-			platform.activeAccessories = platform.activeAccessories.filter( activeAccessory => {
+			platform.activeAccessories = platform.activeAccessories.filter(activeAccessory => {
 				return !accessoriesToRemove.find(accessory => {
 					return accessory.UUID === activeAccessory.UUID
 				})
-			} )
+			})
 		}
 	}
 }

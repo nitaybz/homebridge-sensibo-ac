@@ -15,9 +15,8 @@ class SyncButton {
 		this.roomName = airConditioner.roomName
 		this.name = this.roomName + ' AC Sync'
 		this.type = 'SyncButton'
-		this.displayName = this.name
-		this.state = airConditioner.state
 
+		this.state = airConditioner.state
 		this.stateManager = airConditioner.stateManager
 
 		this.UUID = this.api.hap.uuid.generate(this.id + '_sync')
@@ -32,6 +31,7 @@ class SyncButton {
 			this.accessory.context.deviceId = this.id
 
 			platform.cachedAccessories.push(this.accessory)
+
 			// register the accessory
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
@@ -66,6 +66,7 @@ class SyncButton {
 			.on('set', (state, callback) => {
 				this.stateManager.set.SyncButton(state, callback)
 				setTimeout(() => {
+					// TODO: move to Utils?
 					this.SyncButtonService.getCharacteristic(Characteristic.On).updateValue(0)
 				}, 1000)
 			})

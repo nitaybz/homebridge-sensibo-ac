@@ -12,6 +12,7 @@
 			"apiKey": "***************",
 			"allowRepeatedCommands": false,
 			"carbonDioxideAlertThreshold": 1500,
+			"climateReactSwitchInAccessory": false,
 			"disableAirQuality": false,
 			"disableCarbonDioxide": false,
 			"disableDry": false,
@@ -20,19 +21,18 @@
 			"disableHumidity": false,
 			"disableLightSwitch": false,
 			"disableVerticalSwing": false,
+			"enableClimateReactAutoSetup": false,
 			"enableClimateReactSwitch": false,
 			"enableHistoryStorage": false,
 			"enableOccupancySensor": false,
 			"enableSyncButton": false,
-			"syncButtonInAccessory": false,
 			"externalHumiditySensor": false,
-			"devicesToExclude": [],
 			"ignoreHomeKitDevices": false,
+			"syncButtonInAccessory": false,
+			"devicesToExclude": [],
 			"locationsToInclude": [],
 			"modesToExclude": [],
-			"debug": false,
-			"climateReactSwitchInAccessory": false,
-			"enableClimateReactAutoSetup": false
+			"debug": false
 		}
 	],
 	"accessories": [

@@ -35,26 +35,26 @@ class SensiboACPlatform {
 		}
 
 		this.name = config['name'] || PLATFORM_NAME
+		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
 		this.carbonDioxideAlertThreshold = config['carbonDioxideAlertThreshold'] || 1500
+		this.climateReactSwitchInAccessory = config['climateReactSwitchInAccessory'] || false
 		this.disableAirQuality = config['disableAirQuality'] || false
 		this.disableCarbonDioxide = config['disableCarbonDioxide'] || false
 		this.devicesToExclude = config['devicesToExclude'] || []
 		this.disableDry = config['disableDry'] || false
 		this.disableFan = config['disableFan'] || false
+		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
 		this.disableHumidity = config['disableHumidity'] || false
+		this.disableLightSwitch = config['disableLightSwitch'] || false
 		this.disableVerticalSwing = config['disableVerticalSwing'] || false
+		this.enableClimateReactAutoSetup = config['enableClimateReactAutoSetup'] || false
+		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
 		this.enableHistoryStorage = config['enableHistoryStorage'] || false
 		this.enableOccupancySensor = config['enableOccupancySensor'] || false
 		this.enableSyncButton = config['enableSyncButton'] || false
+		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
 		this.syncButtonInAccessory = config['syncButtonInAccessory'] || false
 		this.externalHumiditySensor = config['externalHumiditySensor'] || false
-		this.enableClimateReactAutoSetup = config['enableClimateReactAutoSetup'] || false
-		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
-		this.climateReactSwitchInAccessory = config['climateReactSwitchInAccessory'] || false
-		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
-		this.disableLightSwitch = config['disableLightSwitch'] || false
-		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
-		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
 		this.locationsToInclude = config['locationsToInclude'] || []
 
 		this.modesToExclude = config['modesToExclude']?.map(mode => {

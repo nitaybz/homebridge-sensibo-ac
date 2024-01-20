@@ -32,17 +32,21 @@ module.exports = (device, platform) => {
 				return
 			}
 
+			const currentValue = characteristic.value
+			const format = characteristic.props.format ?? 'undefined'
+			const maxValue = characteristic.props.maxValue
+			const minValue = characteristic.props.minValue
+			const minStep = characteristic.props.minStep
+			const validValues = characteristic.props.validValues
+
 			if (Number.isNaN(newValue)) {
 				// non-number is valid for many usecases
 				// TODO: could check if props.format is float or int, then compare and fail if needed?
-				log.easyDebug(`${device.name} - '${newValue}' is not a number for characteristic ${characteristicName} on service ${serviceName}... continuing`)
+				log.easyDebug(`${device.name} - '${newValue}' is not a number for characteristic ${characteristicName} (expected format '${format}') on service ${serviceName}... continuing`)
 			}
 
-			const validValues = characteristic.props.validValues
-			const minValue = characteristic.props.minValue
-			const maxValue = characteristic.props.maxValue
-			const minStep = characteristic.props.minStep
-			const currentValue = characteristic.value
+			// TODO: CurrentTemperature value being returned seems to need rounding?
+			// e.g. "22.60000000000001"
 
 			if (validValues && !validValues.includes(newValue)) {
 				log.easyDebug(`${device.name} - '${newValue}' not in validValues: ${validValues} for characteristic ${characteristicName} on service ${serviceName}... skipping update`)

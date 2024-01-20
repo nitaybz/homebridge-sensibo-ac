@@ -6,6 +6,8 @@ class HumiditySensor {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
 
+		this.Utils = require('../sensibo/Utils')(this, platform)
+
 		this.log = airConditioner.log
 		this.api = airConditioner.api
 		this.id = airConditioner.id
@@ -15,9 +17,8 @@ class HumiditySensor {
 		this.roomName = airConditioner.roomName
 		this.name = this.roomName + ' Humidity'
 		this.type = 'HumiditySensor'
-		this.displayName = this.name
-		this.state = airConditioner.state
 
+		this.state = airConditioner.state
 		this.stateManager = airConditioner.stateManager
 
 		this.UUID = this.api.hap.uuid.generate(this.id + '_humidity')
@@ -32,6 +33,7 @@ class HumiditySensor {
 			this.accessory.context.deviceId = this.id
 
 			platform.cachedAccessories.push(this.accessory)
+
 			// register the accessory
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
@@ -63,6 +65,7 @@ class HumiditySensor {
 
 	addHumiditySensorService() {
 		this.log.easyDebug(`${this.name} - Adding HumiditySensorService`)
+
 		this.HumiditySensorService = this.accessory.getService(Service.HumiditySensor)
 		if (!this.HumiditySensorService) {
 			this.HumiditySensorService = this.accessory.addService(Service.HumiditySensor, this.name, this.type)
@@ -81,14 +84,7 @@ class HumiditySensor {
 			})
 		}
 
-		this.updateValue('HumiditySensorService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
-	}
-
-	updateValue (serviceName, characteristicName, newValue) {
-		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
-			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
-		}
+		this.Utils.updateValue('HumiditySensorService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
 	}
 
 }

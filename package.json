@@ -1,13 +1,13 @@
 {
+  "displayName": "Sensibo for Homebridge",
   "name": "homebridge-sensibo-ac",
+  "version": "2.5.0-alpha.0",
   "description": "Homebridge plugin for Sensibo - Smart AC Control",
-  "version": "2.4.0-alpha.5",
+  "license": "GNU",
   "repository": {
     "type": "git",
     "url": "git://github.com/nitaybz/homebridge-sensibo-ac.git"
   },
-  "license": "GNU",
-  "preferGlobal": true,
   "keywords": [
     "homebridge-plugin",
     "homebridge-sensibo-ac",
@@ -25,37 +25,25 @@
     "url": "https://github.com/nitaybz/homebridge-sensibo-ac/issues"
   },
   "engines": {
-    "node": ">=10.17.0",
-    "homebridge": ">=1.4.1"
+    "node": ">=18.17.0",
+    "homebridge": "^1.7.0"
   },
   "dependencies": {
-    "axios": "^0.21.4",
-    "fakegato-history": "^0.6.3",
-    "node-persist": "^3.1.3",
-    "qs": "^6.11.1"
+    "axios": "^1.6.5",
+    "fakegato-history": "^0.6.4",
+    "node-persist": "^3.1.3"
   },
   "devDependencies": {
-    "eslint": "^8.36.0",
-    "nodemon": "^2.0.21"
+    "@eslint/js": "^8.53.0",
+    "@stylistic/eslint-plugin": "^1.5.3",
+    "eslint": "^8.56.0",
+    "homebridge": "^1.7.0",
+    "nodemon": "^3.0.2"
   },
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "watch": "nodemon"
-  },
-  "nodemonConfig": {
-    "watch": [
-      "."
-    ],
-    "ext": "js",
-    "ignore": [
-      "node_modules"
-    ],
-    "exec": "npx homebridge -I -D",
-    "signal": "SIGTERM",
-    "env": {
-      "NODE_OPTIONS": "--trace-warnings"
-    }
   },
   "funding": [
     {

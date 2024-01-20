@@ -11,11 +11,13 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    # - name: Setup Node.js
-    #   uses: actions/setup-node@v4
-    #     with:
-    #       cache: 'npm'
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        cache: 'npm'
+    - name: Install dependencies
+      run: npm i @stylistic/eslint-plugin @eslint/js eslint globals
     - name: Run ESLint
-      run: npx eslint . --config .eslintrc.json
-
-
+      # run: npx eslint . --config .eslintrc.json
+      # run: npx -p @stylistic/eslint-plugin -p @eslint/js -p eslint -p globals -c 'eslint .'
+      run: npx eslint .

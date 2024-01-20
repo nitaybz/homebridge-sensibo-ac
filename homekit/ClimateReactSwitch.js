@@ -6,6 +6,8 @@ class ClimateReactSwitch {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
 
+		this.Utils = require('../sensibo/Utils')(this, platform)
+
 		this.log = airConditioner.log
 		this.api = airConditioner.api
 		this.id = airConditioner.id
@@ -13,11 +15,10 @@ class ClimateReactSwitch {
 		this.serial = airConditioner.serial + '_CR'
 		this.manufacturer = airConditioner.manufacturer
 		this.roomName = airConditioner.roomName
-		this.name = this.roomName + ' Climate React'
-		this.type = 'ClimateReact'
-		this.displayName = this.name
-		this.state = airConditioner.state
+		this.name = this.roomName + ' ClimateReact'
+		this.type = 'ClimateReactSwitch'
 
+		this.state = airConditioner.state
 		this.stateManager = airConditioner.stateManager
 
 		this.UUID = this.api.hap.uuid.generate(this.id + '_CR')
@@ -50,34 +51,27 @@ class ClimateReactSwitch {
 			.setCharacteristic(Characteristic.Model, this.model)
 			.setCharacteristic(Characteristic.SerialNumber, this.serial)
 
-		this.addClimateReactService()
+		this.addClimateReactSwitchService()
 	}
 
-	addClimateReactService() {
-		this.log.easyDebug(`${this.name} - Adding ClimateReactService`)
+	addClimateReactSwitchService() {
+		this.log.easyDebug(`${this.name} - Adding ClimateReactSwitchService`)
 
-		this.ClimateReactService = this.accessory.getService(Service.Switch)
-		if (!this.ClimateReactService) {
-			this.ClimateReactService = this.accessory.addService(Service.Switch, this.name, this.type)
+		this.ClimateReactSwitchService = this.accessory.getService(this.name)
+		if (!this.ClimateReactSwitchService) {
+			this.ClimateReactSwitchService = this.accessory.addService(Service.Switch, this.name, this.type)
 		}
 
-		this.ClimateReactService.getCharacteristic(Characteristic.On)
-			.on('get', this.stateManager.get.ClimateReactEnabledSwitch)
-			.on('set', this.stateManager.set.ClimateReactEnabledSwitch)
+		this.ClimateReactSwitchService.getCharacteristic(Characteristic.On)
+			.on('get', this.stateManager.get.ClimateReactSwitch)
+			.on('set', this.stateManager.set.ClimateReactSwitch)
 	}
 
 	updateHomeKit() {
-		const smartModeEnabledState = this.state.smartMode.enabled ?? false
+		const smartModeEnabledState = this.state?.smartMode?.enabled ?? false
 
 		// update Climate React Service
-		this.updateValue('ClimateReactService', 'On', smartModeEnabledState)
-	}
-
-	updateValue (serviceName, characteristicName, newValue) {
-		if (this[serviceName].getCharacteristic(Characteristic[characteristicName]).value !== newValue) {
-			this[serviceName].getCharacteristic(Characteristic[characteristicName]).updateValue(newValue)
-			this.log.easyDebug(`${this.name} - Updated '${characteristicName}' for ${serviceName} with NEW VALUE: ${newValue}`)
-		}
+		this.Utils.updateValue('ClimateReactSwitchService', 'On', smartModeEnabledState)
 	}
 
 }

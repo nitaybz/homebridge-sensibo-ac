@@ -103,6 +103,9 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 		}
 	}
 
+	// StateHandler is invoked as a Proxy, and therefore overwrites/intercepts the default get()/set() commands [traps]
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+
 	// NOTE: device.state is of "type" StateHandler. When one of its properties is "set" (e.g. device.state.<property> = <val>),
 	//       that's where we actually send commands to the appropriate Sensibo devices. If a property is not set, the aformentioned
 	//       code will not execute and the changes would not take effect.
@@ -116,13 +119,14 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 
 // TODO: perhaps make this a class?
 module.exports = (device, platform) => {
-	const Characteristic = platform.api.hap.Characteristic
+	Characteristic = platform.api.hap.Characteristic
 	const log = platform.log
 	const enableClimateReactAutoSetup = platform.enableClimateReactAutoSetup
 
 	return {
 
 		get: {
+			// TODO: refactor this similar to PureActive below?
 			ACActive: (callback) => {
 				const active = device.state.active
 				const mode = device.state.mode
@@ -407,7 +411,7 @@ module.exports = (device, platform) => {
 			},
 
 			// CLIMATE REACT
-			ClimateReactEnabledSwitch: (callback) => {
+			ClimateReactSwitch: (callback) => {
 				const smartModeEnabled = device.state.smartMode.enabled
 
 				log.easyDebug(device.name, '(GET) - Climate React Enabled Switch:', smartModeEnabled)
@@ -518,7 +522,8 @@ module.exports = (device, platform) => {
 				const mode = characteristicToMode(lastMode)
 
 				device.state.targetTemperature = targetTemp
-				log.easyDebug(device.name, '(SET) - target HeaterCooler State:', mode)
+				// TODO: do we need the below? Does it turn the unit on if it's currently off?
+				log.easyDebug(device.name, '(SET) - Target HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
 
@@ -721,11 +726,11 @@ module.exports = (device, platform) => {
 			},
 
 			// CLIMATE REACT
-			ClimateReactEnabledSwitch: (state, callback) => {
+			ClimateReactSwitch: (state, callback) => {
 				log.easyDebug(device.name, '(SET) - Climate React Enabled Switch:', state)
 				const smartModeState = device.state.smartMode
 
-				smartModeState.enabled = state
+				smartModeState.enabled = !!state
 
 				// NOTE: we must set the 'smartMode' property directly (and NOT for example like so: device.state.smartMode.enabled = true),
 				//       otherwise the StateHandler's setter code will not be executed and any changes will not take effect.
@@ -747,4 +752,3 @@ module.exports = (device, platform) => {
 
 	}
 }
-

@@ -25,7 +25,6 @@ class AirConditioner {
 		this.roomName = deviceInfo.roomName
 		this.name = this.roomName + ' AC'
 		this.type = 'AirConditioner'
-		this.displayName = this.name
 		this.disableHumidity = platform.disableHumidity
 		this.modesToExclude = platform.modesToExclude
 		this.temperatureUnit = deviceInfo.temperatureUnit
@@ -42,7 +41,7 @@ class AirConditioner {
 		this.filterService = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device, platform)
 
-		const StateHandler = require('../sensibo/StateHandler')(this, platform)
+		const StateHandler = require('./StateHandler')(this, platform)
 
 		this.state = this.cachedState.devices[this.id] = unified.acState(device)
 		this.state = new Proxy(this.state, StateHandler)
@@ -60,6 +59,7 @@ class AirConditioner {
 			this.accessory.context.deviceId = this.id
 
 			platform.cachedAccessories.push(this.accessory)
+
 			// register the accessory
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
@@ -192,7 +192,9 @@ class AirConditioner {
 		this.addCharacteristicToService('HeaterCooler', 'TemperatureDisplayUnits', null, false)
 
 		if (!this.disableHumidity) {
-			//TODO: check on this warning...
+			//TODO: check on warning... Humidity isn't a supported Characteristic of HeaterCooler
+			// Could we create a new custom Characteristic?
+			// const customHumidity = new Characteristic('CustomHumidity', this.api.hap.uuid.generate('CustomHumidity'+this.id))
 			this.addCharacteristicToService('HeaterCooler', 'CurrentRelativeHumidity', null, false)
 		} else {
 			this.log.easyDebug(`${this.name} - Removing Humidity characteristic`)
@@ -281,9 +283,15 @@ class AirConditioner {
 				.on('get', this.stateManager.get.ACSwing)
 				.on('set', this.stateManager.set.ACSwing)
 		} else {
-			this.log.easyDebug('Removing Vertical Swing (Oscillate) button')
+			this.log.easyDebug(`${this.name} - Removing Vertical Swing (Oscillate) button`)
 			// TODO: WIP trying to find a way to remove the Oscillate switch immediately, without needing the user to
 			// remove / reset the accessory... there doesn't seem to be a way to force a 'refresh'
+			// Could we: 1. hide the characteristic from the user? HMCharacteristicPropertyHidden
+			// 2. Error the Characteristic?
+			// this.HeaterCoolerService.updateCharacteristic(Characteristic.SwingMode, new Error('A placeholder error object'))
+			// 3. Remove and re-add the whole service or accessory?
+			// 4. Try to see if the characteristic exists? this.HeaterCoolerService.testCharacteristic(Characteristic.SwingMode)
+			// 5. Set StatusActive Characteristic - https://github.com/homebridge/HAP-NodeJS/wiki/Presenting-Erroneous-Accessory-State-to-the-User
 			this.HeaterCoolerService.removeCharacteristic(Characteristic.SwingMode)
 		}
 
@@ -370,6 +378,7 @@ class AirConditioner {
 			.on('get', this.stateManager.get.DryActive)
 			.on('set', this.stateManager.set.DryActive)
 
+		// CurrentRelativeHumidity is required on HumidifierDehumidifier, so we add regardless of "disableHumidity"
 		this.DryService.getCharacteristic(Characteristic.CurrentRelativeHumidity)
 			.on('get', this.stateManager.get.CurrentRelativeHumidity)
 
@@ -438,9 +447,9 @@ class AirConditioner {
 	addLightSwitch() {
 		this.log.easyDebug(`${this.name} - Adding LightSwitchService`)
 
-		this.LightSwitchService = this.accessory.getService(this.roomName + ' AC Light')
+		this.LightSwitchService = this.accessory.getService(this.roomName + ' Light')
 		if (!this.LightSwitchService) {
-			this.LightSwitchService = this.accessory.addService(Service.Lightbulb, this.roomName + ' AC Light', 'LightSwitch')
+			this.LightSwitchService = this.accessory.addService(Service.Lightbulb, this.roomName + ' Light', 'LightSwitch')
 		}
 
 		this.LightSwitchService.getCharacteristic(Characteristic.On)
@@ -449,7 +458,7 @@ class AirConditioner {
 	}
 
 	removeLightSwitch() {
-		const LightSwitch = this.accessory.getService(this.roomName + ' AC Light')
+		const LightSwitch = this.accessory.getService(this.roomName + ' Light')
 
 		if (LightSwitch) {
 			// remove service
@@ -461,9 +470,9 @@ class AirConditioner {
 	addSyncButtonService() {
 		this.log.easyDebug(`${this.name} - Adding SyncButtonSwitchService`)
 
-		this.SyncButtonService = this.accessory.getService('SyncButton')
+		this.SyncButtonService = this.accessory.getService(this.roomName + ' Sync')
 		if (!this.SyncButtonService) {
-			this.SyncButtonService = this.accessory.addService(Service.Switch, this.name + ' Sync', 'SyncButton')
+			this.SyncButtonService = this.accessory.addService(Service.Switch, this.roomName + ' Sync', 'SyncButtonSwitch')
 		}
 
 		this.SyncButtonService.getCharacteristic(Characteristic.On)
@@ -479,7 +488,7 @@ class AirConditioner {
 	}
 
 	removeSyncButtonService() {
-		const SyncButtonService = this.accessory.getService('SyncButton')
+		const SyncButtonService = this.accessory.getService(this.roomName + ' Sync')
 
 		if (SyncButtonService) {
 			// remove service
@@ -489,20 +498,20 @@ class AirConditioner {
 	}
 
 	addClimateReactService() {
-		this.log.easyDebug(`${this.roomName} - Adding Climate React Switch Service`)
+		this.log.easyDebug(`${this.roomName} - Adding Climate React Service`)
 
-		this.ClimateReactService = this.accessory.getService('ClimateReact')
+		this.ClimateReactService = this.accessory.getService(this.roomName + ' Climate React')
 		if (!this.ClimateReactService) {
 			this.ClimateReactService = this.accessory.addService(Service.Switch, this.roomName + ' Climate React' , 'ClimateReact')
 		}
 
 		this.ClimateReactService.getCharacteristic(Characteristic.On)
-			.on('get', this.stateManager.get.ClimateReactEnabledSwitch)
-			.on('set', this.stateManager.set.ClimateReactEnabledSwitch)
+			.on('get', this.stateManager.get.ClimateReactSwitch)
+			.on('set', this.stateManager.set.ClimateReactSwitch)
 	}
 
 	removeClimateReactService() {
-		const ClimateReactService = this.accessory.getService('ClimateReact')
+		const ClimateReactService = this.accessory.getService(this.roomName + ' Climate React')
 
 		if (ClimateReactService) {
 			// remove service
@@ -514,7 +523,6 @@ class AirConditioner {
 	updateHomeKit() {
 		// log new state with FakeGato
 		if (this.loggingService) {
-			// TODO: add CO2 and VOCs
 			// TODO: remove humidity if disabled
 			this.loggingService.addEntry({
 				time: Math.floor((new Date()).getTime()/1000),
@@ -523,14 +531,23 @@ class AirConditioner {
 			})
 		}
 
+		if (this.ClimateReactService) {
+			const smartModeEnabledState = this.state?.smartMode?.enabled ?? false
+
+			// update Climate React Service
+			this.updateValue('ClimateReactService', 'On', smartModeEnabledState)
+		}
+
 		if (this.HeaterCoolerService) {
 			// update measurements
 			this.Utils.updateValue('HeaterCoolerService', 'CurrentTemperature', this.state.currentTemperature)
-			this.Utils.updateValue('HeaterCoolerService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
+
+			if (!this.disableHumidity) {
+				this.Utils.updateValue('HeaterCoolerService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
+			}
 		}
 
-		// TODO: could this just check this.DryService?
-		if (this.capabilities.DRY && !this.disableDry) {
+		if (this.DryService) {
 			this.Utils.updateValue('DryService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
 		}
 
