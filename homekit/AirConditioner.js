@@ -435,7 +435,8 @@ class AirConditioner {
 	}
 
 	removeHorizontalSwingSwitch() {
-		const HorizontalSwingSwitch = this.accessory.getService(this.roomName + ' Horizontal Swing')
+		// Below || is required in case of name/type change of HorizontalSwingSwitch Service
+		const HorizontalSwingSwitch = this.accessory.getService('HorizontalSwingSwitch') || this.accessory.getService(this.roomName + ' Horizontal Swing')
 
 		if (HorizontalSwingSwitch) {
 			// remove service
@@ -447,9 +448,9 @@ class AirConditioner {
 	addLightSwitch() {
 		this.log.easyDebug(`${this.name} - Adding LightSwitchService`)
 
-		this.LightSwitchService = this.accessory.getService(this.roomName + ' Light')
+		this.LightSwitchService = this.accessory.getService(this.roomName + 'AC Light')
 		if (!this.LightSwitchService) {
-			this.LightSwitchService = this.accessory.addService(Service.Lightbulb, this.roomName + ' Light', 'LightSwitch')
+			this.LightSwitchService = this.accessory.addService(Service.Lightbulb, this.roomName + 'AC Light', 'LightSwitch')
 		}
 
 		this.LightSwitchService.getCharacteristic(Characteristic.On)
@@ -458,7 +459,8 @@ class AirConditioner {
 	}
 
 	removeLightSwitch() {
-		const LightSwitch = this.accessory.getService(this.roomName + ' Light')
+		// Below || is required in case of name/type change of LightSwitch Service
+		const LightSwitch = this.accessory.getService('LightSwitch') || this.accessory.getService(this.roomName + 'AC Light')
 
 		if (LightSwitch) {
 			// remove service
@@ -488,7 +490,8 @@ class AirConditioner {
 	}
 
 	removeSyncButtonService() {
-		const SyncButtonService = this.accessory.getService(this.roomName + ' Sync')
+		// Below || is required in case of name/type change of SyncButton Service
+		const SyncButtonService = this.accessory.getService('SyncButton') || this.accessory.getService('SyncButtonSwitch') || this.accessory.getService(this.roomName + ' Sync')
 
 		if (SyncButtonService) {
 			// remove service
@@ -511,7 +514,8 @@ class AirConditioner {
 	}
 
 	removeClimateReactService() {
-		const ClimateReactService = this.accessory.getService(this.roomName + ' Climate React')
+		// Below || is required in case of name/type change of ClimateReact Service
+		const ClimateReactService = this.accessory.getService('ClimateReact') || this.accessory.getService(this.roomName + ' Climate React')
 
 		if (ClimateReactService) {
 			// remove service

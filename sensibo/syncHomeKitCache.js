@@ -140,7 +140,7 @@ module.exports = (platform) => {
 
 			if (!isActive) {
 				// TODO: should we remove non-active accessories immediately? see also AirQualitySensor below
-				platform.log.easyDebug(`Accessory, ${accessory.name}, not in activeAccessories[]`)
+				platform.log.easyDebug(`Accessory type: ${accessory.context.type}, Name: ${accessory.name}, not in activeAccessories[]`)
 			}
 
 			let deviceExists, sensorExists, locationExists
@@ -214,6 +214,7 @@ module.exports = (platform) => {
 					deviceExists = platform.devices.find(device => {
 						return device.id === accessory.context.deviceId && device.remoteCapabilities
 					})
+
 					if (!deviceExists || !platform.enableSyncButton || platform.syncButtonInAccessory) {
 						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
 						accessoriesToRemove.push(accessory)
@@ -221,6 +222,7 @@ module.exports = (platform) => {
 					break
 
 				case 'ClimateReact':
+				case 'ClimateReactSwitch':
 					deviceExists = platform.devices.find(device => {
 						return device.id === accessory.context.deviceId && device.remoteCapabilities
 					})
@@ -235,6 +237,7 @@ module.exports = (platform) => {
 					locationExists = platform.devices.find(device => {
 						return device.location.id === accessory.context.locationId
 					})
+
 					if (!locationExists || !platform.enableOccupancySensor) {
 						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
 						accessoriesToRemove.push(accessory)
@@ -244,6 +247,9 @@ module.exports = (platform) => {
 						})
 					}
 					break
+
+				default:
+					platform.log(`Cached ${accessory.context.type} accessory, name: ${accessory.name}, did not match Switch, not removed`)
 			}
 		})
 

@@ -42,7 +42,7 @@ module.exports = (platform) => {
 
 						// Update Climate React Switch state in HomeKit
 						const climateReactSwitch = platform.activeAccessories.find(accessory => {
-							return accessory.type === 'ClimateReact' && accessory.id === device.id
+							return (accessory.type === 'ClimateReactSwitch') && accessory.id === device.id
 						})
 
 						if (climateReactSwitch) {
