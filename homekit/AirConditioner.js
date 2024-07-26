@@ -462,7 +462,15 @@ class AirConditioner {
 	addLightSwitch() {
 		this.log.easyDebug(`${this.name} - Adding LightSwitchService`)
 
-		this.LightSwitchService = this.accessory.getService(this.roomName + 'AC Light')
+		// Required due to #141 - v2.5.0 changed LightSwitch service name, which caused conflicts, v2.5.1 restored previous naming
+		// TODO: plan for this to be removed in a future version
+		const LightSwitchFix = this.accessory.getService(this.roomName + 'AC Light')
+
+		if (LightSwitchFix) {
+			this.removeLightSwitchFix()
+		}
+
+		this.LightSwitchService = this.accessory.getService(this.roomName + ' AC Light')
 		if (!this.LightSwitchService) {
 			this.LightSwitchService = this.accessory.addService(Service.Lightbulb, this.roomName + 'AC Light', 'LightSwitch')
 		}
@@ -474,12 +482,23 @@ class AirConditioner {
 
 	removeLightSwitch() {
 		// Below || is required in case of name/type change of LightSwitch Service
-		const LightSwitch = this.accessory.getService('LightSwitch') || this.accessory.getService(this.roomName + 'AC Light')
+		const LightSwitch = this.accessory.getService('LightSwitch') || this.accessory.getService(this.roomName + ' AC Light')
 
 		if (LightSwitch) {
 			// remove service
 			this.log.easyDebug(`${this.name} - Removing LightSwitchService`)
 			this.accessory.removeService(LightSwitch)
+		}
+	}
+
+	removeLightSwitchFix() {
+		// Required due to #141 - v2.5.0 changed LightSwitch service name, which caused conflicts, v2.5.1 restored previous naming
+		const LightSwitchFix = this.accessory.getService(this.roomName + 'AC Light')
+
+		if (LightSwitchFix) {
+			// remove service
+			this.log.easyDebug(`${this.name} - Removing LightSwitchFixService`)
+			this.accessory.removeService(LightSwitchFix)
 		}
 	}
 
