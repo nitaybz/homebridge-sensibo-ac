@@ -218,7 +218,6 @@ class AirConditioner extends SensiboAccessory {
 		} else {
 			// TODO: WIP trying to find a way to remove the Humidity characteristic immediately
 			this.easyDebugInfo(`${this.name} - Removing Humidity characteristic`)
-			// @ts-ignore
 			this.HeaterCoolerService.removeCharacteristic(this.Characteristic.CurrentRelativeHumidity)
 		}
 
@@ -330,7 +329,6 @@ class AirConditioner extends SensiboAccessory {
 			//       4. Try to see if the characteristic exists? this.HeaterCoolerService.testCharacteristic(Characteristic.SwingMode)
 			//       5. Set StatusActive Characteristic - https://github.com/homebridge/HAP-NodeJS/wiki/Presenting-Erroneous-Accessory-State-to-the-User
 			this.easyDebugInfo(`${this.name} - Removing Vertical Swing (Oscillate) button`)
-			// @ts-ignore
 			this.HeaterCoolerService.removeCharacteristic(this.Characteristic.SwingMode)
 		}
 
