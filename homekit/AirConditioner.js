@@ -385,7 +385,6 @@ class AirConditioner extends SensiboAccessory {
 		} else {
 			// TODO: WIP trying to find a way to remove the Vertical Swing (Oscillate) button immediately without needing the user to remove/reset the accessory.
 			this.easyDebugInfo(`${this.name} - Removing Vertical Swing (Oscillate) button`)
-			// @ts-ignore
 			this.FanService.removeCharacteristic(this.Characteristic.SwingMode)
 		}
 
@@ -441,7 +440,6 @@ class AirConditioner extends SensiboAccessory {
 		} else {
 			// TODO: WIP trying to find a way to remove the Vertical Swing (Oscillate) button immediately without needing the user to remove/reset the accessory.
 			this.easyDebugInfo(`${this.name} - Removing Vertical Swing (Oscillate) button`)
-			// @ts-ignore
 			this.DryService.removeCharacteristic(this.Characteristic.SwingMode)
 		}
 
