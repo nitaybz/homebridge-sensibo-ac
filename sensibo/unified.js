@@ -87,6 +87,8 @@ module.exports = {
 			}
 
 			// set fanSpeeds
+			// TODO: fanLevels.length will evaluate to 0 if empty... should it be > 0?
+			// Note: it looks like if .length evaluates to 0 then that is treated the same as 'false'?
 			if (modeCapabilities.fanLevels && modeCapabilities.fanLevels.length) {
 				capabilities[mode].fanSpeeds = modeCapabilities.fanLevels
 

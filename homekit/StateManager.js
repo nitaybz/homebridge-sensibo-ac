@@ -269,7 +269,7 @@ module.exports = (device, platform) => {
 			},
 
 			PureRotationSpeed: (callback) => {
-				const fanSpeed = device.state.fanSpeed
+				const fanSpeed = device.state.fanSpeed ?? 0
 
 				log.easyDebug(device.name, '(GET) - Pure Rotation Speed:', fanSpeed + '%')
 
@@ -318,7 +318,7 @@ module.exports = (device, platform) => {
 			},
 
 			FanRotationSpeed: (callback) => {
-				const fanSpeed = device.state.fanSpeed
+				const fanSpeed = device.state.fanSpeed ?? 0
 
 				log.easyDebug(device.name, '(GET) - Fan Rotation Speed:', fanSpeed + '%')
 
@@ -363,7 +363,7 @@ module.exports = (device, platform) => {
 			},
 
 			DryRotationSpeed: (callback) => {
-				const fanSpeed = device.state.fanSpeed
+				const fanSpeed = device.state.fanSpeed ?? 0
 
 				log.easyDebug(device.name, '(GET) - Dry Rotation Speed:', fanSpeed + '%')
 

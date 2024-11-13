@@ -104,7 +104,7 @@ class AirQualitySensor {
 	}
 
 	removeAirQualityService() {
-		const AirQualitySensor = this.accessory.getService('AirQualitySensor')
+		const AirQualitySensor = this.accessory.getService(Service.AirQualitySensor) || this.accessory.getService('AirQualitySensor')
 
 		if (AirQualitySensor) {
 			// remove service
@@ -128,7 +128,7 @@ class AirQualitySensor {
 	}
 
 	removeCarbonDioxideService() {
-		const CarbonDioxideSensor = this.accessory.getService('CarbonDioxideSensor')
+		const CarbonDioxideSensor = this.accessory.getService(Service.CarbonDioxideSensor) || this.accessory.getService('CarbonDioxideSensor')
 
 		if (CarbonDioxideSensor) {
 			// remove service
