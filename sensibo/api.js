@@ -118,7 +118,9 @@ async function apiRequest(method, url, data) {
 		axios({
 			method,
 			url,
-			data
+			data,
+			headers: { 'Accept-Encoding': 'gzip' },
+			decompress: true
 		})
 			.then(response => {
 				const json = response.data
