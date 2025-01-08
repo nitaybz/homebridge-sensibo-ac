@@ -30,7 +30,7 @@ module.exports = {
 			appId: 'com.sensibo.Sensibo',
 			roomName: device.room?.name ?? device.roomName,
 			temperatureUnit: device.temperatureUnit,
-			filterService: device.filtersCleaning ? true : false,
+			filterService: device.filtersCleaning ? true : false
 		}
 	},
 
@@ -134,13 +134,16 @@ module.exports = {
 		return capabilities
 	},
 
-	acState: device => {
+	acStateFromDevice: device => {
 		const state = {
 			active: device.acState.on,
 			mode: device.acState.mode.toUpperCase(),
 			targetTemperature: !device.acState.targetTemperature ? null : device.acState.temperatureUnit === 'C' ? device.acState.targetTemperature : toCelsius(device.acState.targetTemperature),
 			currentTemperature: device.measurements.temperature,
 			relativeHumidity: device.measurements.humidity,
+			// TODO: BIG change, but consider moving smartMode out to be a sibling of state, rather than a child
+			// This would have impacts in a number of places, including StateHandler (might need a separate Proxy?),
+			// but could simplify other object interactions? E.g. changing a single property within smartMode
 			smartMode: device.smartMode,
 			light: device.acState.light && device.acState.light !== 'off',
 			pureBoost: device.pureBoostConfig && device.pureBoostConfig.enabled
@@ -185,7 +188,7 @@ module.exports = {
 		return state
 	},
 
-	airQualityState: (device, Constants) => {
+	airQualityStateFromDevice: (device, Constants) => {
 		const state = {}
 
 		state.airQuality = device.measurements?.pm25 ?? 0

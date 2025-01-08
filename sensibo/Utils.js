@@ -8,8 +8,8 @@ module.exports = (device, platform) => {
 
 		/**
 		 * Convert degrees F to degrees C
-		 * @param  {Number} degreesF The degrees in F to convert
-		 * @returns {Number}         The degrees in C
+		 * @param  {number} degreesF The degrees in F to convert
+		 * @returns {number}         The degrees in C
 		 */
 		toCelsius: (degreesF) => {
 			const degreesC = (degreesF - 32) / 1.8
@@ -21,8 +21,8 @@ module.exports = (device, platform) => {
 
 		/**
 		 * Convert degrees C to degrees F
-		 * @param  {Number} degreesC The degrees in C to convert
-		 * @returns {Number}         The degrees in F
+		 * @param  {number} degreesC The degrees in C to convert
+		 * @returns {number}         The degrees in F
 		 */
 		toFahrenheit: (degreesC) => {
 			const degreesF = Math.round((degreesC * 1.8) + 32)
@@ -41,9 +41,10 @@ module.exports = (device, platform) => {
 
 		/**
 		 * Checks the given Service for the given Characteristic, if found, validates the newValue and updates the Characteristic with it
-		 * @param  {String}        serviceName        The Service to update
-		 * @param  {String}        characteristicName The Characteristic to update
-		 * @param  {Number|String} newValue           The value that the Characteristic should be set to
+		 * @param  {string}        serviceName        The Service to update
+		 * @param  {string}        characteristicName The Characteristic to update
+		 * @param  {number|string} newValue           The value that the Characteristic should be set to
+		 * @returns {void}
 		 */
 		updateValue: (serviceName, characteristicName, newValue) => {
 			// log.easyDebug(`${device.name} - updateValue: ${newValue} for characteristic ${characteristicName} on service ${serviceName}`)

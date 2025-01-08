@@ -8,11 +8,17 @@ module.exports = (platform) => {
 			setTimeout(async () => {
 				try {
 					platform.log.easyDebug('Refreshing state...')
-					platform.devices = await platform.sensiboApi.getAllDevices()
+					const allDevices = await platform.sensiboApi.getAllDevices()
+
+					if (!platform.processingState && !platform.setProcessing) {
+						platform.devices = allDevices
+					}
+
 					await platform.storage.setItem('devices', platform.devices)
 					platform.log.easyDebug('Refreshing state completed.')
-				} catch(err) {
-					platform.log.easyDebug('<<<< ---- Refresh State FAILED! ---- >>>>')
+				} catch (err) {
+					platform.log('refreshState.js - <<<< ---- Refresh State FAILED! ---- >>>>')
+					platform.log(`refreshState.js - Error message: ${err.message}`)
 					platform.processingState = false
 					if (platform.pollingInterval) {
 						platform.log.easyDebug(`Will try again in ${platform.pollingInterval/1000} seconds...`)
@@ -38,7 +44,7 @@ module.exports = (platform) => {
 					if (airConditioner) {
 						// Update AC state in cache + HomeKit
 						platform.log.easyDebug(`Updating AC state in Cache + HomeKit for ${device.id}`)
-						airConditioner.state.update(unified.acState(device))
+						airConditioner.state.update(unified.acStateFromDevice(device))
 
 						// Update Climate React Switch state in HomeKit
 						const climateReactSwitch = platform.activeAccessories.find(accessory => {
@@ -58,7 +64,7 @@ module.exports = (platform) => {
 					// Update Pure state in cache + HomeKit
 					if (airPurifier) {
 						platform.log.easyDebug(`Updating Pure state in cache + HomeKit for for ${device.id}`)
-						airPurifier.state.update(unified.acState(device))
+						airPurifier.state.update(unified.acStateFromDevice(device))
 					}
 
 					const airQualitySensor = platform.activeAccessories.find(accessory => {
@@ -67,14 +73,15 @@ module.exports = (platform) => {
 
 					// Update Air Quality Sensor state in cache + HomeKit
 					if (airQualitySensor) {
-						// FIXME: need a better way to get constants in to the airQualityState function
+						// FIXME: need a better way to get constants in to the airQualityStateFromDevice function
+						// perhaps once it's moved to Utils.js it can have Platform scope?
 						const Constants = {
 							VOCDENSITY_MAX: platform.VOCDENSITY_MAX,
 							carbonDioxideAlertThreshold: platform.carbonDioxideAlertThreshold
 						}
 
 						platform.log.easyDebug(`Updating Air Quality Sensor state in cache + HomeKit for for ${device.id}`)
-						airQualitySensor.state.update(unified.airQualityState(device, Constants))
+						airQualitySensor.state.update(unified.airQualityStateFromDevice(device, Constants))
 					}
 
 					// Update Humidity Sensor state in HomeKit

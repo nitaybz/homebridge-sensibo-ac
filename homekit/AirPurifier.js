@@ -29,7 +29,7 @@ class AirPurifier {
 
 		const StateHandler = require('./StateHandler')(this, platform)
 
-		this.state = this.cachedState.devices[this.id] = unified.acState(device)
+		this.state = this.cachedState.devices[this.id] = unified.acStateFromDevice(device)
 		this.state = new Proxy(this.state, StateHandler)
 		this.stateManager = require('./StateManager')(this, platform)
 

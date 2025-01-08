@@ -20,6 +20,8 @@ class SensiboACPlatform {
 		this.PLUGIN_NAME = PLUGIN_NAME
 		this.PLATFORM_NAME = PLATFORM_NAME
 
+		this.log(`Starting ${this.PLUGIN_NAME}`)
+
 		// ~~~~~~~~~~~~~~~~~~~~~ Sensibo Specials ~~~~~~~~~~~~~~~~~~~~~ //
 
 		this.apiKey = config['apiKey']
@@ -27,9 +29,9 @@ class SensiboACPlatform {
 		this.password = config['password']
 
 		if (!this.apiKey && !(this.username && this.password)) {
-			this.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  --  ERROR  --  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
-			this.log('Can\'t start homebridge-sensibo-ac plugin without username and password or API key !!\n')
-			this.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
+			this.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  --  ERROR  --  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
+			this.log('Can\'t start homebridge-sensibo-ac plugin without username and password or API key!\n')
+			this.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
 
 			return
 		}
@@ -58,7 +60,7 @@ class SensiboACPlatform {
 		this.locationsToInclude = config['locationsToInclude'] || []
 
 		if (this.disableDry || this.disableFan) {
-			this.log('The disableDry and disableFan options have been deprecated, please use modesToExclude instead. See README.md for more details')
+			this.log('Warning: The disableDry and disableFan options have been deprecated, please use modesToExclude instead. See README.md for more details')
 		}
 
 		this.modesToExclude = config['modesToExclude']?.map(mode => {
@@ -125,9 +127,13 @@ class SensiboACPlatform {
 
 			try {
 				this.devices = await this.sensiboApi.getAllDevices()
+
 				await this.storage.setItem('devices', this.devices)
-			} catch(err) {
-				this.log('ERR:', err)
+
+				this.log(`Found ${this.devices.length} Sensibo devices, refreshing or adding to Homebridge based on your plugin settings.`)
+			} catch (err) {
+				this.log(`Error: index.js didFinishLaunching - Error message ${err}`)
+
 				this.devices = await this.storage.getItem('devices') || []
 			}
 
@@ -136,6 +142,9 @@ class SensiboACPlatform {
 			if (this.pollingInterval) {
 				this.pollingTimeout = setTimeout(this.refreshState, this.pollingInterval)
 			}
+
+			this.log(`✓ Finished initialisation. ${this.cachedAccessories.length} services running on ${this.devices.length} devices.`)
+			this.log(`This plugin is maintained by volunteers, please consider a ☆ on GitHub if you find it useful!`)
 		})
 	}
 

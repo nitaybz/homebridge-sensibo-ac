@@ -35,7 +35,7 @@ Check with: `node -v` & `homebridge -V` and update if needed
 - **Vertical Swing** - allows you to enable/disable vertical swing of your AC
 - **AC Sync Button** - easily toggle the state of the AC between ON/OFF in case your AC is out of sync (does not send commands to the AC)
 - **Occupancy Sensor** - show the Home/Away status from Sensibo in the Home app via Occupancy sensor
-- **Climate React** - enable/disable Climate React (Smart mode). To adjust the settings, turn on Climate Reach Auto Setup
+- **Climate React** - enable/disable Climate React (Smart mode). To adjust the settings, use the Sensibo app or turn on Climate React Auto Setup
 - **Filter Cleaning Indication** - show filter status in the Home app for your accessories. Can be reset in the Eve app
 - **History Storage** - store temperature and humidity measurements over time, review them in the Eve app as a graph
 
@@ -124,7 +124,7 @@ See below the table for additional details on these settings.
 | `disableVerticalSwing`     |  When set to `true`, will remove the vertical swing control (Oscillate) from the accessory  |          |  `false` |  Boolean |
 | `enableClimateReactSwitch` |  Adds a switch to enable/disable Climate React (Smart mode)      |          |  `false` |  Boolean |
 | `climateReactSwitchInAccessory` |  When set to `true`, adds a **Climate React** switch (like `enableClimateReactSwitch` above) but within the AC accessory. It will also remove the standalone AC Climate React switch (if one exists). Works only when `enableClimateReactSwitch` is also set to true  |          |  `false` |  Boolean  |
-| `enableClimateReactAutoSetup` |  When set to `true`, will auto-update the Climate React (Smart mode) settings to match whenever the AC state is set or changed  |          |  `false` |  Boolean  |
+| `enableClimateReactAutoSetup` |  When set to `true`, will auto-update the Climate React (Smart mode) configuration to align whenever the AC state is set or changed  |          |  `false` |  Boolean  |
 | `enableHistoryStorage`     |  When set to `true`, temperature & humidity measurements will be stored over time, viewable as History in the Eve app  |          |  `false` |   Boolean |
 | `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home  |          |  `false` |  Boolean  |
 | `enableSyncButton`         |  When set to `true`, adds an **AC Sync** switch to toggle the state of the accessory in the Home app, without sending a command to the unit  |          |  `false` |  Boolean  |
@@ -258,7 +258,7 @@ Climate React (Smart mode) works similarly to Auto mode on ACs. It aims to keep 
 
 Use in conjunction with the occupancy sensor and you'll be able to get the "Sensibo Plus" feature that allows turning units on/off according to your geolocation.
 
-Note: To get full options, setup "Climate React" in the Sensibo app first.
+Note: To see the full options, setup "Climate React" in the Sensibo app first.
 
 #### Climate React switch
 
@@ -270,13 +270,17 @@ To show the **Climate React** switch within the AC accessory, instead of a separ
 
 #### Climate React auto setup
 
-When enabled, every time an AC's state is set or changed, the Climate React configuration will be updated so that the desired temperature is maintained.
+When enabled, every time the AC's temperature or speed is set or changed, the Climate React configuration will be updated so that the desired temperature is maintained.
 
-For example, if setting an AC to Cool and 25°C, Climate React will be set up such that when the temperature rises above 25°C the AC starts to cool and when the temperature drops below 24° (the target temperature minus 1 degree C, or the equivalent F delta), the AC will be turned off.
+For example, if setting an AC to Cool and 25°C, Climate React will be set such that when the temperature rises above 25°C the AC starts to cool and when the temperature drops below 24° (the target temperature minus 1 degree C, or the equivalent F delta), the AC will be turned off.
 
 When setting an AC to Heat with a target temprature, Climate React will be set to plus 1 degree C, or equivalent F delta.
 
 To enable **Climate React Auto Setup**, add `"enableClimateReactAutoSetup": true` to your config.
+
+Note: only temperature thresholds are supported by Climate React auto setup, for full options, see "Climate React" in the Sensibo app.
+
+Note 2: currently does not work on Dry or Fan modes (as these are treated as separate accessories).
 
 ### Filter cleaning indication
 
@@ -319,7 +323,7 @@ Great thanks to Sensibo company and especially Omer Enbar, their CEO & CO-Founde
 
 ## Support homebridge-sensibo-ac
 
-**homebridge-sensibo-ac** is a free plugin under the GNU license. It was originally developed as a contribution to the Homebridge/HOOBS community with lots of love and thoughts by [nitaybz](https://github.com/nitaybz). Now maintained by others.
+**homebridge-sensibo-ac** is a free plugin under the GNU license. It was originally developed as a contribution to the Homebridge/HOOBS community with lots of love and thoughts by [nitaybz](https://github.com/nitaybz). Now maintained by volunteers.
 
 Creating and maintaining Homebridge plugins takes time and effort, if you would like to share your appreciation, feel free to "Star" or donate.
 

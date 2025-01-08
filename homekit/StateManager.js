@@ -43,68 +43,121 @@ function sanitize(service, characteristic, value) {
 	return value
 }
 
+// FIXME: duplicated from StateHandler.js, needs to be moved to Utils.js
+function HKToFanLevel(value, fanLevels) {
+	let selected = 'auto'
+
+	if (!fanLevels.includes('auto')) {
+		selected = fanLevels[0]
+	}
+
+	if (value !== 0) {
+		fanLevels = fanLevels.filter(level => {
+			return level !== 'auto'
+		})
+		const totalLevels = fanLevels.length
+
+		for (let i = 0; i < fanLevels.length; i++) {
+			if (value <= Math.round(100 * (i + 1) / totalLevels)) {
+				selected = fanLevels[i]
+				break
+			}
+		}
+	}
+
+	return selected
+}
+
+// FIXME: duplicated from StateHandler.js, needs to be moved to Utils.js
+function formattedSwingModes(deviceCapabilities, state) {
+	const apiSwingModes = {}
+
+	if ('threeDimensionalSwing' in deviceCapabilities) {
+		if ((state.horizontalSwing === 'SWING_ENABLED') && (state.verticalSwing === 'SWING_ENABLED')) {
+			apiSwingModes.swing = 'both'
+		} else if (state.verticalSwing === 'SWING_ENABLED') {
+			apiSwingModes.swing = 'rangeFull'
+		} else if (state.horizontalSwing === 'SWING_ENABLED') {
+			apiSwingModes.swing = 'horizontal'
+		} else {
+			apiSwingModes.swing = 'stopped'
+		}
+	} else {
+		if ('verticalSwing' in deviceCapabilities) {
+			apiSwingModes.swing = state.verticalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+		}
+
+		if ('horizontalSwing' in deviceCapabilities) {
+			apiSwingModes.horizontalSwing = state.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+		}
+	}
+
+	return apiSwingModes
+}
+
+/**
+ * Updates device.state.smartMode with a new ClimateReact state, should be called whenever a (relevant) change is made to the accessory.
+ * Note: Currently only works for AC (Auto, Cool, Heat) as Dry and Fan are separate accessories.
+ * @param  {object}  device                      Object containing devices current settings and state, including current smartMode
+ * @param  {boolean} enableClimateReactAutoSetup Should auto setup (auto update) be run
+ * @returns {void}
+ */
 function updateClimateReact(device, enableClimateReactAutoSetup) {
+	// TODO: Invoking this could (should?) be moved to within StateHandler.js 'set' proxy, e.g. whenever fanSpeed is changed and
+	//       enableClimateReactAutoSetup is true the new value also gets passed to ClimateReact (smartMode), however that would then
+	//       required a way to check if the changing prop(erty) was "valid" for ClimateReact, for example fanSpeed being changed when
+	//       operating on Dry mode wouldn't be relevant.
+
+	// TODO: Need to check if ClimateReact is even valid for Pure (Air Purifier), as set PureActive and set PureRotationSpeed call this.
+
 	if (!enableClimateReactAutoSetup) {
 		return
 	}
 
-	// If nothing has changed should we skip...? Like we do in StateHandler for SET?
+	// If nothing (relevant) has changed should we skip...? Like we do in StateHandler for SET?
 
 	const smartModeState = device.state.smartMode
 
 	smartModeState.type = 'temperature'
 	smartModeState.highTemperatureWebhook = null
 	smartModeState.lowTemperatureWebhook = null
+	smartModeState.highTemperatureState = {
+		targetTemperature: device.state.targetTemperature,
+		temperatureUnit: device.temperatureUnit,
+		mode: device.state.mode.toLowerCase()
+	}
+	// NOTE: structuredClone was introduced in Node 17, so won't exist for older implementations and will causes issues for anyone using Node <= 16
+	smartModeState.lowTemperatureState = structuredClone(smartModeState.highTemperatureState)
 
 	if (device.state.mode === 'COOL') {
 		smartModeState.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
-		smartModeState.highTemperatureState = {
-			on: true,
-			targetTemperature: device.state.targetTemperature,
-			temperatureUnit: device.temperatureUnit,
-			mode: device.state.mode,
-			fanSpeed: device.state.fanSpeed,
-			swing: device.state.verticalSwing,
-			horizontalSwing: device.state.horizontalSwing,
-			light: device.state.light
-		}
-
+		smartModeState.highTemperatureState.on = true
 		smartModeState.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
-		smartModeState.lowTemperatureState = {
-			on: false,
-			targetTemperature: device.state.targetTemperature,
-			temperatureUnit: device.temperatureUnit,
-			mode: device.state.mode,
-			fanSpeed: device.state.fanSpeed,
-			swing: device.state.verticalSwing,
-			horizontalSwing: device.state.horizontalSwing,
-			light: device.state.light
-		}
+		smartModeState.lowTemperatureState.on = false
 	} else if (device.state.mode === 'HEAT') {
 		smartModeState.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
-		smartModeState.highTemperatureState = {
-			on: false,
-			targetTemperature: device.state.targetTemperature,
-			temperatureUnit: device.temperatureUnit,
-			mode: device.state.mode,
-			fanSpeed: device.state.fanSpeed,
-			swing: device.state.verticalSwing,
-			horizontalSwing: device.state.horizontalSwing,
-			light: device.state.light
-		}
-
+		smartModeState.highTemperatureState.on = false
 		smartModeState.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
-		smartModeState.lowTemperatureState = {
-			on: true,
-			targetTemperature: device.state.targetTemperature,
-			temperatureUnit: device.temperatureUnit,
-			mode: device.state.mode,
-			fanSpeed: device.state.fanSpeed,
-			swing: device.state.verticalSwing,
-			horizontalSwing: device.state.horizontalSwing,
-			light: device.state.light
-		}
+		smartModeState.lowTemperatureState.on = true
 	}
+
+	if ('fanSpeeds' in device.capabilities[device.state.mode] && 'fanSpeed' in device.state) {
+		const currentFanLevel = HKToFanLevel(device.state.fanSpeed, device.capabilities[device.state.mode].fanSpeeds)
+
+		smartModeState.highTemperatureState.fanLevel = currentFanLevel
+		smartModeState.lowTemperatureState.fanLevel = currentFanLevel
+	}
+
+	if ('light' in device.state) {
+		smartModeState.highTemperatureState.light = device.state.light
+		smartModeState.lowTemperatureState.light = device.state.light
+	}
+
+	const swingModes = formattedSwingModes(device.capabilities[device.state.mode], device.state)
+
+	// be mindful .assign() copies references (not a deep clone): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#examples
+	Object.assign(smartModeState.highTemperatureState, swingModes)
+	Object.assign(smartModeState.lowTemperatureState, swingModes)
 
 	// StateHandler is invoked as a Proxy, and therefore overwrites/intercepts the default get()/set() commands [traps]
 	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
@@ -129,6 +182,7 @@ module.exports = (device, platform) => {
 	return {
 
 		get: {
+			// AC (Auto, Cool, Heat only)
 			// TODO: refactor this similar to PureActive below?
 			ACActive: (callback) => {
 				const active = device.state.active
@@ -464,6 +518,7 @@ module.exports = (device, platform) => {
 				callback(null, carbonDioxideLevel)
 			},
 
+			// AC SYNC BUTTON
 			SyncButton: (callback) => {
 				log.easyDebug(device.name, '(GET) - Sync Button, no state change')
 
@@ -472,6 +527,7 @@ module.exports = (device, platform) => {
 		},
 
 		set: {
+			// AC (Auto, Cool, Heat only)
 			ACActive: (state, callback) => {
 				state = !!state
 				log.easyDebug(device.name, '(SET) - AC Active State:', state)
@@ -486,16 +542,6 @@ module.exports = (device, platform) => {
 				} else if (device.state.mode === 'COOL' || device.state.mode === 'HEAT' || device.state.mode === 'AUTO') {
 					device.state.active = false
 				}
-
-				updateClimateReact(device, enableClimateReactAutoSetup)
-
-				callback()
-			},
-
-			PureActive: (state, callback) => {
-				state = !!state
-				log.easyDebug(device.name, '(SET) - Pure Active State:', state)
-				device.state.active = state
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
 
@@ -525,8 +571,8 @@ module.exports = (device, platform) => {
 				const mode = characteristicToMode(lastMode)
 
 				device.state.targetTemperature = targetTemp
-				// TODO: do we need the below? Does it turn the unit on if it's currently off?
-				log.easyDebug(device.name, '(SET) - Target HeaterCooler State:', mode)
+				// TODO: do we need the below? Does it turn the unit on if it's currently off? Maybe it's required by API
+				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
 
@@ -546,6 +592,7 @@ module.exports = (device, platform) => {
 				const mode = characteristicToMode(lastMode)
 
 				device.state.targetTemperature = targetTemp
+				// TODO: do we need the below? Does it turn the unit on if it's currently off? Maybe it's required by API
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
@@ -563,6 +610,7 @@ module.exports = (device, platform) => {
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
 
+				// TODO: do we need the below? Does it turn the unit on if it's currently off? Maybe it's required by API
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
@@ -579,11 +627,33 @@ module.exports = (device, platform) => {
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
 
+				// TODO: do we need the below? Does it turn the unit on if it's currently off? Maybe it's required by API
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
+
+				callback()
+			},
+
+			// PURE
+			PureActive: (state, callback) => {
+				state = !!state
+				log.easyDebug(device.name, '(SET) - Pure Active State:', state)
+				device.state.active = state
+
+				// TODO: check if ClimateReact is valid for Pure
+				updateClimateReact(device, enableClimateReactAutoSetup)
+
+				callback()
+			},
+
+			TargetAirPurifierState: (state, callback) => {
+				const pureBoost = !!state
+
+				log.easyDebug(device.name, '(SET) - Pure Target State (Boost):', pureBoost ? 'AUTO' : 'MANUAL')
+				device.state.pureBoost = pureBoost
 
 				callback()
 			},
@@ -597,6 +667,7 @@ module.exports = (device, platform) => {
 					device.state.active = false
 				}
 
+				// TODO: check if ClimateReact is valid for Pure
 				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
@@ -738,16 +809,6 @@ module.exports = (device, platform) => {
 				// NOTE: we must set the 'smartMode' property directly (and NOT for example like so: device.state.smartMode.enabled = true),
 				//       otherwise the StateHandler's setter code will not be executed and any changes will not take effect.
 				device.state.smartMode = smartModeState
-
-				callback()
-			},
-
-			// PURE BOOST
-			TargetAirPurifierState: (state, callback) => {
-				const pureBoost = !!state
-
-				log.easyDebug(device.name, '(SET) - Pure Target State (Boost):', pureBoost ? 'AUTO' : 'MANUAL')
-				device.state.pureBoost = pureBoost
 
 				callback()
 			}

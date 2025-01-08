@@ -3,7 +3,7 @@
 	"pluginType": "platform",
 	"singular": true,
 	"headerDisplay": "Homebridge plugin for Sensibo - Smart AC Control",
-	"footerDisplay": "Created by @nitaybz",
+	"footerDisplay": "Created by @nitaybz, maintained by volunteers, please consider a ☆ on GitHub if you find it useful!",
 	"schema": {
 		"type": "object",
 		"properties": {
@@ -47,6 +47,21 @@
 					"functionBody": "return model.auth === \"usernamePassword\";"
 				}
 			},
+			"modesToExclude": {
+				"title": "Air Conditioning Modes to Exclude",
+				"description": "Select the AC modes you want <strong>removed</strong> from your AC Accessories in the Home app (leave empty to keep all available modes)",
+				"type": "array",
+				"items": {
+					"type": "string",
+					"enum": [
+						"AUTO",
+						"COOL",
+						"DRY",
+						"FAN",
+						"HEAT"
+					]
+				}
+			},
 			"allowRepeatedCommands": {
 				"title": "Allow Repeated Commands",
 				"description": "Allow the plugin to send the same state command again",
@@ -81,21 +96,21 @@
 			},
 			"disableDry": {
 				"title": "Disable Dry Accessory",
-				"description": "*Deprecated* Remove dehumidifier (dry) mode from ACs",
+				"description": "<span class=\"text-danger\"><strong>*Deprecated*</strong></span> Remove dehumidifier (dry) mode from ACs. Use Modes to Exclude (above) instead",
 				"type": "boolean",
 				"default": false,
 				"required": false
 			},
 			"disableFan": {
 				"title": "Disable Fan Accessory",
-				"description": "*Deprecated* Remove fan mode from ACs",
+				"description": "<span class=\"text-danger\"><strong>*Deprecated*</strong></span> Remove fan mode from ACs. Use Modes to Exclude (above) instead",
 				"type": "boolean",
 				"default": false,
 				"required": false
 			},
 			"disableHumidity": {
 				"title": "Disable Humidity Sensor",
-				"description": "Remove Humidity readings",
+				"description": "Remove Humidity readings. Note: humidity will still show if you have Dry mode enabled",
 				"type": "boolean",
 				"default": false,
 				"required": false
@@ -135,16 +150,16 @@
 				"default": false,
 				"required": false
 			},
-            "enableClimateReactAutoSetup": {
-                "title": "Enable Climate React Auto Setup",
-                "description": "Auto-update the Climate React (Smart mode) configuration whenever the AC state is set or changed",
+			"climateReactSwitchInAccessory": {
+                "title": "Climate React Switch in AC Accessory",
+                "description": "Show the Climate React (Smart mode) switch in ACs (only works when `enableClimateReactSwitch` is set to true)",
                 "type": "boolean",
                 "default": false,
                 "required": false
             },
-            "climateReactSwitchInAccessory": {
-                "title": "Climate React Switch in AC Accessory",
-                "description": "Show the Climate React (Smart mode) switch in ACs (only works when `enableClimateReactSwitch` is set to true)",
+            "enableClimateReactAutoSetup": {
+                "title": "Enable Climate React Auto Setup",
+                "description": "Auto-update the Climate React (Smart mode) configuration to align whenever the AC state is set or changed",
                 "type": "boolean",
                 "default": false,
                 "required": false
@@ -198,21 +213,6 @@
 				"type": "array",
 				"items": {
 					"type": "string"
-				}
-			},
-			"modesToExclude": {
-				"title": "Air Conditioning Modes to Exclude",
-				"description": "Select the AC modes you want removed from your AC Accessories in the Home app (leave empty to keep all available modes)",
-				"type": "array",
-				"items": {
-					"type": "string",
-					"enum": [
-						"AUTO",
-						"COOL",
-						"DRY",
-						"FAN",
-						"HEAT"
-					]
 				}
 			},
 			"debug": {

@@ -5,7 +5,7 @@ const baseURL = 'https://home.sensibo.com/api/v2'
 let log
 
 function getToken(username, password, storage) {
-	// TODO: check on if the below is required
+	// FIXME: check on if the below is required
 	// eslint-disable-next-line no-async-promise-executor
 	return new Promise(async (resolve, reject) => {
 		const token = await storage.getItem('token')
@@ -13,7 +13,7 @@ function getToken(username, password, storage) {
 		// TODO: what happens if returned token doesn't work? E.g. password change... should token be "checked" for validity?
 		// TODO: Looks like Token expiry might be 15 years?!
 		if (token && token.username && token.username === username && new Date().getTime() < token.expirationDate) {
-			log.easyDebug('Found valid token in storage')
+			log.easyDebug('api.js getToken - Found valid token in storage')
 			resolve(token.key)
 
 			return
@@ -40,31 +40,31 @@ function getToken(username, password, storage) {
 						expirationDate: new Date().getTime() + response.data.expires_in*1000
 					}
 
-					log.easyDebug('Token successfully acquired from Sensibo API')
+					log.easyDebug('api.js getToken - Token successfully acquired from Sensibo API')
 					// log.easyDebug(tokenObj)
 					await storage.setItem('token', tokenObj)
 					resolve(tokenObj.key)
 				} else {
-					const error = `Inner Could NOT complete the the token request -> ERROR: "${response.data}"`
+					const errorMessage = `api.js getToken - Inner Could NOT complete token request -> Error message: "${response.data}"`
 
-					log(error)
-					reject(error)
+					log(errorMessage)
+					reject(errorMessage)
 				}
 			})
 			.catch(err => {
 				const errorContent = {}
 
-				errorContent.message = `Could NOT complete the the token request - ERROR: "${err.response.data.error_description || err.response.data.error}"`
+				errorContent.message = `api.js getToken - Could NOT complete token request -> Error message: "${err.response.data.error_description || err.response.data.error}"`
 
-				log('getToken:', errorContent.message)
+				log(errorContent.message)
 
 				if (err.response) {
-					log.easyDebug('Error response:')
-					log.easyDebug(err.response.data)
+					log('api.js getToken - err.response.data content:')
+					log(err.response.data)
 					errorContent.response = err.response.data
 				}
 
-				// log.easyDebug(err)
+				// log(err)
 				reject(errorContent)
 			})
 	})
@@ -96,20 +96,22 @@ async function apiRequest(method, url, data) {
 
 	// TODO: could add auto-retry for timeouts etc
 	if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
-		log.easyDebug('apiReqest error: No API Token or Authorization Header found')
+		log.easyDebug('api.js apiReqest - Error message: No API Token or Authorization Header found')
 
 		try {
 			const token = await getToken(this.username, this.password, this.storage)
 
-			axios.defaults.headers = { 'Authorization': 'Bearer ' + token }
-		} catch(err) {
-			log('apiRequest token error:', err.message || err)
+			if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
+				axios.defaults.headers = { Authorization: 'Bearer ' + token }
+			}
+		} catch (err) {
+			log('api.js apiRequest - Token error message:', err.message || err)
 			throw err
 		}
 	}
 
 	return new Promise((resolve, reject) => {
-		log.easyDebug(`Creating ${method.toUpperCase()} request to Sensibo API ->`)
+		log.easyDebug(`api.js apiRequest - Creating ${method.toUpperCase()} request to Sensibo API ->`)
 		log.easyDebug(baseURL + url)
 		if (data) {
 			log.easyDebug(`data: ${JSON.stringify(data, null, 4)}`)
@@ -127,7 +129,7 @@ async function apiRequest(method, url, data) {
 				let results
 
 				if (json.status && json.status == 'success') {
-					log.easyDebug(`Successful ${method.toUpperCase()} response:`)
+					log.easyDebug(`api.js apiRequest - Successful ${method.toUpperCase()} response:`)
 
 					// TODO: The below is only relevant for getAllDevices and getDevicesStates (and should be moved)
 					// It prevents address details being logged though (and adds ClimateReact if missing),
@@ -143,7 +145,7 @@ async function apiRequest(method, url, data) {
 				} else {
 					const error = json
 
-					log(`ERROR: ${error.reason} - "${error.message}"`)
+					log(`api.js apiRequest - Non-success message: ${error.reason} - "${error.message}"`)
 					log(json)
 					reject(error)
 				}
@@ -153,15 +155,15 @@ async function apiRequest(method, url, data) {
 
 				errorContent.errorURL = baseURL + url
 				errorContent.message = err.message
-				log(`Error URL: ${errorContent.errorURL}`)
-				log(`Error message: ${errorContent.message}`)
+				log(`api.js apiRequest - Error URL: ${errorContent.errorURL}`)
+				log(`api.js apiRequest - Error message: ${errorContent.message}`)
 
 				if (err.response) {
 					errorContent.response = err.response.data
-					log.easyDebug(`Error response: ${JSON.stringify(errorContent.response, null, 4)}`)
+					log(`api.js apiRequest - Error response: ${JSON.stringify(errorContent.response, null, 4)}`)
 				}
 
-				// log.easyDebug(err)
+				// log(err)
 				reject(errorContent)
 			})
 	})
@@ -184,10 +186,11 @@ module.exports = async function (platform) {
 		try {
 			const token = await getToken(platform.username, platform.password, platform.storage)
 
-			axios.defaults.headers = { 'Authorization': 'Bearer ' + token }
+			axios.defaults.headers = { Authorization: 'Bearer ' + token }
 			axios.defaults.params = { integration: integrationName }
 		} catch (err) {
-			log('The plugin was NOT able to find stored token or acquire one from Sensibo API -> it will not be able to set or get the state !!')
+			log('api.js check for apiKey or getToken - The plugin was NOT able to find a stored token or acquire a new one from Sensibo API -> plugin is not able to GET or SET the units!')
+			log(`Error message: ${err.message}`)
 		}
 	}
 	axios.defaults.baseURL = baseURL
@@ -201,19 +204,22 @@ module.exports = async function (platform) {
 
 			try {
 				allDevices = await apiRequest('get', path + '?' + queryString)
-			} catch(err) {
-				log('getAllDevices ERR:', err.message)
+			} catch (err) {
+				log('api.js getAllDevices - Error message:', err.message)
 				throw err
 			}
 
-			// TODO: the below will return an exception if above "get" fails... null check?
+			// TODO: the below will cause an exception if above "get" fails... null check?
+			// Or return void after throw err above (or return an empty array)? The thrown error _should_ be caught by the callers.
 			return allDevices.filter(device => {
-				return (platform.locationsToInclude.length === 0
-								|| platform.locationsToInclude.includes(device.location.id)
-								|| platform.locationsToInclude.includes(device.location.name))
-							&& !platform.devicesToExclude.includes(device.id)
-							&& !platform.devicesToExclude.includes(device.serial)
-							&& !platform.devicesToExclude.includes(device.room.name)
+				return (
+					platform.locationsToInclude.length === 0
+					|| platform.locationsToInclude.includes(device.location.id)
+					|| platform.locationsToInclude.includes(device.location.name)
+				)
+				&& !platform.devicesToExclude.includes(device.id)
+				&& !platform.devicesToExclude.includes(device.serial)
+				&& !platform.devicesToExclude.includes(device.room.name)
 			})
 		},
 

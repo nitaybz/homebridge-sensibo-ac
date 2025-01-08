@@ -31,7 +31,7 @@ class AirQualitySensor {
 
 		const StateHandler = require('./StateHandler')(this, platform)
 
-		this.state = this.cachedState.devices[this.id] = unified.airQualityState(device, Constants)
+		this.state = this.cachedState.devices[this.id] = unified.airQualityStateFromDevice(device, Constants)
 		this.state = new Proxy(this.state, StateHandler)
 		this.stateManager = require('./StateManager')(this, platform)
 
@@ -51,6 +51,8 @@ class AirQualitySensor {
 			// register the accessory
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
+
+		// FIXME: Add support for Sensibo Elements - see Github issue #103
 
 		// TODO: enable logging? See also line 143
 		// if (platform.enableHistoryStorage) {

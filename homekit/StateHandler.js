@@ -1,3 +1,4 @@
+// FIXME: duplicated in StateManager.js, needs to be moved to Utils.js
 function HKToFanLevel(value, fanLevels) {
 	let selected = 'auto'
 
@@ -22,30 +23,35 @@ function HKToFanLevel(value, fanLevels) {
 	return selected
 }
 
-function swingMode(deviceCapabilities, state) {
-	const swingModes = {}
+function toFahrenheit(value) {
+	return Math.round((value * 1.8) + 32)
+}
+
+// FIXME: duplicated in StateManager.js, needs to be moved to Utils.js
+function formattedSwingModes(deviceCapabilities, state) {
+	const apiSwingModes = {}
 
 	if ('threeDimensionalSwing' in deviceCapabilities) {
 		if ((state.horizontalSwing === 'SWING_ENABLED') && (state.verticalSwing === 'SWING_ENABLED')) {
-			swingModes.swing = 'both'
+			apiSwingModes.swing = 'both'
 		} else if (state.verticalSwing === 'SWING_ENABLED') {
-			swingModes.swing =  'rangeFull'
+			apiSwingModes.swing = 'rangeFull'
 		} else if (state.horizontalSwing === 'SWING_ENABLED') {
-			swingModes.swing = 'horizontal'
+			apiSwingModes.swing = 'horizontal'
 		} else {
-			swingModes.swing = 'stopped'
+			apiSwingModes.swing = 'stopped'
 		}
 	} else {
 		if ('verticalSwing' in deviceCapabilities) {
-			swingModes.swing = state.verticalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+			apiSwingModes.swing = state.verticalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
 		}
 
 		if ('horizontalSwing' in deviceCapabilities) {
-			swingModes.horizontalSwing = state.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+			apiSwingModes.horizontalSwing = state.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
 		}
 	}
 
-	return swingModes
+	return apiSwingModes
 }
 
 function sensiboFormattedACState(device, state) {
@@ -58,8 +64,9 @@ function sensiboFormattedACState(device, state) {
 		temperatureUnit: device.temperatureUnit,
 		targetTemperature: device.usesFahrenheit ? toFahrenheit(state.targetTemperature) : state.targetTemperature
 	}
-	const swingModes = swingMode(device.capabilities[state.mode], state)
+	const swingModes = formattedSwingModes(device.capabilities[state.mode], state)
 
+	// be mindful .assign() copies references (not a deep clone): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#examples
 	Object.assign(acState, swingModes)
 
 	if ('fanSpeeds' in device.capabilities[state.mode]) {
@@ -77,45 +84,81 @@ function sensiboFormattedACState(device, state) {
 
 function sensiboFormattedClimateReactState(device, state) {
 	device.log.easyDebug(`${device.name} -> sensiboFormattedClimateReactState start`)
-	// device.log.easyDebug(`${device.name} -> sensiboFormattedClimateReactState incoming state: ${JSON.stringify(state, null, 4)}`)
+	// device.log.easyDebug(`${device.name} -> sensiboFormattedClimateReactState state: ${JSON.stringify(state, null, 4)}`)
+
+	// Note: See Github issue #149, in the Sensibo app you can choose to set high, low or both as triggers
+	//       This means lowTemperatureState or highTemperatureState *could* be empty, this caused a silent error which
+	//       prevented the ClimateReact state (sensiboFormattedClimateReactState) from being set correctly and prevented
+	//       the API call.
+
+	// Note 2: See Github issue #148, previous implementation caused some users ClimateReact property settings to be overwritten
+	//         with the current values from HomeKit. As HomeKit doesn't support all values (e.g. fixed swing modes) that Sensibo does
+	//         this was unexpectedly, and unwantedly, changing users ClimateReact settings.
+	//         We now use the values directly from the pre-existing state.smartMode, including:
+	//         fanLevel, light, swing and horizontalSwing
+
+	// FIXME: check if this function is even required anymore, updateClimateReact (currently in StateManager.js) is handling any user
+	//        changes (e.g. when autoSetup is enabled). The differences in 'shape' between state.smartMode (this plugins object model)
+	//        and device.smartMode (from the API response) have been removed, for example fanSpeed (%) from acState is fanLevel, therefore
+	//        this function is now only extracting the existing values from state.smartMode and copying them in to a new object,
+	//        climateReactState, and returning it... this could probably be done simply on line 274 with climateReactState = state.smartMode
 
 	const smartModeState = state.smartMode
 	const climateReactState = {
 		enabled: smartModeState.enabled,
-		type: smartModeState.type,
-		highTemperatureState: {
-			on: smartModeState.highTemperatureState.on,
-			light: smartModeState.highTemperatureState.light ? 'on' : 'off',
-			temperatureUnit: device.temperatureUnit,
-			fanLevel: HKToFanLevel(state.fanSpeed, device.capabilities[state.mode].fanSpeeds),
-			mode: smartModeState.highTemperatureState.mode.toLowerCase(),
-			targetTemperature: smartModeState.highTemperatureState.targetTemperature
-		},
-		highTemperatureThreshold: smartModeState.highTemperatureThreshold,
+		// Empty high / low settings (state) so they can be set / updated below
+		highTemperatureState: null,
+		highTemperatureThreshold: smartModeState.highTemperatureThreshold ?? null,
 		highTemperatureWebhook: null,
-		lowTemperatureState: {
-			on: smartModeState.lowTemperatureState.on,
-			light: smartModeState.lowTemperatureState.light ? 'on' : 'off',
-			temperatureUnit: device.temperatureUnit,
-			fanLevel: HKToFanLevel(state.fanSpeed, device.capabilities[state.mode].fanSpeeds),
-			mode: smartModeState.lowTemperatureState.mode.toLowerCase(),
-			targetTemperature: smartModeState.lowTemperatureState.targetTemperature
-		},
-		lowTemperatureThreshold: smartModeState.lowTemperatureThreshold,
-		lowTemperatureWebhook: null
+		lowTemperatureState: null,
+		lowTemperatureThreshold: smartModeState.lowTemperatureThreshold ?? null,
+		lowTemperatureWebhook: null,
+		sync_with_ac_power: smartModeState.sync_with_ac_power ?? false,
+		type: smartModeState.type
 	}
-	const swingModes = swingMode(device.capabilities[state.mode], state)
 
-	Object.assign(climateReactState.lowTemperatureState, swingModes)
-	Object.assign(climateReactState.highTemperatureState, swingModes)
+	if (smartModeState.highTemperatureState) {
+		climateReactState.highTemperatureState = {
+			fanLevel: smartModeState.highTemperatureState.fanLevel,
+			mode: smartModeState.highTemperatureState.mode,
+			on: smartModeState.highTemperatureState.on,
+			swing: smartModeState.highTemperatureState.swing,
+			targetTemperature: smartModeState.highTemperatureState.targetTemperature,
+			temperatureUnit: smartModeState.highTemperatureState.temperatureUnit
+		}
 
+		if ('horizontalSwing' in smartModeState.highTemperatureState) {
+			climateReactState.highTemperatureState.horizontalSwing = smartModeState.highTemperatureState.horizontalSwing
+		}
+
+		if ('light' in smartModeState.highTemperatureState) {
+			climateReactState.highTemperatureState.light = smartModeState.highTemperatureState.light
+		}
+	}
+
+	if (smartModeState.lowTemperatureState) {
+		climateReactState.lowTemperatureState = {
+			fanLevel: smartModeState.lowTemperatureState.fanLevel,
+			mode: smartModeState.lowTemperatureState.mode,
+			on: smartModeState.lowTemperatureState.on,
+			swing: smartModeState.lowTemperatureState.swing,
+			targetTemperature: smartModeState.lowTemperatureState.targetTemperature,
+			temperatureUnit: smartModeState.lowTemperatureState.temperatureUnit
+		}
+
+		if ('horizontalSwing' in smartModeState.lowTemperatureState) {
+			climateReactState.lowTemperatureState.horizontalSwing = smartModeState.lowTemperatureState.horizontalSwing
+		}
+
+		if ('light' in smartModeState.lowTemperatureState) {
+			climateReactState.lowTemperatureState.light = smartModeState.lowTemperatureState.light
+		}
+	}
+
+	device.log.easyDebug(`${device.name} -> sensiboFormattedClimateReactState end`)
 	// device.log.easyDebug(`${device.name} -> sensiboFormattedClimateReactState climateReactState: ${JSON.stringify(climateReactState, null, 4)}`)
 
 	return climateReactState
-}
-
-function toFahrenheit(value) {
-	return Math.round((value * 1.8) + 32)
 }
 
 module.exports = (device, platform) => {
@@ -142,7 +185,7 @@ module.exports = (device, platform) => {
 			// returns an anonymous *function* to update state (multiple properties)
 			if (prop === 'update') {
 				// 'state' below is the value passed in when the update() function is called
-				// see refreshState.js, e.g. airConditioner.state.update(unified.acState(device))
+				// see refreshState.js, e.g. airConditioner.state.update(unified.acStateFromDevice(device))
 				return (state) => {
 					// log.easyDebug(`StateHandler GET state obj: ${JSON.stringify(state, null, 4)}`)
 					if (!platform.setProcessing) {
@@ -168,6 +211,7 @@ module.exports = (device, platform) => {
 						device.updateHomeKit()
 					} catch (err) {
 						log(`${device.name} - syncState - ERROR Syncing!`)
+						log(`${device.name} - Error message: ${err.message}`)
 					}
 				}
 			}
@@ -189,13 +233,13 @@ module.exports = (device, platform) => {
 					// NOTE: Without this, smartMode changes are seen as "duplicate". This happens because
 					//       the smartMode object child values are being updated _before_ this setter runs
 					//       (on smartMode). So when it compares it looks the same
-					if (state.smartMode.running) {
-						log.easyDebug(`${device.name} - smartMode update already running, returning without updating`)
+					if (state.smartMode.updateRunning) {
+						log.easyDebug(`${device.name} - state.smartMode.updateRunning = ${state.smartMode.updateRunning}, returning without updating`)
 
 						return false
 					}
 
-					state.smartMode.running = true
+					state.smartMode.updateRunning = true
 				} else {
 					log.easyDebug(`${device.name} - ${prop} already set to ${JSON.stringify(value, null, 4)}, returning without updating`)
 
@@ -213,7 +257,7 @@ module.exports = (device, platform) => {
 					sensiboApi.resetFilterIndicator(device.id)
 				} catch(err) {
 					log(`${device.name} - filterChange - Error occurred! -> Could not reset filter indicator`)
-					log.easyDebug(`${device.name} - Error: ${err}`)
+					log(`${device.name} - Error message: ${err.message}`)
 				}
 
 				return true
@@ -225,15 +269,16 @@ module.exports = (device, platform) => {
 			if (prop === 'smartMode') {
 				(async () => {
 					try {
+						// FIXME: check if sensiboFormattedClimateReactState is still required, could potentially be replaced with:
+						//        const sensiboNewClimateReactState = state.smartMode (or similar)??
 						const sensiboNewClimateReactState = sensiboFormattedClimateReactState(device, state)
 
 						log.easyDebug(`${device.name} - smartMode - before calling API to set new Climate React`)
-						// log.easyDebug(JSON.stringify(value, null, 4))
 
 						await sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
 					} catch(err) {
 						log(`${device.name} - smartMode - Error occurred! -> Climate React state did not change`)
-						log.easyDebug(`${device.name} - Error: ${JSON.stringify(err, null, 4)}`)
+						log(`${device.name} - Error message: ${JSON.stringify(err, null, 4)}`)
 					}
 
 					if (!platform.setProcessing) {
@@ -242,8 +287,8 @@ module.exports = (device, platform) => {
 						log.easyDebug(`${device.name} - setProcessing is true, skipping refreshState() after Climate React SET`)
 					}
 
-					log.easyDebug(`${device.name} - deleting smartMode.running`)
-					delete state.smartMode.running
+					log.easyDebug(`${device.name} - smartMode update complete, deleting state.smartMode.updateRunning`)
+					delete state.smartMode.updateRunning
 				})()
 
 				// TODO: should we "catch" if the API calls fail and prevent it from updating state (e.g. line 200)
@@ -258,7 +303,7 @@ module.exports = (device, platform) => {
 					sensiboApi.enableDisablePureBoost(device.id, value)
 				} catch(err) {
 					log(`${device.name} - pureBoost - Error occurred! -> Pure Boost state did not change`)
-					log.easyDebug(`${device.name} - Error: ${err}`)
+					log(`${device.name} - Error message: ${err.message}`)
 				}
 
 				if (!platform.setProcessing) {
@@ -298,7 +343,7 @@ module.exports = (device, platform) => {
 					await sensiboApi.setDeviceACState(device.id, sensiboNewACState)
 				} catch(err) {
 					log(`${device.name} - ERROR setting ${prop} to ${value}`)
-					log.easyDebug(`${device.name} - Error: ${JSON.stringify(err, null, 4)}`)
+					log(`${device.name} - Error message: ${JSON.stringify(err, null, 4)}`)
 
 					setTimeout(() => {
 						platform.setProcessing = false

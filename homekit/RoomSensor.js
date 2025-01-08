@@ -108,6 +108,7 @@ class RoomSensor {
 			.setProps({
 				minValue: -100,
 				maxValue: 100,
+				// TODO: check if this should change based on C vs F
 				minStep: 0.1
 			})
 			.on('get', this.stateManager.get.CurrentTemperature)
