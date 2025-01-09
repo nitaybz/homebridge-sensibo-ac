@@ -210,8 +210,8 @@ module.exports = (device, platform) => {
 						target.active = !target.active
 						device.updateHomeKit()
 					} catch (err) {
-						log(`${device.name} - syncState - ERROR Syncing!`)
-						log(`${device.name} - Error message: ${err.message}`)
+						log.error(`${device.name} - syncState - ERROR Syncing!`)
+						log.warn(`${device.name} - Error message: ${err.message}`)
 					}
 				}
 			}
@@ -256,8 +256,8 @@ module.exports = (device, platform) => {
 
 					sensiboApi.resetFilterIndicator(device.id)
 				} catch(err) {
-					log(`${device.name} - filterChange - Error occurred! -> Could not reset filter indicator`)
-					log(`${device.name} - Error message: ${err.message}`)
+					log.error(`${device.name} - filterChange - Error occurred! -> Could not reset filter indicator`)
+					log.warn(`${device.name} - Error message: ${err.message}`)
 				}
 
 				return true
@@ -277,8 +277,8 @@ module.exports = (device, platform) => {
 
 						await sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
 					} catch(err) {
-						log(`${device.name} - smartMode - Error occurred! -> Climate React state did not change`)
-						log(`${device.name} - Error message: ${JSON.stringify(err, null, 4)}`)
+						log.error(`${device.name} - smartMode - Error occurred! -> Climate React state did not change`)
+						log.warn(`${device.name} - Error message: ${JSON.stringify(err, null, 4)}`)
 					}
 
 					if (!platform.setProcessing) {
@@ -302,8 +302,8 @@ module.exports = (device, platform) => {
 					log.easyDebug(`${device.name} - pureBoost - Setting Pure Boost state to ${value}`)
 					sensiboApi.enableDisablePureBoost(device.id, value)
 				} catch(err) {
-					log(`${device.name} - pureBoost - Error occurred! -> Pure Boost state did not change`)
-					log(`${device.name} - Error message: ${err.message}`)
+					log.error(`${device.name} - pureBoost - Error occurred! -> Pure Boost state did not change`)
+					log.warn(`${device.name} - Error message: ${err.message}`)
 				}
 
 				if (!platform.setProcessing) {
@@ -342,8 +342,8 @@ module.exports = (device, platform) => {
 					// send state command to Sensibo
 					await sensiboApi.setDeviceACState(device.id, sensiboNewACState)
 				} catch(err) {
-					log(`${device.name} - ERROR setting ${prop} to ${value}`)
-					log(`${device.name} - Error message: ${JSON.stringify(err, null, 4)}`)
+					log.error(`${device.name} - ERROR setting ${prop} to ${value}`)
+					log.warn(`${device.name} - Error message: ${JSON.stringify(err, null, 4)}`)
 
 					setTimeout(() => {
 						platform.setProcessing = false

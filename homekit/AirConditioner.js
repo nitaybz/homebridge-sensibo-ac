@@ -144,14 +144,14 @@ class AirConditioner {
 		const characteristic = service?.getCharacteristic(Characteristic[CharacteristicName])
 
 		if (!service) {
-			this.log(`ERR: ${this.name} - Service ${ServiceName} doesn't exist on ${this.name}`)
+			this.log.warn(`Warning: ${this.name} - Service ${ServiceName} doesn't exist on ${this.name}`)
 
 			return
 		}
 
 		if (!characteristic) {
 			// TODO: I think characteristic will always be true as getCharacteristic always works...
-			this.log(`ERR: ${this.name} - Characteristic ${CharacteristicName} doesn't exist on ${ServiceName}`)
+			this.log.warn(`Warning: ${this.name} - Characteristic ${CharacteristicName} doesn't exist on ${ServiceName}`)
 
 			return
 		}
@@ -262,7 +262,7 @@ class AirConditioner {
 		}
 
 		if (validModes.length < 1) {
-			this.log(`ERR: ${this.name} - TargetHeaterCoolerState validModes is empty (${validModes}), exiting addHeaterCoolerService`)
+			this.log.warn(`Warning: ${this.name} - TargetHeaterCoolerState validModes is empty (${validModes}), exiting addHeaterCoolerService`)
 
 			return
 		}

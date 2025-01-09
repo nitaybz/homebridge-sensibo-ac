@@ -1,10 +1,13 @@
 let Characteristic
+let log
+let minimumJSVersionSupported
 
 function toFahrenheit(value) {
 	return Math.round((value * 1.8) + 32)
 }
 
 function characteristicToMode(characteristic) {
+	// log.easyDebug(`characteristicToMode - characteristic: ${characteristic}`)
 	switch (characteristic) {
 		case Characteristic.TargetHeaterCoolerState.AUTO:
 			return 'AUTO'
@@ -70,6 +73,8 @@ function HKToFanLevel(value, fanLevels) {
 
 // FIXME: duplicated from StateHandler.js, needs to be moved to Utils.js
 function formattedSwingModes(deviceCapabilities, state) {
+	// log.easyDebug(`formattedSwingModes - state: ${state}`)
+
 	const apiSwingModes = {}
 
 	if ('threeDimensionalSwing' in deviceCapabilities) {
@@ -114,6 +119,8 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 		return
 	}
 
+	log.easyDebug(`${device.name} updateClimateReact`)
+
 	// If nothing (relevant) has changed should we skip...? Like we do in StateHandler for SET?
 
 	const smartModeState = device.state.smartMode
@@ -126,8 +133,16 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 		temperatureUnit: device.temperatureUnit,
 		mode: device.state.mode.toLowerCase()
 	}
-	// NOTE: structuredClone was introduced in Node 17, so won't exist for older implementations and will causes issues for anyone using Node <= 16
-	smartModeState.lowTemperatureState = structuredClone(smartModeState.highTemperatureState)
+
+	if (typeof structuredClone === 'function') {
+		// NOTE: structuredClone was introduced in Node 17, so won't exist for older implementations and will causes issues for anyone using Node <= 16
+		smartModeState.lowTemperatureState = structuredClone(smartModeState.highTemperatureState)
+	} else {
+		// FIXME: remove this "fallback" with next major version of plugin
+		log.warn(`Warning: you are using an old version of Node.js (v${process.versions.node}), please update to Node.js v${minimumJSVersionSupported} at a minimum.`)
+		log.warn('Node.js v18 support ends April 30 2025, so we recommend you upgrade to at least Node.js v20. See https://github.com/homebridge/homebridge/wiki/How-To-Update-Node.js.')
+		smartModeState.lowTemperatureState = JSON.parse(JSON.stringify(smartModeState.highTemperatureState))
+	}
 
 	if (device.state.mode === 'COOL') {
 		smartModeState.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
@@ -176,7 +191,9 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 // TODO: perhaps make this a class?
 module.exports = (device, platform) => {
 	Characteristic = platform.api.hap.Characteristic
-	const log = platform.log
+	log = platform.log
+	minimumJSVersionSupported = platform.minimumJSVersionSupported
+
 	const enableClimateReactAutoSetup = platform.enableClimateReactAutoSetup
 
 	return {

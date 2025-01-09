@@ -47,7 +47,7 @@ function getToken(username, password, storage) {
 				} else {
 					const errorMessage = `api.js getToken - Inner Could NOT complete token request -> Error message: "${response.data}"`
 
-					log(errorMessage)
+					log.error(errorMessage)
 					reject(errorMessage)
 				}
 			})
@@ -56,15 +56,15 @@ function getToken(username, password, storage) {
 
 				errorContent.message = `api.js getToken - Could NOT complete token request -> Error message: "${err.response.data.error_description || err.response.data.error}"`
 
-				log(errorContent.message)
+				log.error(errorContent.message)
 
 				if (err.response) {
-					log('api.js getToken - err.response.data content:')
-					log(err.response.data)
+					log.warn('api.js getToken - err.response.data content:')
+					log.warn(err.response.data)
 					errorContent.response = err.response.data
 				}
 
-				// log(err)
+				// log.warn(err)
 				reject(errorContent)
 			})
 	})
@@ -105,7 +105,7 @@ async function apiRequest(method, url, data) {
 				axios.defaults.headers = { Authorization: 'Bearer ' + token }
 			}
 		} catch (err) {
-			log('api.js apiRequest - Token error message:', err.message || err)
+			log.error('api.js apiRequest - Token error message:', err.message || err)
 			throw err
 		}
 	}
@@ -145,8 +145,8 @@ async function apiRequest(method, url, data) {
 				} else {
 					const error = json
 
-					log(`api.js apiRequest - Non-success message: ${error.reason} - "${error.message}"`)
-					log(json)
+					log.error(`api.js apiRequest - Non-success message: ${error.reason} - "${error.message}"`)
+					log.warn(json)
 					reject(error)
 				}
 			})
@@ -155,15 +155,15 @@ async function apiRequest(method, url, data) {
 
 				errorContent.errorURL = baseURL + url
 				errorContent.message = err.message
-				log(`api.js apiRequest - Error URL: ${errorContent.errorURL}`)
-				log(`api.js apiRequest - Error message: ${errorContent.message}`)
+				log.error(`api.js apiRequest - Error URL: ${errorContent.errorURL}`)
+				log.warn(`api.js apiRequest - Error message: ${errorContent.message}`)
 
 				if (err.response) {
 					errorContent.response = err.response.data
-					log(`api.js apiRequest - Error response: ${JSON.stringify(errorContent.response, null, 4)}`)
+					log.warn(`api.js apiRequest - Error response: ${JSON.stringify(errorContent.response, null, 4)}`)
 				}
 
-				// log(err)
+				// log.warn(err)
 				reject(errorContent)
 			})
 	})
@@ -189,8 +189,8 @@ module.exports = async function (platform) {
 			axios.defaults.headers = { Authorization: 'Bearer ' + token }
 			axios.defaults.params = { integration: integrationName }
 		} catch (err) {
-			log('api.js check for apiKey or getToken - The plugin was NOT able to find a stored token or acquire a new one from Sensibo API -> plugin is not able to GET or SET the units!')
-			log(`Error message: ${err.message}`)
+			log.error('api.js check for apiKey or getToken - The plugin was NOT able to find a stored token or acquire a new one from Sensibo API -> plugin is not able to GET or SET the units!')
+			log.warn(`Error message: ${err.message}`)
 		}
 	}
 	axios.defaults.baseURL = baseURL
@@ -205,7 +205,7 @@ module.exports = async function (platform) {
 			try {
 				allDevices = await apiRequest('get', path + '?' + queryString)
 			} catch (err) {
-				log('api.js getAllDevices - Error message:', err.message)
+				log.error('api.js getAllDevices - Error message:', err.message)
 				throw err
 			}
 

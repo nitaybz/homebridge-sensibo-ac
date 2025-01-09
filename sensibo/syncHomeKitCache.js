@@ -249,7 +249,7 @@ module.exports = (platform) => {
 					break
 
 				default:
-					platform.log(`Cached ${accessory.context.type} accessory, name: ${accessory.name}, did not match Switch, not removed`)
+					platform.log.warn(`Cached ${accessory.context.type} accessory, name: ${accessory.name}, did not match Switch, not removed`)
 			}
 		})
 
