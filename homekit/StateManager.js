@@ -20,32 +20,6 @@ function characteristicToMode(characteristic) {
 	}
 }
 
-// TODO: do we need this? Why would 'value' ever be outside correct range?
-function sanitize(service, characteristic, value) {
-	const minAllowed = service.getCharacteristic(Characteristic[characteristic]).props.minValue
-	const maxAllowed = service.getCharacteristic(Characteristic[characteristic]).props.maxValue
-	const validValues = service.getCharacteristic(Characteristic[characteristic]).props.validValues
-	const currentValue = service.getCharacteristic(Characteristic[characteristic]).value
-
-	if (value !== 0 && (typeof value === 'undefined' || !value)) {
-		return currentValue
-	}
-
-	if (validValues && !validValues.includes(value)) {
-		return currentValue
-	}
-
-	if (minAllowed && value < minAllowed) {
-		return currentValue
-	}
-
-	if (maxAllowed && value > maxAllowed) {
-		return currentValue
-	}
-
-	return value
-}
-
 // FIXME: duplicated from StateHandler.js, needs to be moved to Utils.js
 function HKToFanLevel(value, fanLevels) {
 	let selected = 'auto'
@@ -265,7 +239,7 @@ module.exports = (device, platform) => {
 
 			TargetHeaterCoolerState: (callback) => {
 				const active = device.state.active
-				const mode = device.state.mode
+				const mode = device.state.mode ?? device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 
 				log.easyDebug(device.name, '(GET) - Target HeaterCooler State:', active ? mode : 'OFF')
 				if (!active || mode === 'FAN' || mode === 'DRY') {
@@ -273,7 +247,7 @@ module.exports = (device, platform) => {
 
 					callback(null, lastMode)
 				} else {
-					callback(null, sanitize(device.HeaterCoolerService, 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState[mode]))
+					callback(null, mode)
 				}
 			},
 
@@ -290,7 +264,7 @@ module.exports = (device, platform) => {
 			},
 
 			CoolingThresholdTemperature: (callback) => {
-				const targetTemp = sanitize(device.HeaterCoolerService, 'CoolingThresholdTemperature', device.state.targetTemperature)
+				const targetTemp = device.state.targetTemperature ?? device.HeaterCoolerService.getCharacteristic(Characteristic.CoolingThresholdTemperature).value
 
 				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(GET) - Target Cooling Temperature:', toFahrenheit(targetTemp) + 'ºF')
@@ -302,7 +276,7 @@ module.exports = (device, platform) => {
 			},
 
 			HeatingThresholdTemperature: (callback) => {
-				const targetTemp = sanitize(device.HeaterCoolerService, 'HeatingThresholdTemperature', device.state.targetTemperature)
+				const targetTemp = device.state.targetTemperature ?? device.HeaterCoolerService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value
 
 				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(GET) - Target Heating Temperature:', toFahrenheit(targetTemp) + 'ºF')
