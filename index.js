@@ -7,9 +7,11 @@ const storage = require('node-persist')
 const PLUGIN_NAME = require('./package.json').config.pluginName
 // const PLATFORM_NAME = 'SensiboAC'
 const PLATFORM_NAME = require('./package.json').config.platformName
-const minimumJSVersionSupported = Math.min(...[...require('./package.json').engines.node.matchAll(/(\d{2})(?:[.\d]+)/g)].map(m => {
+// extract the smallest (minimum) major version number of Node that we support from package.json, pulled from engines.node field
+const minimumNodeVersionSupported = Math.min(...[...require('./package.json').engines.node.matchAll(/(\d{2})(?:[.\d]+)/g)].map(m => {
 	return Number(m[1])
 }))
+const expiringLTSNodeVersion = 18
 
 class SensiboACPlatform {
 
@@ -24,7 +26,7 @@ class SensiboACPlatform {
 		this.debug = config['debug'] || false
 		this.PLUGIN_NAME = PLUGIN_NAME
 		this.PLATFORM_NAME = PLATFORM_NAME
-		this.minimumJSVersionSupported = minimumJSVersionSupported
+		this.minimumNodeVersionSupported = minimumNodeVersionSupported
 
 		this.log(`Starting ${this.PLUGIN_NAME}`)
 
@@ -38,6 +40,8 @@ class SensiboACPlatform {
 			this.log.warn('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  --  ERROR  --  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
 			this.log.error('Can\'t start homebridge-sensibo-ac plugin without username and password or API key!\n')
 			this.log.warn('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n')
+
+			// throw new this.api.hap.HapStatusError(this.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
 
 			return
 		}
@@ -65,10 +69,6 @@ class SensiboACPlatform {
 		this.externalHumiditySensor = config['externalHumiditySensor'] || false
 		this.locationsToInclude = config['locationsToInclude'] || []
 
-		if (this.disableDry || this.disableFan) {
-			this.log.warn('Warning: The disableDry and disableFan options have been deprecated, please use modesToExclude instead. See README.md for more details')
-		}
-
 		this.modesToExclude = config['modesToExclude']?.map(mode => {
 			return mode.toUpperCase()
 		}) || []
@@ -80,9 +80,10 @@ class SensiboACPlatform {
 		this.persistPath = path.join(this.api.user.persistPath(), '/../sensibo-persist')
 
 		this.emptyState = {
+			airQuality: {},
 			devices: {},
-			sensors: {},
-			occupancy: {}
+			occupancy: {},
+			sensors: {}
 		}
 
 		this.CELSIUS_UNIT = 'C'
@@ -149,14 +150,21 @@ class SensiboACPlatform {
 				this.pollingTimeout = setTimeout(this.refreshState, this.pollingInterval)
 			}
 
-			this.log(`✓ Finished initialisation. ${this.cachedAccessories.length} services running on ${this.devices.length} devices.`)
+			this.log.success(`✓ Finished initialisation. ${this.cachedAccessories.length} services running on ${this.devices.length} devices.`)
 			this.log.warn('This plugin is maintained by volunteers, please consider a ☆ on GitHub if you find it useful!')
 
 			const [major, minor, patch] = process.versions.node.split('.').map(Number)
 
-			if (major < minimumJSVersionSupported) {
-				this.log.warn(`Warning: you are using an old version of Node.js (v${major}.${minor}.${patch}), please update to Node.js v${minimumJSVersionSupported} at a minimum.`)
-				this.log.warn('Note: Node.js v18 support ends April 30 2025, so we recommend you upgrade to at least Node.js v20. See https://github.com/homebridge/homebridge/wiki/How-To-Update-Node.js. Note: Homebridge v2.0 will require at least Node.js v20 from May 2025.')
+			if (major < minimumNodeVersionSupported) {
+				this.log.error(`Warning: you are using an old version of Node.js (v${major}.${minor}.${patch}), please update to Node.js v${minimumNodeVersionSupported} at a minimum.`)
+			}
+
+			if (major <= expiringLTSNodeVersion) {
+				this.log.warn(`Note: Node.js v${expiringLTSNodeVersion} support ends April 30 2025, Homebridge recommend you upgrade to at least Node.js v20. See https://github.com/homebridge/homebridge/wiki/How-To-Update-Node.js. From May 2025 Homebridge v2.0 will require at least Node.js v20.`)
+			}
+
+			if (this.disableDry || this.disableFan) {
+				this.log.warn('Deprecation warning: The disableDry and disableFan options have been deprecated, please use modesToExclude instead. See README.md for more details')
 			}
 		})
 	}

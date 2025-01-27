@@ -24,11 +24,12 @@ class AirPurifier {
 		this.name = this.roomName + ' Pure'
 		this.type = 'AirPurifier'
 		this.disableLightSwitch = platform.disableLightSwitch
-		this.filterService = deviceInfo.filterService
+		this.sensiboFilterValuesExist = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device, platform)
 
 		const StateHandler = require('./StateHandler')(this, platform)
 
+		// FIXME: likely needs a dedicated airPurifierStateFromDevice function
 		this.state = this.cachedState.devices[this.id] = unified.acStateFromDevice(device)
 		this.state = new Proxy(this.state, StateHandler)
 		this.stateManager = require('./StateManager')(this, platform)
@@ -104,7 +105,7 @@ class AirPurifier {
 			.on('get', this.stateManager.get.PureRotationSpeed)
 			.on('set', this.stateManager.set.PureRotationSpeed)
 
-		if (this.filterService) {
+		if (this.sensiboFilterValuesExist) {
 			this.AirPurifierService.getCharacteristic(Characteristic.FilterChangeIndication)
 				.on('get', this.stateManager.get.FilterChangeIndication)
 
@@ -166,7 +167,7 @@ class AirPurifier {
 		this.Utils.updateValue('AirPurifierService', 'TargetAirPurifierState', this.state.pureBoost ? 1 : 0)
 
 		// update filter characteristics for AirPurifierService
-		if (this.filterService) {
+		if (this.sensiboFilterValuesExist) {
 			this.Utils.updateValue('AirPurifierService', 'FilterChangeIndication', Characteristic.FilterChangeIndication[this.state.filterChange])
 			this.Utils.updateValue('AirPurifierService', 'FilterLifeLevel', this.state.filterLifeLevel)
 		}

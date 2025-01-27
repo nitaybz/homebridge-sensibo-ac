@@ -9,6 +9,8 @@ const SyncButton = require('./../homekit/SyncButton')
 
 module.exports = (platform) => {
 	return () => {
+		platform.log.easyDebug('syncHomeKitCache.js - starting')
+
 		platform.devices.forEach(device => {
 			if (platform.ignoreHomeKitDevices && device.homekitSupported) {
 				platform.log.easyDebug(`Ignoring Homekit supported device: ${device.id}`)
@@ -124,6 +126,8 @@ module.exports = (platform) => {
 				platform.activeAccessories.push(occupancySensor)
 			}
 		})
+
+		platform.log.easyDebug('syncHomeKitCache.js - checking for devices to remove')
 
 		// find devices to remove
 		const accessoriesToRemove = []

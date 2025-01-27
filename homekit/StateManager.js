@@ -1,6 +1,6 @@
 let Characteristic
 let log
-let minimumJSVersionSupported
+let minimumNodeVersionSupported
 
 function toFahrenheit(value) {
 	return Math.round((value * 1.8) + 32)
@@ -139,7 +139,7 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 		smartModeState.lowTemperatureState = structuredClone(smartModeState.highTemperatureState)
 	} else {
 		// FIXME: remove this "fallback" with next major version of plugin
-		log.warn(`Warning: you are using an old version of Node.js (v${process.versions.node}), please update to Node.js v${minimumJSVersionSupported} at a minimum.`)
+		log.error(`Warning: you are using an old version of Node.js (v${process.versions.node}), please update to Node.js v${minimumNodeVersionSupported} at a minimum.`)
 		log.warn('Node.js v18 support ends April 30 2025, so we recommend you upgrade to at least Node.js v20. See https://github.com/homebridge/homebridge/wiki/How-To-Update-Node.js.')
 		smartModeState.lowTemperatureState = JSON.parse(JSON.stringify(smartModeState.highTemperatureState))
 	}
@@ -164,8 +164,10 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 	}
 
 	if ('light' in device.state) {
-		smartModeState.highTemperatureState.light = device.state.light
-		smartModeState.lowTemperatureState.light = device.state.light
+		const lightValue = device.state.light ? 'on' : 'off'
+
+		smartModeState.highTemperatureState.light = lightValue
+		smartModeState.lowTemperatureState.light = lightValue
 	}
 
 	const swingModes = formattedSwingModes(device.capabilities[device.state.mode], device.state)
@@ -192,7 +194,7 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 module.exports = (device, platform) => {
 	Characteristic = platform.api.hap.Characteristic
 	log = platform.log
-	minimumJSVersionSupported = platform.minimumJSVersionSupported
+	minimumNodeVersionSupported = platform.minimumNodeVersionSupported
 
 	const enableClimateReactAutoSetup = platform.enableClimateReactAutoSetup
 
@@ -486,7 +488,7 @@ module.exports = (device, platform) => {
 
 			// CLIMATE REACT
 			ClimateReactSwitch: (callback) => {
-				const smartModeEnabled = device.state.smartMode.enabled
+				const smartModeEnabled = device.state?.smartMode?.enabled
 
 				log.easyDebug(device.name, '(GET) - Climate React Enabled Switch:', smartModeEnabled)
 
@@ -588,7 +590,7 @@ module.exports = (device, platform) => {
 				const mode = characteristicToMode(lastMode)
 
 				device.state.targetTemperature = targetTemp
-				// TODO: do we need the below? Does it turn the unit on if it's currently off? Maybe it's required by API
+				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
@@ -609,7 +611,7 @@ module.exports = (device, platform) => {
 				const mode = characteristicToMode(lastMode)
 
 				device.state.targetTemperature = targetTemp
-				// TODO: do we need the below? Does it turn the unit on if it's currently off? Maybe it's required by API
+				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
@@ -627,7 +629,7 @@ module.exports = (device, platform) => {
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
 
-				// TODO: do we need the below? Does it turn the unit on if it's currently off? Maybe it's required by API
+				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
@@ -644,7 +646,7 @@ module.exports = (device, platform) => {
 				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const mode = characteristicToMode(lastMode)
 
-				// TODO: do we need the below? Does it turn the unit on if it's currently off? Maybe it's required by API
+				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
 				device.state.active = true
 				device.state.mode = mode
@@ -765,9 +767,8 @@ module.exports = (device, platform) => {
 				state = state === Characteristic.SwingMode.SWING_ENABLED ? 'SWING_ENABLED' : 'SWING_DISABLED'
 				log.easyDebug(device.name, '(SET) - Dry Swing:', state)
 				device.state.verticalSwing = state
-
 				device.state.active = true
-				log.easyDebug(device.name + ' -> Setting Mode to: DRY')
+				log.easyDebug(device.name, '(SET) - Mode to: DRY')
 				device.state.mode = 'DRY'
 
 				callback()
@@ -787,7 +788,7 @@ module.exports = (device, platform) => {
 			// HORIZONTAL SWING
 			HorizontalSwing: (state, callback) => {
 				state = state ? 'SWING_ENABLED' : 'SWING_DISABLED'
-				log.easyDebug(device.name, '(SET) - Horizontal Swing Swing:', state)
+				log.easyDebug(device.name, '(SET) - Horizontal Swing:', state)
 				device.state.horizontalSwing = state
 
 				updateClimateReact(device, enableClimateReactAutoSetup)

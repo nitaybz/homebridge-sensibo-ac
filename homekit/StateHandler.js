@@ -61,8 +61,8 @@ function sensiboFormattedACState(device, state) {
 	const acState = {
 		on: state.active,
 		mode: state.mode.toLowerCase(),
-		temperatureUnit: device.temperatureUnit,
-		targetTemperature: device.usesFahrenheit ? toFahrenheit(state.targetTemperature) : state.targetTemperature
+		targetTemperature: device.usesFahrenheit ? toFahrenheit(state.targetTemperature) : state.targetTemperature,
+		temperatureUnit: device.temperatureUnit
 	}
 	const swingModes = formattedSwingModes(device.capabilities[state.mode], state)
 
@@ -162,6 +162,7 @@ function sensiboFormattedClimateReactState(device, state) {
 }
 
 module.exports = (device, platform) => {
+	// TODO: setTimeoutDelay should probably be set in index.js
 	const setTimeoutDelay = 1000
 	let setTimer = null
 	let preventTurningOff = false
@@ -172,14 +173,14 @@ module.exports = (device, platform) => {
 		// As StateHandler is invoked as a Proxy the below overwrites/intercepts the default get() commands [traps]
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 		get: (target, prop, ...args) => {
-			// log.easyDebug(`StateHandler GET Prop: ${prop} for Target: ${JSON.stringify(target, null, 4)}`)
-			// log.easyDebug(`StateHandler GET Args: ${JSON.stringify(...args, null, 4)}`)
+			// log.easyDebug(`StateHandler.js GET Prop: ${prop} for Target: ${JSON.stringify(target, null, 4)}`)
 
 			// check for last update and refresh state if needed
-			if (!platform.setProcessing) {
+			if (!platform.processingState && !platform.setProcessing) {
+				// log.easyDebug(`StateHandler.js GET Prop: ${prop} for Target: ${JSON.stringify(target, null, 4)}`)
 				platform.refreshState()
 			} else {
-				// log.easyDebug(`setProcessing is true, skipping refreshState() in GET, Prop: ${prop}`)
+				// log.easyDebug(`StateHandler.js GET - processingState or setProcessing is true, skipping refreshState(), Prop: ${prop}`)
 			}
 
 			// returns an anonymous *function* to update state (multiple properties)
@@ -187,9 +188,10 @@ module.exports = (device, platform) => {
 				// 'state' below is the value passed in when the update() function is called
 				// see refreshState.js, e.g. airConditioner.state.update(unified.acStateFromDevice(device))
 				return (state) => {
-					// log.easyDebug(`StateHandler GET state obj: ${JSON.stringify(state, null, 4)}`)
+					// log.easyDebug(`StateHandler.js GET state obj: ${JSON.stringify(state, null, 4)}`)
 					if (!platform.setProcessing) {
 						Object.keys(state).forEach(key => {
+							// log.easyDebug(`StateHandler.js GET prop = update(), key: ${key}, value: ${state[key]}`)
 							if (state[key] !== null) {
 								target[key] = state[key]
 							}
@@ -223,10 +225,10 @@ module.exports = (device, platform) => {
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 		// TODO: update state variable below to target?
 		set: (state, prop, value, ...args) => {
-			log.easyDebug(`StateHandler SET Property: ${prop}`)
-			log.easyDebug(`StateHandler SET New Value: ${JSON.stringify(value, null, 4)}`)
-			// log.easyDebug(`StateHandler SET Current State: ${JSON.stringify(state, null, 4)}`)
-			// log.easyDebug(`StateHandler value args: ${JSON.stringify(...args)}`)
+			log.easyDebug(`StateHandler.js SET Property: ${prop}`)
+			log.easyDebug(`StateHandler.js SET New Value: ${JSON.stringify(value, null, 4)}`)
+			// log.easyDebug(`StateHandler.js SET Current State: ${JSON.stringify(state, null, 4)}`)
+			// log.easyDebug(`StateHandler.js value args: ${JSON.stringify(...args)}`)
 
 			if (!platform.allowRepeatedCommands && prop in state && state[prop] === value) {
 				if (prop === 'smartMode') {
@@ -349,6 +351,7 @@ module.exports = (device, platform) => {
 						platform.setProcessing = false
 						platform.refreshState()
 					}, setTimeoutDelay)
+					// setTimeoutDelay = 1000ms, wait 1 second
 
 					return
 				}
@@ -357,7 +360,9 @@ module.exports = (device, platform) => {
 					platform.setProcessing = false
 					device.updateHomeKit()
 				}, (setTimeoutDelay / 2))
+				// setTimeoutDelay = 1000ms, wait 0.5 second
 			}, setTimeoutDelay)
+			// setTimeoutDelay = 1000ms, wait 1 second
 
 			return true
 		}

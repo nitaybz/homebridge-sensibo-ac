@@ -38,7 +38,7 @@ class AirConditioner {
 		this.disableVerticalSwing = platform.disableVerticalSwing
 		this.disableLightSwitch = platform.disableLightSwitch
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
-		this.filterService = deviceInfo.filterService
+		this.sensiboFilterValuesExist = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device, platform)
 
 		const StateHandler = require('./StateHandler')(this, platform)
@@ -301,8 +301,12 @@ class AirConditioner {
 			// TODO: WIP trying to find a way to remove the Oscillate switch immediately, without needing the user to
 			// remove / reset the accessory... there doesn't seem to be a way to force a 'refresh'
 			// Could we: 1. hide the characteristic from the user? HMCharacteristicPropertyHidden
-			// 2. Error the Characteristic?
-			// this.HeaterCoolerService.updateCharacteristic(Characteristic.SwingMode, new Error('A placeholder error object'))
+			// 2. Error a Characteristic on the service and then make it active again?
+			// NOTE: this should be done at the SERVICE level, see https://developers.homebridge.io/#/api/service#serviceupdatecharacteristic
+			// this.HeaterCoolerService.removeCharacteristic(Characteristic.SwingMode)
+			// this.HeaterCoolerService.updateCharacteristic(Characteristic.Active, new Error('A placeholder error object'))
+			// timeout() - 5 seconds
+			// this.HeaterCoolerService.updateCharacteristic(Characteristic.Active, 0)
 			// 3. Remove and re-add the whole service or accessory?
 			// 4. Try to see if the characteristic exists? this.HeaterCoolerService.testCharacteristic(Characteristic.SwingMode)
 			// 5. Set StatusActive Characteristic - https://github.com/homebridge/HAP-NodeJS/wiki/Presenting-Erroneous-Accessory-State-to-the-User
@@ -316,9 +320,9 @@ class AirConditioner {
 		}
 
 		//TODO: check on this warning...
-		if (this.filterService) {
-			// Apple HomeKit limitations mean a warning will be thrown as Filter characteristics doesn't exist under
-			// the HeaterCooler service and a separate Filter service doesn't seem to show up in the Home app.
+		if (this.sensiboFilterValuesExist) {
+			// Apple HomeKit limitations mean a warning will be thrown as Filter characteristics don't exist under
+			// the HeaterCooler service OOTB and a separate Filter service doesn't show up in the Home app.
 			// Home app also doesn't support Filter reset out of the box... could add a stateless switch?
 			this.log.easyDebug(`${this.name} - Adding Filter characteristics to ${this.name}`)
 
@@ -576,7 +580,7 @@ class AirConditioner {
 		}
 
 		if (this.HeaterCoolerService) {
-			// update measurements
+			// update measurements (temp, relativeHumidity)
 			this.Utils.updateValue('HeaterCoolerService', 'CurrentTemperature', this.state.currentTemperature)
 
 			if (!this.disableHumidity) {
@@ -584,8 +588,21 @@ class AirConditioner {
 			}
 		}
 
+		// Update relativeHumidity for Dry (dehumidifer) separately
 		if (this.DryService) {
 			this.Utils.updateValue('DryService', 'CurrentRelativeHumidity', this.state.relativeHumidity)
+		}
+
+		// update horizontal swing, note vertical swing is below in each of Dry, Fan or HeaterCooler services
+		if (this.HorizontalSwingSwitchService) {
+			this.Utils.updateValue('HorizontalSwingSwitchService', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
+		}
+
+		// update light switch
+		if (this.LightSwitchService) {
+			const switchValue = this.state?.light ?? false
+
+			this.Utils.updateValue('LightSwitchService', 'On', switchValue)
 		}
 
 		// if status is OFF, set all services to INACTIVE
@@ -624,25 +641,13 @@ class AirConditioner {
 						this.Utils.updateValue('HeaterCoolerService', 'SwingMode', Characteristic.SwingMode[this.state.verticalSwing])
 					}
 
-					// update horizontal swing for HeaterCoolerService
-					if (this.HorizontalSwingSwitchService) {
-						this.Utils.updateValue('HorizontalSwingSwitchService', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
-					}
-
-					// update light switch for HeaterCoolerService
-					if (this.LightSwitchService) {
-						const switchValue = this.state?.light ?? false
-
-						this.Utils.updateValue('LightSwitchService', 'On', switchValue)
-					}
-
 					// update fanSpeed for HeaterCoolerService
 					if (this.capabilities[this.state.mode].fanSpeeds) {
 						this.Utils.updateValue('HeaterCoolerService', 'RotationSpeed', this.state.fanSpeed)
 					}
 
 					// update filter characteristics for HeaterCoolerService
-					if (this.filterService) {
+					if (this.sensiboFilterValuesExist) {
 						this.Utils.updateValue('HeaterCoolerService', 'FilterChangeIndication', Characteristic.FilterChangeIndication[this.state.filterChange])
 						this.Utils.updateValue('HeaterCoolerService', 'FilterLifeLevel', this.state.filterLifeLevel)
 					}

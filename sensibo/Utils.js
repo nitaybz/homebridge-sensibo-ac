@@ -119,6 +119,7 @@ module.exports = (device, platform) => {
 			}
 
 			log.easyDebug(`${device.name} - Setting '${newValue}' for characteristic ${characteristicName} on service ${serviceName}, value was '${currentValue}'`)
+			// TODO: investigate using this instead: https://developers.homebridge.io/#/api/service#serviceupdatecharacteristic
 			characteristic.updateValue(newValue)
 
 			return

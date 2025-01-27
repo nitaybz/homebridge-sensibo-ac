@@ -145,8 +145,11 @@ module.exports = {
 			// This would have impacts in a number of places, including StateHandler (might need a separate Proxy?),
 			// but could simplify other object interactions? E.g. changing a single property within smartMode
 			smartMode: device.smartMode,
-			light: device.acState.light && device.acState.light !== 'off',
 			pureBoost: device.pureBoostConfig && device.pureBoostConfig.enabled
+		}
+
+		if ('light' in device.acState) {
+			state.light = device.acState.light !== 'off'
 		}
 
 		if (device.filtersCleaning) {
@@ -187,6 +190,8 @@ module.exports = {
 
 		return state
 	},
+
+	// FIXME: likely needs a dedicated airPurifierStateFromDevice function
 
 	airQualityStateFromDevice: (device, Constants) => {
 		const state = {}

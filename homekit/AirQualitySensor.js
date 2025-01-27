@@ -31,7 +31,12 @@ class AirQualitySensor {
 
 		const StateHandler = require('./StateHandler')(this, platform)
 
-		this.state = this.cachedState.devices[this.id] = unified.airQualityStateFromDevice(device, Constants)
+		// Required to add airQuality to this.cachedState for existing installs
+		if ('airQuality' in this.cachedState === false) {
+			this.cachedState.airQuality = {}
+		}
+
+		this.state = this.cachedState.airQuality[this.id] = unified.airQualityStateFromDevice(device, Constants)
 		this.state = new Proxy(this.state, StateHandler)
 		this.stateManager = require('./StateManager')(this, platform)
 
