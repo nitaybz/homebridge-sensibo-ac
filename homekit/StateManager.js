@@ -218,17 +218,18 @@ module.exports = (device, platform) => {
 
 			CurrentHeaterCoolerState: (callback) => {
 				const active = device.state.active
-				const mode = device.state.mode
-				const targetTemp = device.state.targetTemperature
+				const deviceCurrentModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.CurrentHeaterCoolerState).value
+				const stateCurrentMode = device.state.mode
 				const currentTemp = device.state.currentTemperature
+				const targetTemp = device.state.targetTemperature
 
-				log.easyDebug(device.name, '(GET) - Current HeaterCooler State:', active ? mode : 'OFF')
+				log.easyDebug(device.name, '(GET) - Current HeaterCooler State:', active ? stateCurrentMode + ' (' + deviceCurrentModeValue + ')' : 'OFF')
 
-				if (!active || mode === 'FAN' || mode === 'DRY') {
+				if (!active || stateCurrentMode === 'FAN' || stateCurrentMode === 'DRY') {
 					callback(null, Characteristic.CurrentHeaterCoolerState.INACTIVE)
-				} else if (mode === 'COOL') {
+				} else if (stateCurrentMode === 'COOL') {
 					callback(null, Characteristic.CurrentHeaterCoolerState.COOLING)
-				} else if (mode === 'HEAT') {
+				} else if (stateCurrentMode === 'HEAT') {
 					callback(null, Characteristic.CurrentHeaterCoolerState.HEATING)
 				} else if (currentTemp > targetTemp) {
 					callback(null, Characteristic.CurrentHeaterCoolerState.COOLING)
@@ -239,15 +240,15 @@ module.exports = (device, platform) => {
 
 			TargetHeaterCoolerState: (callback) => {
 				const active = device.state.active
-				const mode = device.state.mode ?? device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
+				const deviceCurrentModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
+				const stateCurrentMode = device.state.mode
+				const stateCurrentModeValue = stateCurrentMode ? Characteristic.TargetHeaterCoolerState[stateCurrentMode] : deviceCurrentModeValue
 
-				log.easyDebug(device.name, '(GET) - Target HeaterCooler State:', active ? mode : 'OFF')
-				if (!active || mode === 'FAN' || mode === 'DRY') {
-					const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
-
-					callback(null, lastMode)
+				log.easyDebug(device.name, '(GET) - Target HeaterCooler State:', active ? stateCurrentMode + ' (' + stateCurrentModeValue + ')' : 'OFF')
+				if (!active || stateCurrentMode === 'FAN' || stateCurrentMode === 'DRY') {
+					callback(null, deviceCurrentModeValue)
 				} else {
-					callback(null, mode)
+					callback(null, stateCurrentModeValue)
 				}
 			},
 
@@ -393,18 +394,18 @@ module.exports = (device, platform) => {
 				const mode = device.state.mode
 
 				if (!active || mode !== 'DRY') {
-					log.easyDebug(device.name, '(GET) - Dry Current Dehumidifier State: INACTIVE')
+					log.easyDebug(device.name, '(GET) - Dry Current Dehumidifier State: INACTIVE', '(' + Characteristic.CurrentHumidifierDehumidifierState.INACTIVE + ')')
 
 					callback(null, Characteristic.CurrentHumidifierDehumidifierState.INACTIVE)
 				} else {
-					log.easyDebug(device.name, '(GET) - Dry Current Dehumidifier State: DEHUMIDIFYING')
+					log.easyDebug(device.name, '(GET) - Dry Current Dehumidifier State: DEHUMIDIFYING', '(' + Characteristic.CurrentHumidifierDehumidifierState.DEHUMIDIFYING + ')')
 
 					callback(null, Characteristic.CurrentHumidifierDehumidifierState.DEHUMIDIFYING)
 				}
 			},
 
 			TargetHumidifierDehumidifierState: (callback) => {
-				log.easyDebug(device.name, '(GET) - Target Dehumidifier State: DEHUMIDIFIER')
+				log.easyDebug(device.name, '(GET) - Target Dehumidifier State: DEHUMIDIFIER', '(' + Characteristic.TargetHumidifierDehumidifierState.DEHUMIDIFIER + ')')
 
 				callback(null, Characteristic.TargetHumidifierDehumidifierState.DEHUMIDIFIER)
 			},
@@ -781,7 +782,7 @@ module.exports = (device, platform) => {
 			},
 
 			// AC SYNC BUTTON
-			// TODO: should be moved to be a 'set' in StateHanlder line 33
+			// TODO: should be moved to be a 'set' in StateHanlder??
 			SyncButton: (state, callback) => {
 				if (state) {
 					log.easyDebug(device.name, '(SYNC) - AC Active State:', device.state.active)

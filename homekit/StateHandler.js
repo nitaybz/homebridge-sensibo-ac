@@ -101,7 +101,7 @@ function sensiboFormattedClimateReactState(device, state) {
 	//        changes (e.g. when autoSetup is enabled). The differences in 'shape' between state.smartMode (this plugins object model)
 	//        and device.smartMode (from the API response) have been removed, for example fanSpeed (%) from acState is fanLevel, therefore
 	//        this function is now only extracting the existing values from state.smartMode and copying them in to a new object,
-	//        climateReactState, and returning it... this could probably be done simply on line 274 with climateReactState = state.smartMode
+	//        climateReactState, and returning it... this could probably be done simply on line 292 with climateReactState = state.smartMode
 
 	const smartModeState = state.smartMode
 	const climateReactState = {
@@ -119,12 +119,20 @@ function sensiboFormattedClimateReactState(device, state) {
 
 	if (smartModeState.highTemperatureState) {
 		climateReactState.highTemperatureState = {
-			fanLevel: smartModeState.highTemperatureState.fanLevel,
 			mode: smartModeState.highTemperatureState.mode,
 			on: smartModeState.highTemperatureState.on,
-			swing: smartModeState.highTemperatureState.swing,
-			targetTemperature: smartModeState.highTemperatureState.targetTemperature,
-			temperatureUnit: smartModeState.highTemperatureState.temperatureUnit
+			swing: smartModeState.highTemperatureState.swing
+		}
+
+		// Note: fanLevel may not exist if the unit is in DRY mode
+		if ('fanLevel' in smartModeState.highTemperatureState) {
+			climateReactState.highTemperatureState.fanLevel = smartModeState.highTemperatureState.fanLevel
+		}
+
+		// Note: targetTemperature (probably) won't exist if the unit is in FAN mode
+		if ('targetTemperature' in smartModeState.highTemperatureState) {
+			climateReactState.highTemperatureState.targetTemperature = smartModeState.highTemperatureState.targetTemperature
+			climateReactState.highTemperatureState.temperatureUnit = smartModeState.highTemperatureState.temperatureUnit
 		}
 
 		if ('horizontalSwing' in smartModeState.highTemperatureState) {
@@ -138,12 +146,20 @@ function sensiboFormattedClimateReactState(device, state) {
 
 	if (smartModeState.lowTemperatureState) {
 		climateReactState.lowTemperatureState = {
-			fanLevel: smartModeState.lowTemperatureState.fanLevel,
 			mode: smartModeState.lowTemperatureState.mode,
 			on: smartModeState.lowTemperatureState.on,
-			swing: smartModeState.lowTemperatureState.swing,
-			targetTemperature: smartModeState.lowTemperatureState.targetTemperature,
-			temperatureUnit: smartModeState.lowTemperatureState.temperatureUnit
+			swing: smartModeState.lowTemperatureState.swing
+		}
+
+		// Note: fanLevel may not exist if the unit is in DRY mode
+		if ('fanLevel' in smartModeState.lowTemperatureState) {
+			climateReactState.lowTemperatureState.fanLevel = smartModeState.lowTemperatureState.fanLevel
+		}
+
+		// Note: targetTemperature (probably) won't exist if the unit is in FAN mode
+		if ('targetTemperature' in smartModeState.lowTemperatureState) {
+			climateReactState.lowTemperatureState.targetTemperature = smartModeState.lowTemperatureState.targetTemperature
+			climateReactState.lowTemperatureState.temperatureUnit = smartModeState.lowTemperatureState.temperatureUnit
 		}
 
 		if ('horizontalSwing' in smartModeState.lowTemperatureState) {
@@ -202,7 +218,7 @@ module.exports = (device, platform) => {
 			}
 
 			// return a function to sync ac state
-			// TODO: should be moved to be a 'set' below, see also StateManager line 576
+			// TODO: should be moved to be a 'set' below, see also StateManager
 			if (prop === 'syncState') {
 				return async() => {
 					try {
