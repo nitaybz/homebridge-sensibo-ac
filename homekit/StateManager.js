@@ -494,16 +494,17 @@ module.exports = (device, platform) => {
 		set: {
 			// AC (Auto, Cool, Heat only)
 			ACActive: (state, callback) => {
-				state = !!state
-				log.easyDebug(device.name, '(SET) - AC Active State:', state)
+				const acActive = !!state
 
-				if (state) {
+				log.easyDebug(device.name, '(SET) - AC Active State:', acActive)
+
+				if (acActive) {
 					device.state.active = true
-					const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
-					const mode = characteristicToMode(lastMode)
+					const lastModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
+					const lastMode = characteristicToMode(lastModeValue)
 
-					log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
-					device.state.mode = mode
+					log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
+					device.state.mode = lastMode
 				} else if (device.state.mode === 'COOL' || device.state.mode === 'HEAT' || device.state.mode === 'AUTO') {
 					device.state.active = false
 				}
@@ -516,7 +517,7 @@ module.exports = (device, platform) => {
 			TargetHeaterCoolerState: (state, callback) => {
 				const mode = characteristicToMode(state)
 
-				log.easyDebug(device.name, '(SET) - Target HeaterCooler State:', mode)
+				log.easyDebug(device.name, '(SET) - Target HeaterCooler State:', mode, '(' + state + ')')
 				device.state.mode = mode
 				device.state.active = true
 
@@ -532,14 +533,14 @@ module.exports = (device, platform) => {
 					log.easyDebug(device.name, '(SET) - Target Cooling Temperature:', targetTemp + 'ºC')
 				}
 
-				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
-				const mode = characteristicToMode(lastMode)
+				const lastModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
+				const lastMode = characteristicToMode(lastModeValue)
 
 				device.state.targetTemperature = targetTemp
 				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
-				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
+				log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
 				device.state.active = true
-				device.state.mode = mode
+				device.state.mode = lastMode
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
 
@@ -553,14 +554,14 @@ module.exports = (device, platform) => {
 					log.easyDebug(device.name, '(SET) - Target Heating Temperature:', targetTemp + 'ºC')
 				}
 
-				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
-				const mode = characteristicToMode(lastMode)
+				const lastModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
+				const lastMode = characteristicToMode(lastModeValue)
 
 				device.state.targetTemperature = targetTemp
 				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
-				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
+				log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
 				device.state.active = true
-				device.state.mode = mode
+				device.state.mode = lastMode
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
 
@@ -572,13 +573,13 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - AC Swing:', state)
 				device.state.verticalSwing = state
 
-				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
-				const mode = characteristicToMode(lastMode)
+				const lastModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
+				const lastMode = characteristicToMode(lastModeValue)
 
 				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
-				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
+				log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
 				device.state.active = true
-				device.state.mode = mode
+				device.state.mode = lastMode
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
 
@@ -589,13 +590,13 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - AC Rotation Speed:', speed + '%')
 				device.state.fanSpeed = speed
 
-				const lastMode = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
-				const mode = characteristicToMode(lastMode)
+				const lastModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
+				const lastMode = characteristicToMode(lastModeValue)
 
 				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
-				log.easyDebug(device.name, '(SET) - HeaterCooler State:', mode)
+				log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
 				device.state.active = true
-				device.state.mode = mode
+				device.state.mode = lastMode
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
 
