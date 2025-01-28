@@ -137,7 +137,17 @@ class AirConditioner {
 	}
 
 	// TODO: move this in to Utils.js
-	addCharacteristicToService(ServiceName, CharacteristicName, Props = null, Setter = true) {
+	/**
+	 * Convert degrees F to degrees C
+	 * @param  {string}      ServiceName               Name of the Service to add new characteristic to
+	 * @param  {string}      CharacteristicName        Name of the Characteristic to add
+	 * @param  {object|null} Props                     Object containing the properties (max, min, valid values, minStep etc)
+	 * @param  {boolean}     Getter                    If a Getter should be added, default is true
+	 * @param  {boolean}     Setter                    If a Setter should be added, default is true
+	 * @param  {string|null} StateManagerFunctionName  Name of the Getter and Setter functions (in StateManager.js), if different to CharacteristicName
+	 * @returns {void}
+	 */
+	addCharacteristicToService(ServiceName, CharacteristicName, Props = null, Getter = true, Setter = true, StateManagerFunctionName = null) {
 		this.log.easyDebug(`${this.name} - Adding ${CharacteristicName} to ${ServiceName}`)
 
 		const service = this.accessory.getService(Service[ServiceName])
@@ -157,6 +167,7 @@ class AirConditioner {
 		}
 
 		if (Props) {
+			// TODO: I think the below only needs to be > (not >=), because if they are already equal updating it won't CHANGE anything...
 			if (Props.minValue && Props.minValue >= characteristic.props.minValue) {
 				//TODO: updateValue via this.Utils.updateValue?
 				characteristic.updateValue(Props.minValue)
@@ -166,12 +177,16 @@ class AirConditioner {
 			this.log.easyDebug(`${this.name} - Props not set for ${CharacteristicName}, proceeding with defaults`)
 		}
 
-		characteristic
-			.on('get', this.stateManager.get[CharacteristicName])
+		if (StateManagerFunctionName === null) {
+			StateManagerFunctionName = CharacteristicName
+		}
+
+		if (Getter) {
+			characteristic.on('get', this.stateManager.get[StateManagerFunctionName])
+		}
 
 		if (Setter) {
-			characteristic
-				.on('set', this.stateManager.set[CharacteristicName])
+			characteristic.on('set', this.stateManager.set[StateManagerFunctionName])
 		}
 	}
 
@@ -188,26 +203,21 @@ class AirConditioner {
 			minStep: 0.1
 		}
 
-		this.addCharacteristicToService('HeaterCooler', 'CurrentTemperature', CurrentTempProps, false)
-		this.addCharacteristicToService('HeaterCooler', 'TemperatureDisplayUnits', null, false)
+		this.addCharacteristicToService('HeaterCooler', 'CurrentTemperature', CurrentTempProps, true, false, null)
+		this.addCharacteristicToService('HeaterCooler', 'TemperatureDisplayUnits', null, true, false, null)
 
 		if (!this.disableHumidity) {
 			//TODO: check on warning... Humidity isn't a supported Characteristic of HeaterCooler
 			// Could we create a new custom Characteristic?
 			// const customHumidity = new Characteristic('CustomHumidity', this.api.hap.uuid.generate('CustomHumidity'+this.id))
-			this.addCharacteristicToService('HeaterCooler', 'CurrentRelativeHumidity', null, false)
+			this.addCharacteristicToService('HeaterCooler', 'CurrentRelativeHumidity', null, true, false, null)
 		} else {
 			this.log.easyDebug(`${this.name} - Removing Humidity characteristic`)
 			this.HeaterCoolerService.removeCharacteristic(Characteristic.CurrentRelativeHumidity)
 		}
 
-		// TODO: change to:
-		// this.addCharacteristicToService('HeaterCooler', 'Active', null, true)
-		this.HeaterCoolerService.getCharacteristic(Characteristic.Active)
-			.on('get', this.stateManager.get.ACActive)
-			.on('set', this.stateManager.set.ACActive)
-
-		this.addCharacteristicToService('HeaterCooler', 'CurrentHeaterCoolerState', null, false)
+		this.addCharacteristicToService('HeaterCooler', 'Active', null, true, true, 'ACActive')
+		this.addCharacteristicToService('HeaterCooler', 'CurrentHeaterCoolerState', null, true, false, null)
 
 		const validModes = []
 
@@ -246,16 +256,16 @@ class AirConditioner {
 
 			if (modeProps) {
 				if (mode === 'COOL') {
-					this.addCharacteristicToService('HeaterCooler', 'CoolingThresholdTemperature', modeProps)
+					this.addCharacteristicToService('HeaterCooler', 'CoolingThresholdTemperature', modeProps, true, true, null)
 				} else if (mode === 'HEAT') {
-					this.addCharacteristicToService('HeaterCooler', 'HeatingThresholdTemperature', modeProps)
+					this.addCharacteristicToService('HeaterCooler', 'HeatingThresholdTemperature', modeProps, true, true, null)
 				} else if (mode === 'AUTO') {
 					if (!this.capabilities.COOL || this.modesToExclude.includes('COOL')) {
-						this.addCharacteristicToService('HeaterCooler', 'CoolingThresholdTemperature', modeProps)
+						this.addCharacteristicToService('HeaterCooler', 'CoolingThresholdTemperature', modeProps, true, true, null)
 					}
 
 					if (!this.capabilities.HEAT || this.modesToExclude.includes('HEAT')) {
-						this.addCharacteristicToService('HeaterCooler', 'HeatingThresholdTemperature', modeProps)
+						this.addCharacteristicToService('HeaterCooler', 'HeatingThresholdTemperature', modeProps, true, true, null)
 					}
 				}
 			}
@@ -290,12 +300,10 @@ class AirConditioner {
 				.updateValue(newMinValue)
 		}
 
-		this.addCharacteristicToService('HeaterCooler', 'TargetHeaterCoolerState', { validValues: validModes })
+		this.addCharacteristicToService('HeaterCooler', 'TargetHeaterCoolerState', { validValues: validModes }, true, true, null)
 
 		if (!this.disableVerticalSwing && ((this.capabilities.COOL && this.capabilities.COOL.verticalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.verticalSwing))) {
-			this.HeaterCoolerService.getCharacteristic(Characteristic.SwingMode)
-				.on('get', this.stateManager.get.ACSwing)
-				.on('set', this.stateManager.set.ACSwing)
+			this.addCharacteristicToService('HeaterCooler', 'SwingMode', null, true, true, 'ACSwing')
 		} else {
 			this.log.easyDebug(`${this.name} - Removing Vertical Swing (Oscillate) button`)
 			// TODO: WIP trying to find a way to remove the Oscillate switch immediately, without needing the user to
@@ -314,9 +322,7 @@ class AirConditioner {
 		}
 
 		if ((this.capabilities.COOL && this.capabilities.COOL.fanSpeeds) || (this.capabilities.HEAT && this.capabilities.HEAT.fanSpeeds)) {
-			this.HeaterCoolerService.getCharacteristic(Characteristic.RotationSpeed)
-				.on('get', this.stateManager.get.ACRotationSpeed)
-				.on('set', this.stateManager.set.ACRotationSpeed)
+			this.addCharacteristicToService('HeaterCooler', 'RotationSpeed', null, true, true, 'ACRotationSpeed')
 		}
 
 		//TODO: check on this warning...
@@ -324,16 +330,11 @@ class AirConditioner {
 			// Apple HomeKit limitations mean a warning will be thrown as Filter characteristics don't exist under
 			// the HeaterCooler service OOTB and a separate Filter service doesn't show up in the Home app.
 			// Home app also doesn't support Filter reset out of the box... could add a stateless switch?
-			this.log.easyDebug(`${this.name} - Adding Filter characteristics to ${this.name}`)
+			this.log.easyDebug(`${this.name} - Adding Filter characteristics`)
 
-			this.HeaterCoolerService.getCharacteristic(Characteristic.FilterChangeIndication)
-				.on('get', this.stateManager.get.FilterChangeIndication)
-
-			this.HeaterCoolerService.getCharacteristic(Characteristic.FilterLifeLevel)
-				.on('get', this.stateManager.get.FilterLifeLevel)
-
-			this.HeaterCoolerService.getCharacteristic(Characteristic.ResetFilterIndication)
-				.on('set', this.stateManager.set.ResetFilterIndication)
+			this.addCharacteristicToService('HeaterCooler', 'FilterChangeIndication', null, true, false, null)
+			this.addCharacteristicToService('HeaterCooler', 'FilterLifeLevel', null, true, false, null)
+			this.addCharacteristicToService('HeaterCooler', 'ResetFilterIndication', null, false, true, null)
 		}
 	}
 
