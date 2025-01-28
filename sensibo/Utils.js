@@ -39,6 +39,42 @@ module.exports = (device, platform) => {
 		},
 
 		/**
+		 * Returns the Sensibo formatted swing values for a given device
+		 * @param  {object}    deviceCapabilitiesForMode  The device options available given its current mode
+		 * @param  {object}    deviceState                Devices current state in Homekit 'model'
+		 * @returns {object}                              The Sensibo formatted swing and horizontalSwing values
+		 */
+		sensiboFormattedSwingModes: (deviceCapabilitiesForMode, deviceState) => {
+			// log.easyDebug(`${device.name} - sensiboFormattedSwingModes - state: ${deviceState}`)
+
+			const apiSwingModes = {}
+
+			if ('threeDimensionalSwing' in deviceCapabilitiesForMode) {
+				if ((deviceState.horizontalSwing === 'SWING_ENABLED') && (deviceState.verticalSwing === 'SWING_ENABLED')) {
+					apiSwingModes.swing = 'both'
+				} else if (deviceState.verticalSwing === 'SWING_ENABLED') {
+					apiSwingModes.swing = 'rangeFull'
+				} else if (deviceState.horizontalSwing === 'SWING_ENABLED') {
+					apiSwingModes.swing = 'horizontal'
+				} else {
+					apiSwingModes.swing = 'stopped'
+				}
+			} else {
+				if ('verticalSwing' in deviceCapabilitiesForMode) {
+					apiSwingModes.swing = deviceState.verticalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+				}
+
+				if ('horizontalSwing' in deviceCapabilitiesForMode) {
+					apiSwingModes.horizontalSwing = deviceState.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
+				}
+			}
+
+			log.easyDebug(`${device.name} - Utils sensiboFormattedSwingModes - apiSwingModes: ${JSON.stringify(apiSwingModes)}`)
+
+			return apiSwingModes
+		},
+
+		/**
 		 * Convert degrees F to degrees C
 		 * @param  {number} degreesF The degrees in F to convert
 		 * @returns {number}         The degrees in C

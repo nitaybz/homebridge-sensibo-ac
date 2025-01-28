@@ -16,35 +16,6 @@ function characteristicToMode(characteristic) {
 	}
 }
 
-// FIXME: duplicated from StateHandler.js, needs to be moved to Utils.js
-function formattedSwingModes(deviceCapabilities, state) {
-	// log.easyDebug(`formattedSwingModes - state: ${state}`)
-
-	const apiSwingModes = {}
-
-	if ('threeDimensionalSwing' in deviceCapabilities) {
-		if ((state.horizontalSwing === 'SWING_ENABLED') && (state.verticalSwing === 'SWING_ENABLED')) {
-			apiSwingModes.swing = 'both'
-		} else if (state.verticalSwing === 'SWING_ENABLED') {
-			apiSwingModes.swing = 'rangeFull'
-		} else if (state.horizontalSwing === 'SWING_ENABLED') {
-			apiSwingModes.swing = 'horizontal'
-		} else {
-			apiSwingModes.swing = 'stopped'
-		}
-	} else {
-		if ('verticalSwing' in deviceCapabilities) {
-			apiSwingModes.swing = state.verticalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
-		}
-
-		if ('horizontalSwing' in deviceCapabilities) {
-			apiSwingModes.horizontalSwing = state.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
-		}
-	}
-
-	return apiSwingModes
-}
-
 /**
  * Updates device.state.smartMode with a new ClimateReact state, should be called whenever a (relevant) change is made to the accessory.
  * Note: Currently only works for AC (Auto, Cool, Heat) as Dry and Fan are separate accessories.
@@ -115,7 +86,7 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 		smartModeState.lowTemperatureState.light = lightValue
 	}
 
-	const swingModes = formattedSwingModes(device.capabilities[device.state.mode], device.state)
+	const swingModes = device.Utils.sensiboFormattedSwingModes(device.capabilities[device.state.mode], device.state)
 
 	// be mindful .assign() copies references (not a deep clone): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#examples
 	Object.assign(smartModeState.highTemperatureState, swingModes)

@@ -1,30 +1,3 @@
-// FIXME: duplicated in StateManager.js, needs to be moved to Utils.js
-function formattedSwingModes(deviceCapabilities, state) {
-	const apiSwingModes = {}
-
-	if ('threeDimensionalSwing' in deviceCapabilities) {
-		if ((state.horizontalSwing === 'SWING_ENABLED') && (state.verticalSwing === 'SWING_ENABLED')) {
-			apiSwingModes.swing = 'both'
-		} else if (state.verticalSwing === 'SWING_ENABLED') {
-			apiSwingModes.swing = 'rangeFull'
-		} else if (state.horizontalSwing === 'SWING_ENABLED') {
-			apiSwingModes.swing = 'horizontal'
-		} else {
-			apiSwingModes.swing = 'stopped'
-		}
-	} else {
-		if ('verticalSwing' in deviceCapabilities) {
-			apiSwingModes.swing = state.verticalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
-		}
-
-		if ('horizontalSwing' in deviceCapabilities) {
-			apiSwingModes.horizontalSwing = state.horizontalSwing === 'SWING_ENABLED' ? 'rangeFull' : 'stopped'
-		}
-	}
-
-	return apiSwingModes
-}
-
 function sensiboFormattedACState(device, state) {
 	device.log.easyDebug(`${device.name} -> sensiboFormattedACState start`)
 	// device.log.easyDebug(`${device.name} -> sensiboFormattedACState acState: ${JSON.stringify(acState, null, 4)}`)
@@ -35,7 +8,7 @@ function sensiboFormattedACState(device, state) {
 		targetTemperature: device.usesFahrenheit ? device.Utils.toFahrenheit(state.targetTemperature) : state.targetTemperature,
 		temperatureUnit: device.temperatureUnit
 	}
-	const swingModes = formattedSwingModes(device.capabilities[state.mode], state)
+	const swingModes = device.Utils.sensiboFormattedSwingModes(device.capabilities[state.mode], state)
 
 	// be mindful .assign() copies references (not a deep clone): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#examples
 	Object.assign(acState, swingModes)
