@@ -7,6 +7,38 @@ module.exports = (device, platform) => {
 	return {
 
 		/**
+		 * Returns the Sensibo fanLevel for a given percentage
+		 * @param  {number}         percentValue  The fan percentage from Homekit
+		 * @param  {string[]}       fanLevels     The list of fan levels supported by Sensibo for the device
+		 * @returns {string}                      The single fan level that matches the percentage from Homekit
+		 */
+		percentToFanLevel: (percentValue, fanLevels) => {
+			let selected = 'auto'
+
+			if (!fanLevels.includes('auto')) {
+				selected = fanLevels[0]
+			}
+
+			if (percentValue !== 0) {
+				fanLevels = fanLevels.filter(level => {
+					return level !== 'auto'
+				})
+				const totalLevels = fanLevels.length
+
+				for (let i = 0; i < fanLevels.length; i++) {
+					if (percentValue <= Math.round(100 * (i + 1) / totalLevels)) {
+						selected = fanLevels[i]
+						break
+					}
+				}
+			}
+
+			log.easyDebug(`${device.name} - Utils percentToFanLevel - percentValue: ${percentValue}, selected: ${selected}`)
+
+			return selected
+		},
+
+		/**
 		 * Convert degrees F to degrees C
 		 * @param  {number} degreesF The degrees in F to convert
 		 * @returns {number}         The degrees in C

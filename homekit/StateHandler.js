@@ -1,33 +1,4 @@
 // FIXME: duplicated in StateManager.js, needs to be moved to Utils.js
-function HKToFanLevel(value, fanLevels) {
-	let selected = 'auto'
-
-	if (!fanLevels.includes('auto')) {
-		selected = fanLevels[0]
-	}
-
-	if (value !== 0) {
-		fanLevels = fanLevels.filter(level => {
-			return level !== 'auto'
-		})
-		const totalLevels = fanLevels.length
-
-		for (let i = 0; i < fanLevels.length; i++) {
-			if (value <= Math.round(100 * (i + 1) / totalLevels)) {
-				selected = fanLevels[i]
-				break
-			}
-		}
-	}
-
-	return selected
-}
-
-function toFahrenheit(value) {
-	return Math.round((value * 1.8) + 32)
-}
-
-// FIXME: duplicated in StateManager.js, needs to be moved to Utils.js
 function formattedSwingModes(deviceCapabilities, state) {
 	const apiSwingModes = {}
 
@@ -61,7 +32,7 @@ function sensiboFormattedACState(device, state) {
 	const acState = {
 		on: state.active,
 		mode: state.mode.toLowerCase(),
-		targetTemperature: device.usesFahrenheit ? toFahrenheit(state.targetTemperature) : state.targetTemperature,
+		targetTemperature: device.usesFahrenheit ? device.Utils.toFahrenheit(state.targetTemperature) : state.targetTemperature,
 		temperatureUnit: device.temperatureUnit
 	}
 	const swingModes = formattedSwingModes(device.capabilities[state.mode], state)
@@ -70,7 +41,7 @@ function sensiboFormattedACState(device, state) {
 	Object.assign(acState, swingModes)
 
 	if ('fanSpeeds' in device.capabilities[state.mode]) {
-		acState.fanLevel = HKToFanLevel(state.fanSpeed, device.capabilities[state.mode].fanSpeeds)
+		acState.fanLevel = device.Utils.percentToFanLevel(state.fanSpeed, device.capabilities[state.mode].fanSpeeds)
 	}
 
 	if ('light' in device.capabilities[state.mode]) {

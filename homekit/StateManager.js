@@ -2,10 +2,6 @@ let Characteristic
 let log
 let minimumNodeVersionSupported
 
-function toFahrenheit(value) {
-	return Math.round((value * 1.8) + 32)
-}
-
 function characteristicToMode(characteristic) {
 	// log.easyDebug(`characteristicToMode - characteristic: ${characteristic}`)
 	switch (characteristic) {
@@ -18,31 +14,6 @@ function characteristicToMode(characteristic) {
 		case Characteristic.TargetHeaterCoolerState.HEAT:
 			return 'HEAT'
 	}
-}
-
-// FIXME: duplicated from StateHandler.js, needs to be moved to Utils.js
-function HKToFanLevel(value, fanLevels) {
-	let selected = 'auto'
-
-	if (!fanLevels.includes('auto')) {
-		selected = fanLevels[0]
-	}
-
-	if (value !== 0) {
-		fanLevels = fanLevels.filter(level => {
-			return level !== 'auto'
-		})
-		const totalLevels = fanLevels.length
-
-		for (let i = 0; i < fanLevels.length; i++) {
-			if (value <= Math.round(100 * (i + 1) / totalLevels)) {
-				selected = fanLevels[i]
-				break
-			}
-		}
-	}
-
-	return selected
 }
 
 // FIXME: duplicated from StateHandler.js, needs to be moved to Utils.js
@@ -131,7 +102,7 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 	}
 
 	if ('fanSpeeds' in device.capabilities[device.state.mode] && 'fanSpeed' in device.state) {
-		const currentFanLevel = HKToFanLevel(device.state.fanSpeed, device.capabilities[device.state.mode].fanSpeeds)
+		const currentFanLevel = device.Utils.percentToFanLevel(device.state.fanSpeed, device.capabilities[device.state.mode].fanSpeeds)
 
 		smartModeState.highTemperatureState.fanLevel = currentFanLevel
 		smartModeState.lowTemperatureState.fanLevel = currentFanLevel
@@ -256,7 +227,7 @@ module.exports = (device, platform) => {
 				const currentTemp = device.state.currentTemperature
 
 				if (device.usesFahrenheit) {
-					log.easyDebug(device.name, '(GET) - Current Temperature:', toFahrenheit(currentTemp) + 'ºF')
+					log.easyDebug(device.name, '(GET) - Current Temperature:', device.Utils.toFahrenheit(currentTemp) + 'ºF')
 				} else {
 					log.easyDebug(device.name, '(GET) - Current Temperature:', currentTemp + 'ºC')
 				}
@@ -268,7 +239,7 @@ module.exports = (device, platform) => {
 				const targetTemp = device.state.targetTemperature ?? device.HeaterCoolerService.getCharacteristic(Characteristic.CoolingThresholdTemperature).value
 
 				if (device.usesFahrenheit) {
-					log.easyDebug(device.name, '(GET) - Target Cooling Temperature:', toFahrenheit(targetTemp) + 'ºF')
+					log.easyDebug(device.name, '(GET) - Target Cooling Temperature:', device.Utils.toFahrenheit(targetTemp) + 'ºF')
 				} else {
 					log.easyDebug(device.name, '(GET) - Target Cooling Temperature:', targetTemp + 'ºC')
 				}
@@ -280,7 +251,7 @@ module.exports = (device, platform) => {
 				const targetTemp = device.state.targetTemperature ?? device.HeaterCoolerService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value
 
 				if (device.usesFahrenheit) {
-					log.easyDebug(device.name, '(GET) - Target Heating Temperature:', toFahrenheit(targetTemp) + 'ºF')
+					log.easyDebug(device.name, '(GET) - Target Heating Temperature:', device.Utils.toFahrenheit(targetTemp) + 'ºF')
 				} else {
 					log.easyDebug(device.name, '(GET) - Target Heating Temperature:', targetTemp + 'ºC')
 				}
@@ -556,7 +527,7 @@ module.exports = (device, platform) => {
 
 			CoolingThresholdTemperature: (targetTemp, callback) => {
 				if (device.usesFahrenheit) {
-					log.easyDebug(device.name, '(SET) - Target Cooling Temperature:', toFahrenheit(targetTemp) + 'ºF')
+					log.easyDebug(device.name, '(SET) - Target Cooling Temperature:', device.Utils.toFahrenheit(targetTemp) + 'ºF')
 				} else {
 					log.easyDebug(device.name, '(SET) - Target Cooling Temperature:', targetTemp + 'ºC')
 				}
@@ -577,7 +548,7 @@ module.exports = (device, platform) => {
 
 			HeatingThresholdTemperature: (targetTemp, callback) => {
 				if (device.usesFahrenheit) {
-					log.easyDebug(device.name, '(SET) - Target Heating Temperature:', toFahrenheit(targetTemp) + 'ºF')
+					log.easyDebug(device.name, '(SET) - Target Heating Temperature:', device.Utils.toFahrenheit(targetTemp) + 'ºF')
 				} else {
 					log.easyDebug(device.name, '(SET) - Target Heating Temperature:', targetTemp + 'ºC')
 				}
