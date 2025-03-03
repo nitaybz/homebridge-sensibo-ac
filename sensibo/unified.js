@@ -1,3 +1,4 @@
+// FIXME: remove once acStateFromDevice moved to Utils (and use the version there instead)
 function fanLevelToHK(value, fanLevels) {
 	if (value === 'auto') {
 		return 0
@@ -13,7 +14,7 @@ function fanLevelToHK(value, fanLevels) {
 	return Math.round(100 * valueIndex / totalLevels)
 }
 
-// TODO: use Utils version instead
+// FIXME: remove once acStateFromDevice moved to Utils (and use the version there instead)
 function toCelsius(value) {
 	return (value - 32) / 1.8
 }
@@ -195,34 +196,73 @@ module.exports = {
 	// FIXME: likely needs a dedicated airPurifierStateFromDevice function
 
 	airQualityStateFromDevice: (device, Constants) => {
+		// device.log.easyDebug(`${device.name} - airQualityStateFromDevice start`)
+		// FIXME: re-enable logs once moved to Utils
+		// log.easyDebug(`${device.name} - airQualityStateFromDevice start`)
 		const state = {}
 
-		state.airQuality = device.measurements?.pm25 ?? 0
-
+		// Set AirQuality and TVOC. Note: tvoc is used as a fallback if iaq not set
 		if (device.measurements?.tvoc && device.measurements.tvoc > 0) {
+			const iaqReading = device.measurements?.iaq ?? 0
+			const tvocReading = device.measurements.tvoc
 			// convert ppb to μg/m3
-			const VOCDensity = Math.round(device.measurements.tvoc * 4.57)
+			const vocDensity = Math.round(tvocReading * 4.57)
 
-			state.VOCDensity = VOCDensity < Constants.VOCDENSITY_MAX ? VOCDensity : Constants.VOCDENSITY_MAX
+			// NOTE: max value is overwritten to 10000 by VOCDENSITY_MAX
+			state.VOCDensity = vocDensity < Constants.VOCDENSITY_MAX ? vocDensity : Constants.VOCDENSITY_MAX
 
-			if (state.airQuality !== 0) {
+			if (iaqReading !== 0) {
 				// don't overwrite airQuality if already retrieved from Sensibo
-			} else if (device.measurements.tvoc > 1500) {
+				// is pm25 the value returned by Sensibo Pure devices _instead_ of iaq?
+
+				// From Omer Enbar: the IAQ property returns the currently worst pollutant normalized. the values are 0-100 good, 100-150 moderate, 150+ poor
+				const convertedQuality = Math.ceil(iaqReading / 50)
+				// 0/50 = 0 = 0            Note: 0 = UNKNOWN
+				// 1/50 = 0.02 = 1               1 = EXCELLENT
+				// 30/50 = .6 = 1
+				// 75/50 = 1.5 = 2               2 = GOOD
+				// 140/50 = 2.8 = 3              3 = FAIR
+				// 160/50 = 3.2 = 4              4 = INFERIOR
+				// 207/50 = 4.14 = 5             5 = POOR
+				// 260/50 = 5.2 = 6
+
+				state.airQuality = convertedQuality <= 5 ? convertedQuality : 5
+			} else if (tvocReading > 1500) {
+				// POOR
 				state.airQuality = 5
-			} else if (device.measurements.tvoc > 1000) {
+			} else if (tvocReading > 1000) {
+				// INFERIOR
 				state.airQuality = 4
-			} else if (device.measurements.tvoc > 500) {
+			} else if (tvocReading > 500) {
+				// FAIR
 				state.airQuality = 3
-			} else if (device.measurements.tvoc > 250) {
+			} else if (tvocReading > 250) {
+				// GOOD
 				state.airQuality = 2
 			} else {
+				// EXCELLENT
 				state.airQuality = 1
 			}
+			// Note: 0 = UNKNOWN
 		}
 
+		// Set CO2
 		if (device.measurements?.co2 && device.measurements.co2 > 0) {
+			// NOTE: max value is 100000
 			state.carbonDioxideLevel = device.measurements.co2
 			state.carbonDioxideDetected = device.measurements.co2 < Constants.carbonDioxideAlertThreshold ? 0 : 1
+		}
+
+		// Set PM2.5
+		if (device.measurements?.pm25 && device.measurements.pm25 > 0) {
+			// Not sure what units value is in... might need to convert ppb to μg/m3?
+			// NOTE: Looks like API can return decimal
+			const pm2_5Density = Math.round(device.measurements.pm25)
+
+			// NOTE: max value is overwritten to 10000 by PM2_5DENSITY_MAX
+			state.PM2_5Density = pm2_5Density < Constants.PM2_5DENSITY_MAX ? pm2_5Density : Constants.PM2_5DENSITY_MAX
+
+			// state.PM2_5Density = device.measurements.pm25
 		}
 
 		return state

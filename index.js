@@ -50,9 +50,9 @@ class SensiboACPlatform {
 		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
 		this.carbonDioxideAlertThreshold = config['carbonDioxideAlertThreshold'] || 1500
 		this.climateReactSwitchInAccessory = config['climateReactSwitchInAccessory'] || false
+		this.devicesToExclude = config['devicesToExclude'] || []
 		this.disableAirQuality = config['disableAirQuality'] || false
 		this.disableCarbonDioxide = config['disableCarbonDioxide'] || false
-		this.devicesToExclude = config['devicesToExclude'] || []
 		this.disableDry = config['disableDry'] || false
 		this.disableFan = config['disableFan'] || false
 		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
@@ -88,6 +88,7 @@ class SensiboACPlatform {
 
 		this.CELSIUS_UNIT = 'C'
 		this.FAHRENHEIT_UNIT = 'F'
+		this.PM2_5DENSITY_MAX = 10000
 		this.VOCDENSITY_MAX = 10000
 		this.locations = []
 

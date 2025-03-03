@@ -7,6 +7,35 @@ module.exports = (device, platform) => {
 	return {
 
 		/**
+		 * Returns a list of 'capabilities' (measurements), pulled by checking the "measurements" object of a device returned from Sensibo.
+		 * Also marks if a given capability is 'supported' by Homekit (and this plugin) by name checking a hard-coded list.
+		 * @returns {object}     List of measurements, and if it is homeKitSupported (true/false), e.g. iaq.homeKitSupported: true
+		 */
+		airQualityCapabilities: () => {
+			const capabilities = {}
+
+			log.easyDebug(`${device.name} - Utils airQualityCapabilities - start, measurements:`)
+
+			for (const [measurement, value] of Object.entries(device.measurements)) {
+				// measurement can include: time, temperature, humidity, feelsLike, rssi (Received Signal Strength Indicator),
+				// motion, roomIsOccupied, tvoc, co2, pm25, etoh (ethanol), iaq (indoor air quality?)
+
+				// TODO: this list should probably move else where? Maybe in to a config, or to index.js
+				if (['temperature','humidity','iaq','co2','pm25','tvoc'].includes(measurement)) {
+					capabilities[measurement] = { homeKitSupported: true }
+				} else {
+					capabilities[measurement] = { homeKitSupported: false }
+				}
+
+				log.easyDebug(`${device.name} - name: ${measurement}, value: ${value}, homeKitSupported: ${ capabilities[measurement].homeKitSupported }`)
+			}
+
+			log.easyDebug(`${device.name} - Utils airQualityCapabilities - end`)
+
+			return capabilities
+		},
+
+		/**
 		 * Returns the Sensibo fanLevel for a given percentage
 		 * @param  {number}         percentValue  The fan percentage from Homekit
 		 * @param  {string[]}       fanLevels     The list of fan levels supported by Sensibo for the device

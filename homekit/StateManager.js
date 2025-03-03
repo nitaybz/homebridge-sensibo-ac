@@ -421,7 +421,7 @@ module.exports = (device, platform) => {
 				callback(null, Characteristic.OccupancyDetected[occupancy])
 			},
 
-			// Air Quality
+			// Air Quality Sensor
 			AirQuality: (callback) => {
 				const airQuality = device.state.airQuality
 
@@ -431,13 +431,22 @@ module.exports = (device, platform) => {
 			},
 
 			VOCDensity: (callback) => {
-				const VOCDensity = device.state.VOCDensity
+				const vocDensity = device.state.VOCDensity
 
-				log.easyDebug(device.name, '(GET) - Volatile Organic Compound Density:', VOCDensity)
+				log.easyDebug(device.name, '(GET) - Volatile Organic Compound Density:', vocDensity)
 
-				callback(null, VOCDensity)
+				callback(null, vocDensity)
 			},
 
+			PM2_5Density: (callback) => {
+				const pm2_5Density = device.state.PM2_5Density
+
+				log.easyDebug(device.name, '(GET) - PM2.5 Density:', pm2_5Density)
+
+				callback(null, pm2_5Density)
+			},
+
+			// Carbon Dioxide Sensor
 			CarbonDioxideDetected: (callback) => {
 				const carbonDioxideDetected = device.state.carbonDioxideDetected
 

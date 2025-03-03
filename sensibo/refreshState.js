@@ -101,8 +101,9 @@ module.exports = (platform) => {
 						// FIXME: need a better way to get constants in to the airQualityStateFromDevice function
 						// perhaps once it's moved to Utils.js it can have Platform scope?
 						const Constants = {
-							VOCDENSITY_MAX: platform.VOCDENSITY_MAX,
-							carbonDioxideAlertThreshold: platform.carbonDioxideAlertThreshold
+							carbonDioxideAlertThreshold: platform.carbonDioxideAlertThreshold,
+							PM2_5DENSITY_MAX: platform.PM2_5DENSITY_MAX,
+							VOCDENSITY_MAX: platform.VOCDENSITY_MAX
 						}
 
 						platform.log.easyDebug(`Updating Air Quality Sensor state for ${device.room?.name} (${device.id})`)

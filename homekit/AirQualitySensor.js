@@ -7,8 +7,10 @@ class AirQualitySensor {
 	constructor(device, platform) {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
-		Constants.VOCDENSITY_MAX = platform.VOCDENSITY_MAX
+
 		Constants.carbonDioxideAlertThreshold = platform.carbonDioxideAlertThreshold
+		Constants.PM2_5DENSITY_MAX = platform.PM2_5DENSITY_MAX
+		Constants.VOCDENSITY_MAX = platform.VOCDENSITY_MAX
 
 		this.Utils = require('../sensibo/Utils')(this, platform)
 
@@ -28,6 +30,8 @@ class AirQualitySensor {
 		this.type = 'AirQualitySensor'
 		this.disableAirQuality = platform.disableAirQuality
 		this.disableCarbonDioxide = platform.disableCarbonDioxide
+		this.measurements = device.measurements
+		this.capabilities = this.Utils.airQualityCapabilities()
 
 		const StateHandler = require('./StateHandler')(this, platform)
 
@@ -82,13 +86,15 @@ class AirQualitySensor {
 			.setCharacteristic(Characteristic.Model, this.model)
 			.setCharacteristic(Characteristic.SerialNumber, this.serial)
 
-		if (!this.disableAirQuality) {
+		// Air Quality Sensor, iaq, tvoc or pm25
+		if (!this.disableAirQuality && (this.capabilities.iaq?.homeKitSupported || this.capabilities.tvoc?.homeKitSupported || this.capabilities.pm25?.homeKitSupported)) {
 			this.addAirQualityService()
 		} else {
 			this.removeAirQualityService()
 		}
 
-		if (this.model === 'airq' && !this.disableCarbonDioxide) {
+		// Carbon Dioxide Sensor, co2
+		if (!this.disableCarbonDioxide && this.capabilities.co2.homeKitSupported) {
 			this.addCarbonDioxideService()
 		} else {
 			this.removeCarbonDioxideService()
@@ -105,9 +111,18 @@ class AirQualitySensor {
 
 		this.AirQualitySensorService.getCharacteristic(Characteristic.AirQuality)
 			.on('get', this.stateManager.get.AirQuality)
-		this.AirQualitySensorService.getCharacteristic(Characteristic.VOCDensity)
-			.setProps({ maxValue: Constants.VOCDENSITY_MAX })
-			.on('get', this.stateManager.get.VOCDensity)
+
+		if (this.capabilities.tvoc?.homeKitSupported) {
+			this.AirQualitySensorService.getCharacteristic(Characteristic.VOCDensity)
+				.setProps({ maxValue: Constants.VOCDENSITY_MAX })
+				.on('get', this.stateManager.get.VOCDensity)
+		}
+
+		if (this.capabilities.pm25?.homeKitSupported) {
+			this.AirQualitySensorService.getCharacteristic(Characteristic.PM2_5Density)
+				.setProps({ maxValue: Constants.PM2_5DENSITY_MAX })
+				.on('get', this.stateManager.get.PM2_5Density)
+		}
 	}
 
 	removeAirQualityService() {
@@ -157,7 +172,14 @@ class AirQualitySensor {
 
 		if (!this.disableAirQuality) {
 			this.Utils.updateValue('AirQualitySensorService', 'AirQuality', this.state.airQuality)
-			this.Utils.updateValue('AirQualitySensorService', 'VOCDensity', this.state.VOCDensity)
+
+			if (this.capabilities.tvoc?.homeKitSupported) {
+				this.Utils.updateValue('AirQualitySensorService', 'VOCDensity', this.state.VOCDensity)
+			}
+
+			if (this.capabilities.pm25?.homeKitSupported) {
+				this.Utils.updateValue('AirQualitySensorService', 'PM2_5Density', this.state.PM2_5Density)
+			}
 		}
 
 		if (!this.disableCarbonDioxide) {
