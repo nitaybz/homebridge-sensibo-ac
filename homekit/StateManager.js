@@ -636,7 +636,6 @@ module.exports = (device, platform) => {
 				if (state) {
 					log.easyDebug(device.name, '(SET) - Mode to: FAN')
 					device.state.mode = 'FAN'
-
 					device.state.active = true
 				} else if (device.state.mode === 'FAN') {
 					device.state.active = false
@@ -659,7 +658,6 @@ module.exports = (device, platform) => {
 			FanRotationSpeed: (speed, callback) => {
 				log.easyDebug(device.name, '(SET) - Fan Rotation Speed:', speed + '%')
 				device.state.fanSpeed = speed
-
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - Mode to: FAN')
 				device.state.mode = 'FAN'
@@ -671,10 +669,11 @@ module.exports = (device, platform) => {
 			DryActive: (state, callback) => {
 				state = !!state
 				log.easyDebug(device.name, '(SET) - Dry state Active:', state)
+
 				if (state) {
-					device.state.active = true
-					log.easyDebug(device.name, '(SET) - HeaterCooler State: DRY')
+					log.easyDebug(device.name, '(SET) - Mode to: DRY')
 					device.state.mode = 'DRY'
+					device.state.active = true
 				} else if (device.state.mode === 'DRY') {
 					device.state.active = false
 				}
@@ -704,9 +703,8 @@ module.exports = (device, platform) => {
 			DryRotationSpeed: (speed, callback) => {
 				log.easyDebug(device.name, '(SET) - Dry Rotation Speed:', speed + '%')
 				device.state.fanSpeed = speed
-
 				device.state.active = true
-				log.easyDebug(device.name + ' -> Setting Mode to: DRY')
+				log.easyDebug(device.name, '(SET) - Mode to: DRY')
 				device.state.mode = 'DRY'
 
 				callback()

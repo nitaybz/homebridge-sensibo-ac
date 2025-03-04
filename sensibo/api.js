@@ -141,6 +141,7 @@ async function apiRequest(method, url, data) {
 					}
 
 					log.easyDebug(JSON.stringify(results, null, 4))
+
 					resolve(results)
 				} else {
 					const error = json
