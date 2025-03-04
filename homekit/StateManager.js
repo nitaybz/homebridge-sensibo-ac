@@ -712,9 +712,33 @@ module.exports = (device, platform) => {
 
 			// HORIZONTAL SWING
 			HorizontalSwing: (state, callback) => {
-				state = state ? 'SWING_ENABLED' : 'SWING_DISABLED'
-				log.easyDebug(device.name, '(SET) - Horizontal Swing:', state)
-				device.state.horizontalSwing = state
+				// TODO: alternative is to prevent swing changes when device is inactive
+				// if (!device.state.active) {
+				// 	log.easyDebug(device.name, '(SET) - Changing Horizontal Swing does not work when unit is inactive, not updating')
+
+				// 	// TODO: set switch state back immediately in Home app?
+				// 	// device.Utils.updateValue('HorizontalSwingSwitchService', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
+				// 	//    OR
+				// 	// device.updateHomeKit()
+
+				// 	return callback()
+				// }
+
+				const swingState = state ? 'SWING_ENABLED' : 'SWING_DISABLED'
+
+				log.easyDebug(device.name, '(SET) - Horizontal Swing:', swingState)
+
+				device.state.horizontalSwing = swingState
+
+				// log.warn(device.name, 'in HorizontalSwing, mode:', device.state.mode, 'active:', device.state.active)
+
+				const lastModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
+				const lastMode = characteristicToMode(lastModeValue)
+
+				// TODO: Check on the below. It turns the unit ON if it's currently OFF. Maybe it's required by API?
+				log.easyDebug(device.name, '(SET) - HeaterCooler State (HorizontalSwing):', lastMode, '(' + lastModeValue + ')')
+				device.state.active = true
+				// device.state.mode = lastMode
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
 
