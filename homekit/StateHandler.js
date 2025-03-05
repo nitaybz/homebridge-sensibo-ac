@@ -147,7 +147,7 @@ module.exports = (device, platform) => {
 			if (prop === 'update') {
 				// 'state' below is the value passed in when the update() function is called
 				// see refreshState.js, e.g. airConditioner.state.update(unified.acStateFromDevice(device))
-				return (state) => {
+				return state => {
 					// log.easyDebug(`StateHandler.js GET state obj: ${JSON.stringify(state, null, 4)}`)
 					if (!platform.setProcessing) {
 						Object.keys(state).forEach(key => {
@@ -164,7 +164,7 @@ module.exports = (device, platform) => {
 			// return a function to sync ac state
 			// TODO: should be moved to be a 'set' below, see also StateManager
 			if (prop === 'syncState') {
-				return async() => {
+				return async () => {
 					try {
 						log.easyDebug(`${device.name} - syncState - syncing`)
 
@@ -217,7 +217,7 @@ module.exports = (device, platform) => {
 					log.easyDebug(`${device.name} - filterChange - Resetting filter indicator`)
 
 					sensiboApi.resetFilterIndicator(device.id)
-				} catch(err) {
+				} catch (err) {
 					log.error(`${device.name} - filterChange - Error occurred! -> Could not reset filter indicator`)
 					log.warn(`${device.name} - Error message: ${err.message}`)
 				}
@@ -238,7 +238,7 @@ module.exports = (device, platform) => {
 						log.easyDebug(`${device.name} - smartMode - before calling API to set new Climate React`)
 
 						await sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
-					} catch(err) {
+					} catch (err) {
 						log.error(`${device.name} - smartMode - Error occurred! -> Climate React state did not change`)
 						log.warn(`${device.name} - Error message: ${JSON.stringify(err, null, 4)}`)
 					}
@@ -263,7 +263,7 @@ module.exports = (device, platform) => {
 				try {
 					log.easyDebug(`${device.name} - pureBoost - Setting Pure Boost state to ${value}`)
 					sensiboApi.enableDisablePureBoost(device.id, value)
-				} catch(err) {
+				} catch (err) {
 					log.error(`${device.name} - pureBoost - Error occurred! -> Pure Boost state did not change`)
 					log.warn(`${device.name} - Error message: ${err.message}`)
 				}
@@ -287,7 +287,8 @@ module.exports = (device, platform) => {
 			}
 
 			clearTimeout(setTimer)
-			setTimer = setTimeout(async function() {
+			// TODO: check if "function () {" below could/should be an arrow function
+			setTimer = setTimeout(async function () {
 				// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
 				if (preventTurningOff && state.active === false) {
 					log.easyDebug(`${device.name} - Auto fan speed, don't turn off when fanSpeed set to 0%. Prop: ${prop}, Value: ${value}`)
@@ -303,7 +304,7 @@ module.exports = (device, platform) => {
 				try {
 					// send state command to Sensibo
 					await sensiboApi.setDeviceACState(device.id, sensiboNewACState)
-				} catch(err) {
+				} catch (err) {
 					log.error(`${device.name} - ERROR setting ${prop} to ${value}`)
 					log.warn(`${device.name} - Error message: ${JSON.stringify(err, null, 4)}`)
 

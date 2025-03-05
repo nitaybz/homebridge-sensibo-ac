@@ -73,7 +73,7 @@ class SensiboACPlatform {
 			return mode.toUpperCase()
 		}) || []
 
-		this.disableAirConditioner = ['AUTO','COOL','HEAT'].every(mode => {
+		this.disableAirConditioner = ['AUTO', 'COOL', 'HEAT'].every(mode => {
 			return this.modesToExclude.indexOf(mode) !== -1
 		})
 
@@ -176,6 +176,6 @@ class SensiboACPlatform {
 
 }
 
-module.exports = (api) => {
+module.exports = api => {
 	api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, SensiboACPlatform)
 }

@@ -61,7 +61,7 @@ module.exports = {
 
 			capabilities[mode] = {}
 
-			if (!['DRY','FAN'].includes(mode)) {
+			if (!['DRY', 'FAN'].includes(mode)) {
 				capabilities[mode].homeKitSupported = true
 			}
 

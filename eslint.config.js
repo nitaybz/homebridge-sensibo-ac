@@ -5,19 +5,36 @@ const stylistic = require('@stylistic/eslint-plugin')
 
 module.exports = [
 	js.configs.recommended,
+	// stylistic.configs comes from https://github.com/eslint-stylistic/eslint-stylistic/blob/main/packages/eslint-plugin/configs/customize.ts
+	// Note: some of the config defaults don't align with documentation defaults
+	stylistic.configs.customize({
+		// the following options are the default values
+		arrowParens: false,
+		blockSpacing: true,
+		braceStyle: '1tbs',
+		commaDangle: 'never',
+		flat: true,
+		indent: 'tab',
+		jsx: false,
+		pluginName: 'stylistic',
+		quoteProps: 'consistent-as-needed',
+		quotes: 'single',
+		semi: false
+	}),
 	{
 		// files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
 		// ignores: ['**/node_modules/', '.git/'],
 		// ...js.configs.recommended,
 		// files: ['**/api.js'],
 		// ignores: ['index.js'],
+		// TODO: should we set environment as node?
 		languageOptions: {
 			ecmaVersion: 13,
 			globals: { ...globals.node },
 			sourceType: 'commonjs'
 		},
 		linterOptions: { reportUnusedDisableDirectives: true },
-		plugins: { 'stylistic': stylistic },
+		plugins: { stylistic: stylistic },
 		rules: {
 			// 'no-async-promise-executor': 'error',
 			'arrow-body-style': [
@@ -28,41 +45,49 @@ module.exports = [
 				'error',
 				'all'
 			],
-			'no-constant-binary-expression': [
+			'no-duplicate-imports': [
 				'error'
 			],
 			'no-label-var': [
 				'error'
 			],
+			'no-self-compare': [
+				'error'
+			],
+			'no-unreachable-loop': [
+				'error'
+			],
+			'no-useless-assignment': [
+				'error'
+			],
 			'no-use-before-define': [
 				'error',
 				{
-					'functions': false,
-					'classes': true,
-					'variables': true,
-					'allowNamedExports': false
+					functions: true,
+					classes: true,
+					variables: true,
+					allowNamedExports: false
 				}
 			],
 			'prefer-const': [
 				'error',
 				{
-					'destructuring': 'any',
-					'ignoreReadBeforeAssign': false
+					destructuring: 'any',
+					ignoreReadBeforeAssign: false
 				}
 			],
-			'stylistic/block-spacing': [
+			'require-atomic-updates': [
+				'error'
+			],
+			// TODO: to be checked! 'stylistic/arrow-parens': ['error', 'as-needed', { requireForBlockBody: true }],
+			'stylistic/arrow-parens': [
 				'error',
-				'always'
+				'as-needed'
 			],
 			'stylistic/brace-style': [
 				'error',
 				'1tbs',
-				{ 'allowSingleLine': false }
-			],
-			'stylistic/indent': [
-				'error',
-				'tab',
-				{ 'SwitchCase': 1 }
+				{ allowSingleLine: false }
 			],
 			'stylistic/linebreak-style': [
 				'error',
@@ -70,76 +95,45 @@ module.exports = [
 			],
 			'stylistic/lines-between-class-members': [
 				'error',
-				'always'
-			],
-			'stylistic/multiline-ternary': [
-				'error',
-				'never'
-			],
-			'stylistic/no-multiple-empty-lines': [
-				'error',
-				{ 'max': 1 }
-			],
-			'stylistic/no-trailing-spaces': [
-				'error',
-				{ 'skipBlankLines': false }
+				'always',
+				{ exceptAfterSingleLine: false }
 			],
 			'stylistic/object-curly-newline': [
 				'error',
 				{
-					'minProperties': 2,
-					'multiline': true
+					minProperties: 2,
+					multiline: true
 				}
-			],
-			'stylistic/object-curly-spacing': [
-				'error',
-				'always'
 			],
 			'stylistic/object-property-newline': [
 				'error',
-				{ 'allowAllPropertiesOnSameLine': false }
+				{ allowAllPropertiesOnSameLine: false }
 			],
 			'stylistic/padded-blocks': [
 				'error',
 				{
-					'blocks': 'never',
-					'classes': 'always',
-					'switches': 'never'
+					blocks: 'never',
+					classes: 'always',
+					switches: 'never'
 				}
 			],
 			'stylistic/padding-line-between-statements': [
 				'error',
 				{
-					'blankLine': 'always',
-					'prev': '*',
-					'next': 'return'
+					blankLine: 'always',
+					prev: '*',
+					next: 'return'
 				},
 				{
-					'blankLine': 'always',
-					'prev': ['const', 'let', 'var'],
-					'next': '*'
+					blankLine: 'always',
+					prev: ['const', 'let', 'var'],
+					next: '*'
 				},
 				{
-					'blankLine': 'never',
-					'prev': ['const', 'let', 'var'],
-					'next': ['const', 'let', 'var']
+					blankLine: 'never',
+					prev: ['const', 'let', 'var'],
+					next: ['const', 'let', 'var']
 				}
-			],
-			'stylistic/quotes': [
-				'error',
-				'single'
-			],
-			'stylistic/semi': [
-				'error',
-				'never'
-			],
-			'stylistic/space-before-blocks': [
-				'error',
-				'always'
-			],
-			'stylistic/space-in-parens': [
-				'error',
-				'never'
 			]
 		}
 	}

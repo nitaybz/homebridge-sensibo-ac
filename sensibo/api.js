@@ -37,7 +37,7 @@ function getToken(username, password, storage) {
 					const tokenObj = {
 						username: username,
 						key: response.data.access_token,
-						expirationDate: new Date().getTime() + response.data.expires_in*1000
+						expirationDate: new Date().getTime() + response.data.expires_in * 1000
 					}
 
 					log.easyDebug('api.js getToken - Token successfully acquired from Sensibo API')
@@ -224,7 +224,7 @@ module.exports = async function (platform) {
 			})
 		},
 
-		//TODO: Not used, retire?
+		// TODO: Not used, retire?
 		getDevicesStates: async () => {
 			const path = '/users/me/pods'
 			const queryString = 'fields=id,acState,measurements,location,occupancy,smartMode,motionSensors,filtersCleaning,serial,pureBoostConfig,homekitSupported'
@@ -241,7 +241,7 @@ module.exports = async function (platform) {
 
 		setDeviceACState: async (deviceId, acState) => {
 			const path = `/pods/${deviceId}/acStates`
-			const json = { 'acState': acState }
+			const json = { acState: acState }
 
 			return await apiRequest('post', path, json)
 		},
@@ -249,37 +249,37 @@ module.exports = async function (platform) {
 		syncDeviceState: async (deviceId, value) => {
 			const path = `/pods/${deviceId}/acStates/on`
 			const json = {
-				'newValue': value,
-				'reason': 'StateCorrectionByUser'
+				newValue: value,
+				reason: 'StateCorrectionByUser'
 			}
 
 			return await apiRequest('patch', path, json)
 		},
 
-		//TODO: Not used, retire?
+		// TODO: Not used, retire?
 		enableDisableClimateReact: async (deviceId, enabled) => {
 			const path = `/pods/${deviceId}/smartmode`
-			const json = { 'enabled': enabled }
+			const json = { enabled: enabled }
 
 			return await apiRequest('put', path, json)
 		},
 
 		enableDisablePureBoost: async (deviceId, enabled) => {
 			const path = `/pods/${deviceId}/pureboost`
-			const json = { 'enabled': enabled }
+			const json = { enabled: enabled }
 
 			return await apiRequest('put', path, json)
 		},
 
-		//TODO: Not used, retire?
+		// TODO: Not used, retire?
 		setDevicePropertyState: async (deviceId, property, value) => {
 			const path = `/pods/${deviceId}/acStates/${property}`
-			const json = { 'newValue': value }
+			const json = { newValue: value }
 
 			return await apiRequest('patch', path, json)
 		},
 
-		resetFilterIndicator: async (deviceId) => {
+		resetFilterIndicator: async deviceId => {
 			const path = `/pods/${deviceId}/cleanFiltersNotification`
 
 			return await apiRequest('delete', path)

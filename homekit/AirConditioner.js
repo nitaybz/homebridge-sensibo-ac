@@ -169,7 +169,7 @@ class AirConditioner {
 		if (Props) {
 			// TODO: I think the below only needs to be > (not >=), because if they are already equal updating it won't CHANGE anything...
 			if (Props.minValue && Props.minValue >= characteristic.props.minValue) {
-				//TODO: updateValue via this.Utils.updateValue?
+				// TODO: updateValue via this.Utils.updateValue?
 				characteristic.updateValue(Props.minValue)
 			}
 			characteristic.setProps(Props)
@@ -191,9 +191,11 @@ class AirConditioner {
 	}
 
 	addHeaterCoolerService() {
-		this.log.easyDebug(`${this.name} - Adding HeaterCoolerService`)
+		this.log.easyDebug(`${this.name} - addHeaterCoolerService - start`)
+
 		this.HeaterCoolerService = this.accessory.getService(Service.HeaterCooler)
 		if (!this.HeaterCoolerService) {
+			this.log.easyDebug(`${this.name} - Adding HeaterCoolerService`)
 			this.HeaterCoolerService = this.accessory.addService(Service.HeaterCooler, this.name, 'HeaterCooler')
 		}
 
@@ -207,7 +209,7 @@ class AirConditioner {
 		this.addCharacteristicToService('HeaterCooler', 'TemperatureDisplayUnits', null, true, false, null)
 
 		if (!this.disableHumidity) {
-			//TODO: check on warning... Humidity isn't a supported Characteristic of HeaterCooler
+			// TODO: check on warning... Humidity isn't a supported Characteristic of HeaterCooler
 			// Could we create a new custom Characteristic?
 			// const customHumidity = new Characteristic('CustomHumidity', this.api.hap.uuid.generate('CustomHumidity'+this.id))
 			this.addCharacteristicToService('HeaterCooler', 'CurrentRelativeHumidity', null, true, false, null)
@@ -293,9 +295,9 @@ class AirConditioner {
 			const newMinValue = Math.min(...validModes) // validModes is an array of numbers (enums) that represent modes in HomeKit
 
 			this.log.easyDebug(`${this.name} - Temporarily including current value ${currentValue} to prevent warning,`
-						+ ` then updating value to new minimum of ${newMinValue}`)
+				+ ` then updating value to new minimum of ${newMinValue}`)
 			tempValidModes.push(currentValue)
-			//TODO: updateValue via this.Utils.updateValue?
+			// TODO: updateValue via this.Utils.updateValue?
 			TargetHeaterCoolerState.setProps({ validValues: tempValidModes })
 				.updateValue(newMinValue)
 		}
@@ -325,10 +327,10 @@ class AirConditioner {
 			this.addCharacteristicToService('HeaterCooler', 'RotationSpeed', null, true, true, 'ACRotationSpeed')
 		}
 
-		//TODO: check on this warning...
+		// TODO: check on this warning...
 		if (this.sensiboFilterValuesExist) {
 			// Apple HomeKit limitations mean a warning will be thrown as Filter characteristics don't exist under
-			// the HeaterCooler service OOTB and a separate Filter service doesn't show up in the Home app.
+			// the HeaterCooler service and a separate Filter service doesn't seem to show up in the Home app (but do in the Eve app).
 			// Home app also doesn't support Filter reset out of the box... could add a stateless switch?
 			this.log.easyDebug(`${this.name} - Adding Filter characteristics`)
 
@@ -349,10 +351,11 @@ class AirConditioner {
 	}
 
 	addFanService() {
-		this.log.easyDebug(`${this.name} - Adding FanService`)
+		this.log.easyDebug(`${this.name} - addFanService - start`)
 
 		this.FanService = this.accessory.getService(Service.Fanv2)
 		if (!this.FanService) {
+			this.log.easyDebug(`${this.name} - Adding FanService`)
 			this.FanService = this.accessory.addService(Service.Fanv2, this.roomName + ' Fan', 'Fan')
 		}
 
@@ -386,10 +389,11 @@ class AirConditioner {
 	}
 
 	addDryService() {
-		this.log.easyDebug(`${this.name} - Adding DehumidifierService`)
+		this.log.easyDebug(`${this.name} - addDryService - start`)
 
 		this.DryService = this.accessory.getService(Service.HumidifierDehumidifier)
 		if (!this.DryService) {
+			this.log.easyDebug(`${this.name} - Adding DehumidifierService`)
 			this.DryService = this.accessory.addService(Service.HumidifierDehumidifier, this.roomName + ' Dry', 'Dry')
 		}
 
@@ -439,12 +443,11 @@ class AirConditioner {
 	}
 
 	addHorizontalSwingSwitch() {
-		//TODO: review the logging... maybe line below becomes "Add HorizontalSwingSwitch" and new log line 5 rows below for Adding if doesn't already exist?
-		//Do the same for other "add" functions
-		this.log.easyDebug(`${this.name} - Adding HorizontalSwingSwitchService`)
+		this.log.easyDebug(`${this.name} - addHorizontalSwingSwitch - start`)
 
 		this.HorizontalSwingSwitchService = this.accessory.getService(this.roomName + ' Horizontal Swing')
 		if (!this.HorizontalSwingSwitchService) {
+			this.log.easyDebug(`${this.name} - Adding HorizontalSwingSwitchService`)
 			this.HorizontalSwingSwitchService = this.accessory.addService(Service.Switch, this.roomName + ' Horizontal Swing', 'HorizontalSwingSwitch')
 		}
 
@@ -465,7 +468,7 @@ class AirConditioner {
 	}
 
 	addLightSwitch() {
-		this.log.easyDebug(`${this.name} - Adding LightSwitchService`)
+		this.log.easyDebug(`${this.name} - addLightSwitch - start`)
 
 		// Required due to #141 - v2.5.0 changed LightSwitch service name, which caused conflicts, v2.5.1 restored previous naming
 		// TODO: plan for this to be removed in a future version
@@ -477,6 +480,7 @@ class AirConditioner {
 
 		this.LightSwitchService = this.accessory.getService(this.roomName + ' AC Light')
 		if (!this.LightSwitchService) {
+			this.log.easyDebug(`${this.name} - Adding LightSwitchService`)
 			this.LightSwitchService = this.accessory.addService(Service.Lightbulb, this.roomName + 'AC Light', 'LightSwitch')
 		}
 
@@ -508,10 +512,11 @@ class AirConditioner {
 	}
 
 	addSyncButtonService() {
-		this.log.easyDebug(`${this.name} - Adding SyncButtonSwitchService`)
+		this.log.easyDebug(`${this.name} - addSyncButtonService - start`)
 
 		this.SyncButtonService = this.accessory.getService(this.roomName + ' Sync')
 		if (!this.SyncButtonService) {
+			this.log.easyDebug(`${this.name} - Adding SyncButtonSwitchService`)
 			this.SyncButtonService = this.accessory.addService(Service.Switch, this.roomName + ' Sync', 'SyncButtonSwitch')
 		}
 
@@ -521,7 +526,7 @@ class AirConditioner {
 			.on('set', (state, callback) => {
 				this.stateManager.set.SyncButton(state, callback)
 				setTimeout(() => {
-					//TODO: updateValue via this.Utils.updateValue?
+					// TODO: updateValue via this.Utils.updateValue?
 					this.SyncButtonService.getCharacteristic(Characteristic.On).updateValue(0)
 				}, 1000)
 			})
@@ -539,11 +544,12 @@ class AirConditioner {
 	}
 
 	addClimateReactService() {
-		this.log.easyDebug(`${this.roomName} - Adding Climate React Service`)
+		this.log.easyDebug(`${this.roomName} - addClimateReactService - start`)
 
 		this.ClimateReactService = this.accessory.getService(this.roomName + ' Climate React')
 		if (!this.ClimateReactService) {
-			this.ClimateReactService = this.accessory.addService(Service.Switch, this.roomName + ' Climate React' , 'ClimateReact')
+			this.log.easyDebug(`${this.roomName} - Adding Climate React Service`)
+			this.ClimateReactService = this.accessory.addService(Service.Switch, this.roomName + ' Climate React', 'ClimateReact')
 		}
 
 		this.ClimateReactService.getCharacteristic(Characteristic.On)
@@ -567,7 +573,7 @@ class AirConditioner {
 		if (this.loggingService) {
 			// TODO: remove humidity if disabled
 			this.loggingService.addEntry({
-				time: Math.floor((new Date()).getTime()/1000),
+				time: Math.floor((new Date()).getTime() / 1000),
 				temp: this.state.currentTemperature,
 				humidity: this.state.relativeHumidity
 			})

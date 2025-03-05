@@ -7,7 +7,7 @@ const OccupancySensor = require('./../homekit/OccupancySensor')
 const RoomSensor = require('./../homekit/RoomSensor')
 const SyncButton = require('./../homekit/SyncButton')
 
-module.exports = (platform) => {
+module.exports = platform => {
 	return () => {
 		platform.log.easyDebug('syncHomeKitCache.js - starting')
 
@@ -26,9 +26,9 @@ module.exports = (platform) => {
 
 			// Add AirConditioner
 			// TODO: tidy productModel matching
-			if (['sky','skyv2','skyplus','air','airq'].includes(device.productModel)
-					|| device.productModel.includes('air')
-					|| device.productModel.includes('sky')) {
+			if (['sky', 'skyv2', 'skyplus', 'air', 'airq'].includes(device.productModel)
+				|| device.productModel.includes('air')
+				|| device.productModel.includes('sky')) {
 				const airConditionerIsNew = !platform.activeAccessories.find(accessory => {
 					return accessory.type === 'AirConditioner' && accessory.id === device.id
 				})
@@ -149,15 +149,15 @@ module.exports = (platform) => {
 
 			let deviceExists, sensorExists, locationExists
 
-			switch(accessory.context.type) {
+			switch (accessory.context.type) {
 				case 'AirConditioner':
 				// TODO: tidy productModel matching
 					deviceExists = platform.devices.find(device => {
 						return device.id === accessory.context.deviceId
-								&& device.remoteCapabilities
-								&& (['sky','skyv2','skyplus','air','airq'].includes(device.productModel)
-									|| device.productModel.includes('air')
-									|| device.productModel.includes('sky'))
+							&& device.remoteCapabilities
+							&& (['sky', 'skyv2', 'skyplus', 'air', 'airq'].includes(device.productModel)
+								|| device.productModel.includes('air')
+								|| device.productModel.includes('sky'))
 					})
 					if (!deviceExists) {
 						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
@@ -177,7 +177,7 @@ module.exports = (platform) => {
 
 				case 'AirQualitySensor':
 					deviceExists = platform.devices.find(device => {
-						return device.id === accessory.context.deviceId && device.remoteCapabilities && ['pure','airq'].includes(device.productModel)
+						return device.id === accessory.context.deviceId && device.remoteCapabilities && ['pure', 'airq'].includes(device.productModel)
 					})
 					// TODO: should disabled check be moved out? see also isActive above
 					if (!deviceExists || (deviceExists && platform.disableAirQuality && platform.disableCarbonDioxide)) {

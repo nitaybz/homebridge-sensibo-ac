@@ -21,13 +21,13 @@ module.exports = (device, platform) => {
 				// motion, roomIsOccupied, tvoc, co2, pm25, etoh (ethanol), iaq (indoor air quality?)
 
 				// TODO: this list should probably move else where? Maybe in to a config, or to index.js
-				if (['temperature','humidity','iaq','co2','pm25','tvoc'].includes(measurement)) {
+				if (['temperature', 'humidity', 'iaq', 'co2', 'pm25', 'tvoc'].includes(measurement)) {
 					capabilities[measurement] = { homeKitSupported: true }
 				} else {
 					capabilities[measurement] = { homeKitSupported: false }
 				}
 
-				log.easyDebug(`${device.name} - name: ${measurement}, value: ${value}, homeKitSupported: ${ capabilities[measurement].homeKitSupported }`)
+				log.easyDebug(`${device.name} - name: ${measurement}, value: ${value}, homeKitSupported: ${capabilities[measurement].homeKitSupported}`)
 			}
 
 			log.easyDebug(`${device.name} - Utils airQualityCapabilities - end`)
@@ -108,7 +108,7 @@ module.exports = (device, platform) => {
 		 * @param  {number} degreesF The degrees in F to convert
 		 * @returns {number}         The degrees in C
 		 */
-		toCelsius: (degreesF) => {
+		toCelsius: degreesF => {
 			const degreesC = (degreesF - 32) / 1.8
 
 			log.easyDebug(`${device.name} - Utils toCelsius - degreesF: ${degreesF}, degreesC: ${degreesC}`)
@@ -121,7 +121,7 @@ module.exports = (device, platform) => {
 		 * @param  {number} degreesC The degrees in C to convert
 		 * @returns {number}         The degrees in F
 		 */
-		toFahrenheit: (degreesC) => {
+		toFahrenheit: degreesC => {
 			const degreesF = Math.round((degreesC * 1.8) + 32)
 
 			log.easyDebug(`${device.name} - Utils toFahrenheit - degreesC: ${degreesC}, degreesF: ${degreesF}`)

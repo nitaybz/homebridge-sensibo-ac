@@ -1,6 +1,6 @@
 const unified = require('./unified')
 
-module.exports = (platform) => {
+module.exports = platform => {
 	return () => {
 		platform.log.easyDebug('refreshState.js - refreshState called')
 		// platform.log.warn(`processingState: ${platform.processingState}  setProcessing: ${!platform.setProcessing}`)
@@ -45,7 +45,7 @@ module.exports = (platform) => {
 					platform.processingState = false
 
 					if (platform.pollingInterval) {
-						platform.log(`refreshState.js - Will try again in ${platform.pollingInterval/1000} seconds...`)
+						platform.log(`refreshState.js - Will try again in ${platform.pollingInterval / 1000} seconds...`)
 
 						platform.pollingTimeout = setTimeout(platform.refreshState, platform.pollingInterval)
 					}

@@ -79,7 +79,7 @@ class HumiditySensor {
 		// log new state with FakeGato
 		if (this.loggingService) {
 			this.loggingService.addEntry({
-				time: Math.floor((new Date()).getTime()/1000),
+				time: Math.floor((new Date()).getTime() / 1000),
 				humidity: this.state.relativeHumidity
 			})
 		}
