@@ -121,7 +121,7 @@ function sensiboFormattedClimateReactState(device, state) {
 	return climateReactState
 }
 
-module.exports = (device, platform) => {
+export default (device, platform) => {
 	// TODO: setTimeoutDelay should probably be set in index.js
 	const setTimeoutDelay = 1000
 	let setTimer = null
@@ -135,18 +135,25 @@ module.exports = (device, platform) => {
 		get: (target, prop, ...args) => {
 			// log.easyDebug(`StateHandler.js GET Prop: ${prop} for Target: ${JSON.stringify(target, null, 4)}`)
 
-			// check for last update and refresh state if needed
+			// Skips if already refreshing (processingState) and/or outbound API running (setProcessing)
+			// TODO: maybe also SKIP refreshState when done in the last 30 seconds? Though that could probably be handled within
+			//       refreshState() by extending the existing 5 second timeout at the end
 			if (!platform.processingState && !platform.setProcessing) {
 				// log.easyDebug(`StateHandler.js GET Prop: ${prop} for Target: ${JSON.stringify(target, null, 4)}`)
 				platform.refreshState()
+					.catch(error => {
+						log.error(`${device.name} - StateHandler GET - error occurred in refreshState\nError content:`)
+						log.warn(error)
+					})
 			} else {
-				// log.easyDebug(`StateHandler.js GET - processingState or setProcessing is true, skipping refreshState(), Prop: ${prop}`)
+				log.devDebug(`${device.name} - StateHandler GET - skipping refreshState() as processingState=${platform.processingState} or setProcessing=${platform.setProcessing} is true`)
+				log.devDebug(`${device.name} - StateHandler GET - Prop: ${prop}`)
 			}
 
 			// returns an anonymous *function* to update state (multiple properties)
 			if (prop === 'update') {
 				// 'state' below is the value passed in when the update() function is called
-				// see refreshState.js, e.g. airConditioner.state.update(unified.acStateFromDevice(device))
+				// see refreshState.js, e.g. airConditioner.state.update(airConditioner.Utils.airConditionerStateFromDevice(device))
 				return state => {
 					// log.easyDebug(`StateHandler.js GET state obj: ${JSON.stringify(state, null, 4)}`)
 					if (!platform.setProcessing) {
@@ -157,6 +164,8 @@ module.exports = (device, platform) => {
 							}
 						})
 						device.updateHomeKit()
+					} else {
+						log.devDebug(`${device.name} - StateHandler GET update - skipping (state) update and updateHomeKit() as setProcessing=${platform.setProcessing} is true`)
 					}
 				}
 			}
@@ -166,14 +175,14 @@ module.exports = (device, platform) => {
 			if (prop === 'syncState') {
 				return async () => {
 					try {
-						log.easyDebug(`${device.name} - syncState - syncing`)
+						log.easyDebug(`${device.name} - StateHandler syncState - syncing`)
 
 						await sensiboApi.syncDeviceState(device.id, !target.active)
 						target.active = !target.active
 						device.updateHomeKit()
-					} catch (err) {
-						log.error(`${device.name} - syncState - ERROR Syncing!`)
-						log.warn(`${device.name} - Error message: ${err.message}`)
+					} catch (error) {
+						log.error(`${device.name} - StateHandler syncState - ERROR Syncing!`)
+						log.warn(`${device.name} - Error message: ${error.message}`)
 					}
 				}
 			}
@@ -196,14 +205,14 @@ module.exports = (device, platform) => {
 					//       the smartMode object child values are being updated _before_ this setter runs
 					//       (on smartMode). So when it compares it looks the same
 					if (state.smartMode.updateRunning) {
-						log.easyDebug(`${device.name} - state.smartMode.updateRunning = ${state.smartMode.updateRunning}, returning without updating`)
+						log.easyDebug(`${device.name} - StateHandler - state.smartMode.updateRunning = ${state.smartMode.updateRunning}, returning without updating`)
 
 						return false
 					}
 
 					state.smartMode.updateRunning = true
 				} else {
-					log.easyDebug(`${device.name} - ${prop} already set to ${JSON.stringify(value, null, 4)}, returning without updating`)
+					log.easyDebug(`${device.name} - StateHandler - ${prop} already set to ${JSON.stringify(value, null, 4)}, returning without updating`)
 
 					return false
 				}
@@ -214,12 +223,12 @@ module.exports = (device, platform) => {
 			// Send Reset Filter command
 			if (prop === 'filterChange') {
 				try {
-					log.easyDebug(`${device.name} - filterChange - Resetting filter indicator`)
+					log.easyDebug(`${device.name} - StateHandler filterChange - Resetting filter indicator`)
 
 					sensiboApi.resetFilterIndicator(device.id)
-				} catch (err) {
-					log.error(`${device.name} - filterChange - Error occurred! -> Could not reset filter indicator`)
-					log.warn(`${device.name} - Error message: ${err.message}`)
+				} catch (error) {
+					log.error(`${device.name} - StateHandler filterChange - Error occurred! -> Could not reset filter indicator`)
+					log.warn(`${device.name} - Error message: ${error.message}`)
 				}
 
 				return true
@@ -235,21 +244,26 @@ module.exports = (device, platform) => {
 						//        const sensiboNewClimateReactState = state.smartMode (or similar)??
 						const sensiboNewClimateReactState = sensiboFormattedClimateReactState(device, state)
 
-						log.easyDebug(`${device.name} - smartMode - before calling API to set new Climate React`)
+						log.easyDebug(`${device.name} - StateHandler smartMode - before calling API to set new Climate React`)
 
 						await sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
-					} catch (err) {
-						log.error(`${device.name} - smartMode - Error occurred! -> Climate React state did not change`)
-						log.warn(`${device.name} - Error message: ${JSON.stringify(err, null, 4)}`)
+					} catch (error) {
+						log.error(`${device.name} - StateHandler smartMode - Error occurred! -> Climate React state did not change`)
+						log.warn(`${device.name} - Error message: ${JSON.stringify(error, null, 4)}`)
 					}
 
 					if (!platform.setProcessing) {
+						// TODO: do we need to update ALL devices (refreshState) or could we do just device.updateHomeKit
 						platform.refreshState()
+							.catch(error => {
+								log.error('StateHandler smartMode - error occurred in refreshState\nError content:')
+								log.warn(error)
+							})
 					} else {
-						log.easyDebug(`${device.name} - setProcessing is true, skipping refreshState() after Climate React SET`)
+						log.easyDebug(`${device.name} - StateHandler - setProcessing is true, skipping refreshState() after Climate React SET`)
 					}
 
-					log.easyDebug(`${device.name} - smartMode update complete, deleting state.smartMode.updateRunning`)
+					log.easyDebug(`${device.name} - StateHandler - smartMode update complete, deleting state.smartMode.updateRunning`)
 					delete state.smartMode.updateRunning
 				})()
 
@@ -261,15 +275,20 @@ module.exports = (device, platform) => {
 			// Send Pure Boost state command and refresh state
 			if (prop === 'pureBoost') {
 				try {
-					log.easyDebug(`${device.name} - pureBoost - Setting Pure Boost state to ${value}`)
+					log.easyDebug(`${device.name} - StateHandler pureBoost - Setting Pure Boost state to ${value}`)
 					sensiboApi.enableDisablePureBoost(device.id, value)
-				} catch (err) {
-					log.error(`${device.name} - pureBoost - Error occurred! -> Pure Boost state did not change`)
-					log.warn(`${device.name} - Error message: ${err.message}`)
+				} catch (error) {
+					log.error(`${device.name} - StateHandler pureBoost - Error occurred! -> Pure Boost state did not change`)
+					log.warn(`${device.name} - Error message: ${error.message}`)
 				}
 
 				if (!platform.setProcessing) {
+					// TODO: do we need to update ALL devices (refreshState) or could we do just device.updateHomeKit
 					platform.refreshState()
+						.catch(error => {
+							log.error('StateHandler pureBoost - error occurred in refreshState\nError content:')
+							log.warn(error)
+						})
 				} else {
 					log.easyDebug(`${device.name} - setProcessing is true, skipping refreshState() after Pure Boost SET`)
 				}
@@ -277,7 +296,9 @@ module.exports = (device, platform) => {
 				return true
 			}
 
-			log.easyDebug(`${device.name} - updating setProcessing to true, Prop: ${prop}`)
+			log.easyDebug(`${device.name} - StateHandler - updating setProcessing to true, Prop: ${prop}`)
+
+			// TODO: check if this should be set earlier
 			platform.setProcessing = true
 
 			// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
@@ -291,7 +312,7 @@ module.exports = (device, platform) => {
 			setTimer = setTimeout(async function () {
 				// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
 				if (preventTurningOff && state.active === false) {
-					log.easyDebug(`${device.name} - Auto fan speed, don't turn off when fanSpeed set to 0%. Prop: ${prop}, Value: ${value}`)
+					log.easyDebug(`${device.name} - StateHandler - Auto fan speed, don't turn off when fanSpeed set to 0%. Prop: ${prop}, Value: ${value}`)
 					state.active = true
 					preventTurningOff = false
 				}
@@ -304,13 +325,17 @@ module.exports = (device, platform) => {
 				try {
 					// send state command to Sensibo
 					await sensiboApi.setDeviceACState(device.id, sensiboNewACState)
-				} catch (err) {
-					log.error(`${device.name} - ERROR setting ${prop} to ${value}`)
-					log.warn(`${device.name} - Error message: ${JSON.stringify(err, null, 4)}`)
+				} catch (error) {
+					log.error(`${device.name} - StateHandler - ERROR setting ${prop} to ${value}`)
+					log.warn(`${device.name} - Error message: ${JSON.stringify(error, null, 4)}`)
 
 					setTimeout(() => {
 						platform.setProcessing = false
 						platform.refreshState()
+							.catch(error => {
+								log.error('StateHandler setDeviceACState - error occurred in refreshState\nError content:')
+								log.warn(error)
+							})
 					}, setTimeoutDelay)
 					// setTimeoutDelay = 1000ms, wait 1 second
 

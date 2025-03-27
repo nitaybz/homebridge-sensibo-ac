@@ -1,3 +1,5 @@
+import Utils from '../sensibo/Utils.js'
+
 let Characteristic, Service
 
 class ClimateReactSwitch {
@@ -6,7 +8,7 @@ class ClimateReactSwitch {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
 
-		this.Utils = require('../sensibo/Utils')(this, platform)
+		this.Utils = Utils(this, platform)
 
 		this.log = airConditioner.log
 		this.api = airConditioner.api
@@ -27,7 +29,7 @@ class ClimateReactSwitch {
 		})
 
 		if (!this.accessory) {
-			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
+			this.log.info(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
 			this.accessory = new this.api.platformAccessory(this.name, this.UUID)
 			this.accessory.context.type = this.type
 			this.accessory.context.deviceId = this.id
@@ -38,6 +40,7 @@ class ClimateReactSwitch {
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
 
+		// This isn't with the others above as roomName can change
 		this.accessory.context.roomName = this.roomName
 
 		let informationService = this.accessory.getService(Service.AccessoryInformation)
@@ -76,4 +79,4 @@ class ClimateReactSwitch {
 
 }
 
-module.exports = ClimateReactSwitch
+export default ClimateReactSwitch

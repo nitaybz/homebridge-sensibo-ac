@@ -1,3 +1,6 @@
+import fakegato from 'fakegato-history'
+import Utils from '../sensibo/Utils.js'
+
 let Characteristic, Service
 
 class HumiditySensor {
@@ -6,7 +9,7 @@ class HumiditySensor {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
 
-		this.Utils = require('../sensibo/Utils')(this, platform)
+		this.Utils = Utils(this, platform)
 
 		this.log = airConditioner.log
 		this.api = airConditioner.api
@@ -27,7 +30,7 @@ class HumiditySensor {
 		})
 
 		if (!this.accessory) {
-			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
+			this.log.info(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
 			this.accessory = new this.api.platformAccessory(this.name, this.UUID)
 			this.accessory.context.type = this.type
 			this.accessory.context.deviceId = this.id
@@ -38,16 +41,18 @@ class HumiditySensor {
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
 
+		// This isn't with the others above as roomName can change
+		this.accessory.context.roomName = this.roomName
+
 		if (platform.enableHistoryStorage) {
-			const FakeGatoHistoryService = require('fakegato-history')(this.api)
+			const FakeGatoHistoryService = fakegato(this.api)
 
 			this.loggingService = new FakeGatoHistoryService('weather', this.accessory, {
+				log: this.log,
 				storage: 'fs',
 				path: platform.persistPath
 			})
 		}
-
-		this.accessory.context.roomName = this.roomName
 
 		let informationService = this.accessory.getService(Service.AccessoryInformation)
 
@@ -78,6 +83,8 @@ class HumiditySensor {
 	updateHomeKit() {
 		// log new state with FakeGato
 		if (this.loggingService) {
+			this.log.easyDebug(`${this.name} - Making FakeGato log entry`)
+
 			this.loggingService.addEntry({
 				time: Math.floor((new Date()).getTime() / 1000),
 				humidity: this.state.relativeHumidity
@@ -89,4 +96,4 @@ class HumiditySensor {
 
 }
 
-module.exports = HumiditySensor
+export default HumiditySensor

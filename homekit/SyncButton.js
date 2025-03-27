@@ -25,7 +25,7 @@ class SyncButton {
 		})
 
 		if (!this.accessory) {
-			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
+			this.log.info(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
 			this.accessory = new this.api.platformAccessory(this.name, this.UUID)
 			this.accessory.context.type = this.type
 			this.accessory.context.deviceId = this.id
@@ -36,6 +36,7 @@ class SyncButton {
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
 
+		// This isn't with the others above as roomName can change
 		this.accessory.context.roomName = this.roomName
 
 		let informationService = this.accessory.getService(Service.AccessoryInformation)
@@ -74,4 +75,4 @@ class SyncButton {
 
 }
 
-module.exports = SyncButton
+export default SyncButton

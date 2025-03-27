@@ -1,14 +1,15 @@
-const SensiboApi = require('./sensibo/api')
-const syncHomeKitCache = require('./sensibo/syncHomeKitCache')
-const refreshState = require('./sensibo/refreshState')
-const path = require('path')
-const storage = require('node-persist')
-// const PLUGIN_NAME = 'homebridge-sensibo-ac'
-const PLUGIN_NAME = require('./package.json').config.pluginName
-// const PLATFORM_NAME = 'SensiboAC'
-const PLATFORM_NAME = require('./package.json').config.platformName
+import path from 'path'
+import refreshState from './sensibo/refreshState.js'
+import SensiboApi from './sensibo/SensiboAPI.js'
+import storage from 'node-persist'
+import syncHomeKitCache from './sensibo/syncHomeKitCache.js'
+
+import pjson from './package.json' with { type: 'json' }
+const PLATFORM_NAME = pjson.config.platformName
+const PLUGIN_NAME = pjson.config.pluginName
+const PLUGIN_VERSION = pjson.version
 // extract the smallest (minimum) major version number of Node that we support from package.json, pulled from engines.node field
-const minimumNodeVersionSupported = Math.min(...[...require('./package.json').engines.node.matchAll(/(\d{2})(?:[.\d]+)/g)].map(m => {
+const MINIMUM_NODE = Math.min(...[...pjson.engines.node.matchAll(/(\d{2})(?:[.\d]+)/g)].map(m => {
 	return Number(m[1])
 }))
 const expiringLTSNodeVersion = 18
@@ -16,19 +17,25 @@ const expiringLTSNodeVersion = 18
 class SensiboACPlatform {
 
 	constructor(log, config, api) {
-		this.cachedAccessories = []
 		this.activeAccessories = []
+		this.cachedAccessories = []
 		this.log = log
 		this.api = api
 		this.storage = storage
-		this.refreshState = refreshState(this)
-		this.syncHomeKitCache = syncHomeKitCache(this)
-		this.debug = config['debug'] || false
-		this.PLUGIN_NAME = PLUGIN_NAME
-		this.PLATFORM_NAME = PLATFORM_NAME
-		this.minimumNodeVersionSupported = minimumNodeVersionSupported
 
-		this.log(`Starting ${this.PLUGIN_NAME}`)
+		this.refreshState = async () => {
+			return await refreshState(this)
+		}
+		this.syncHomeKitCache = syncHomeKitCache(this)
+
+		this.debug = config['debug'] || false
+		this.devDebug = config['devDebug'] || false
+		this.PLATFORM_NAME = PLATFORM_NAME
+		this.PLUGIN_NAME = PLUGIN_NAME
+		this.PLUGIN_VERSION = PLUGIN_VERSION
+		this.MINIMUM_NODE = MINIMUM_NODE
+
+		this.log.info(`Starting ${this.PLUGIN_NAME}`)
 
 		// ~~~~~~~~~~~~~~~~~~~~~ Sensibo Specials ~~~~~~~~~~~~~~~~~~~~~ //
 
@@ -103,19 +110,30 @@ class SensiboACPlatform {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 
-		// define debug method to output debug logs when enabled in the config
-		// TODO: add a "dev" mode to the logger?
-		// this.log.devDebug?
+		// Defines a logging method to output debugging info when 'debug' is enabled in the config
 		this.log.easyDebug = (...content) => {
 			if (this.debug) {
 				this.log(content.reduce((previous, current) => {
 					return previous + ' ' + current
 				}))
 			} else {
-				// I think this bubbles up to "platform" and then logs iff the homebridge debug log is enabled?
+				// This bubbles up to "platform" level (Homebridge) and then logs when the Homebridge "debug" is enabled
 				this.log.debug(content.reduce((previous, current) => {
 					return previous + ' ' + current
 				}))
+			}
+		}
+
+		// Defines a logging method to output developer level debugging info when 'devDebug' is enabled in the config
+		this.log.devDebug = (...content) => {
+			if (this.devDebug) {
+				// TODO: once min version is Node 20 and above, move to using the below to colour log messages
+				// https://nodejs.org/docs/latest/api/util.html#utilstyletextformat-text-options
+				// e.g. this.log(util.styleText(['bgRed', 'bold', 'doubleunderline'], 'devDebug'), content.reduce((previous, current) => {
+				this.log('\x1b[41mdevDebug\x1b[0m ' + content.reduce((previous, current) => {
+					return previous + ' ' + current
+				}))
+				// console.trace('tracing')
 			}
 		}
 
@@ -125,39 +143,38 @@ class SensiboACPlatform {
 				forgiveParseErrors: true
 			})
 
-			this.cachedState = await this.storage.getItem('state') || this.emptyState
-
-			if (!this.cachedState.devices) {
-				this.cachedState = this.emptyState
-			}
-
-			this.sensiboApi = await SensiboApi(this)
-
 			try {
-				this.devices = await this.sensiboApi.getAllDevices()
+				this.log.debug('index.js didFinishLaunching - starting getItem state and refreshState()')
 
-				await this.storage.setItem('devices', this.devices)
+				this.cachedState = await this.storage.getItem('state') || this.emptyState
 
-				this.log(`Found ${this.devices.length} Sensibo devices, refreshing or adding to Homebridge based on your plugin settings.`)
-			} catch (err) {
-				this.log.error(`Error: index.js didFinishLaunching - Error message ${err}`)
+				if (!this.cachedState.devices) {
+					this.cachedState = this.emptyState
+				}
+
+				this.sensiboApi = await SensiboApi(this)
+
+				await this.refreshState()
+
+				this.log.info(`Found ${this.devices.length} Sensibo devices, refreshing or adding to Homebridge based on your plugin settings.`)
+			} catch (error) {
+				this.log.error('index.js didFinishLaunching - get state or refreshState failed.\nError response:')
+				this.log.warn(error)
+
+				this.log.info('Trying to retrieve "devices" from storage instead, otherwise will create an empty list.')
 
 				this.devices = await this.storage.getItem('devices') || []
+
+				this.syncHomeKitCache()
 			}
 
-			this.syncHomeKitCache()
-
-			if (this.pollingInterval) {
-				this.pollingTimeout = setTimeout(this.refreshState, this.pollingInterval)
-			}
-
-			this.log.success(`✓ Finished initialisation. ${this.cachedAccessories.length} services running on ${this.devices.length} devices.`)
+			this.log.success(`✓ Finished initialisation. ${this.activeAccessories.length} of ${this.cachedAccessories.length} services running on ${this.devices.length} devices.`)
 			this.log.warn('This plugin is maintained by volunteers, please consider a ☆ on GitHub if you find it useful!')
 
 			const [major, minor, patch] = process.versions.node.split('.').map(Number)
 
-			if (major < minimumNodeVersionSupported) {
-				this.log.error(`Warning: you are using an old version of Node.js (v${major}.${minor}.${patch}), please update to Node.js v${minimumNodeVersionSupported} at a minimum.`)
+			if (major < MINIMUM_NODE) {
+				this.log.error(`Warning: you are using an old version of Node.js (v${major}.${minor}.${patch}), please update to Node.js v${MINIMUM_NODE} at a minimum.`)
 			}
 
 			if (major <= expiringLTSNodeVersion) {
@@ -176,6 +193,6 @@ class SensiboACPlatform {
 
 }
 
-module.exports = api => {
+export default api => {
 	api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, SensiboACPlatform)
 }

@@ -1,6 +1,6 @@
 let Characteristic
 let log
-let minimumNodeVersionSupported
+let MINIMUM_NODE
 
 function characteristicToMode(characteristic) {
 	// log.easyDebug(`characteristicToMode - characteristic: ${characteristic}`)
@@ -19,8 +19,8 @@ function characteristicToMode(characteristic) {
 /**
  * Updates device.state.smartMode with a new ClimateReact state, should be called whenever a (relevant) change is made to the accessory.
  * Note: Currently only works for AC (Auto, Cool, Heat) as Dry and Fan are separate accessories.
- * @param  {object}  device                      Object containing devices current settings and state, including current smartMode
- * @param  {boolean} enableClimateReactAutoSetup Should auto setup (auto update) be run
+ * @param   {Object}   device                       Object containing devices current settings and state, including current smartMode
+ * @param   {boolean}  enableClimateReactAutoSetup  Should auto setup (auto update) be run
  * @returns {void}
  */
 function updateClimateReact(device, enableClimateReactAutoSetup) {
@@ -55,7 +55,7 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 		smartModeState.lowTemperatureState = structuredClone(smartModeState.highTemperatureState)
 	} else {
 		// FIXME: remove this "fallback" with next major version of plugin
-		log.error(`Warning: you are using an old version of Node.js (v${process.versions.node}), please update to Node.js v${minimumNodeVersionSupported} at a minimum.`)
+		log.error(`Warning: you are using an old version of Node.js (v${process.versions.node}), please update to Node.js v${MINIMUM_NODE} at a minimum.`)
 		log.warn('Node.js v18 support ends April 30 2025, so we recommend you upgrade to at least Node.js v20. See https://github.com/homebridge/homebridge/wiki/How-To-Update-Node.js.')
 		smartModeState.lowTemperatureState = JSON.parse(JSON.stringify(smartModeState.highTemperatureState))
 	}
@@ -106,11 +106,10 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 	device.state.smartMode = smartModeState
 }
 
-// TODO: perhaps make this a class?
-module.exports = (device, platform) => {
+export default (device, platform) => {
 	Characteristic = platform.api.hap.Characteristic
 	log = platform.log
-	minimumNodeVersionSupported = platform.minimumNodeVersionSupported
+	MINIMUM_NODE = platform.MINIMUM_NODE
 
 	const enableClimateReactAutoSetup = platform.enableClimateReactAutoSetup
 
@@ -160,7 +159,7 @@ module.exports = (device, platform) => {
 				const active = device.state.active
 				const deviceCurrentModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const stateCurrentMode = device.state.mode
-				const stateCurrentModeValue = stateCurrentMode ? Characteristic.TargetHeaterCoolerState[stateCurrentMode] : deviceCurrentModeValue
+				const stateCurrentModeValue = stateCurrentMode ? Characteristic.TargetHeaterCoolerState[stateCurrentMode] ??= deviceCurrentModeValue : deviceCurrentModeValue
 
 				log.easyDebug(device.name, '(GET) - Target HeaterCooler State:', active ? stateCurrentMode + ' (' + stateCurrentModeValue + ')' : 'OFF')
 				if (!active || stateCurrentMode === 'FAN' || stateCurrentMode === 'DRY') {
@@ -171,7 +170,13 @@ module.exports = (device, platform) => {
 			},
 
 			CurrentTemperature: callback => {
-				const currentTemp = device.state.currentTemperature
+				let currentTemp = device.state.currentTemperature
+
+				if (typeof currentTemp === 'undefined') {
+					log.warn(device.name, '(GET) - currentTemperature is undefined, defaulting to 21')
+
+					currentTemp = 21
+				}
 
 				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(GET) - Current Temperature:', device.Utils.toFahrenheit(currentTemp) + 'ºF')
@@ -342,7 +347,7 @@ module.exports = (device, platform) => {
 			},
 
 			TargetHumidifierDehumidifierState: callback => {
-				log.easyDebug(device.name, '(GET) - Target Dehumidifier State: DEHUMIDIFIER', '(' + Characteristic.TargetHumidifierDehumidifierState.DEHUMIDIFIER + ')')
+				log.easyDebug(device.name, '(GET) - Dry Target Dehumidifier State: DEHUMIDIFIER', '(' + Characteristic.TargetHumidifierDehumidifierState.DEHUMIDIFIER + ')')
 
 				callback(null, Characteristic.TargetHumidifierDehumidifierState.DEHUMIDIFIER)
 			},

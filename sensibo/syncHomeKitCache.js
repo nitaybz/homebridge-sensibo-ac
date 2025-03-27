@@ -1,31 +1,31 @@
-const AirConditioner = require('./../homekit/AirConditioner')
-const AirPurifier = require('./../homekit/AirPurifier')
-const AirQualitySensor = require('./../homekit/AirQualitySensor')
-const ClimateReactSwitch = require('./../homekit/ClimateReactSwitch')
-const HumiditySensor = require('./../homekit/HumiditySensor')
-const OccupancySensor = require('./../homekit/OccupancySensor')
-const RoomSensor = require('./../homekit/RoomSensor')
-const SyncButton = require('./../homekit/SyncButton')
+import AirConditioner from './../homekit/AirConditioner.js'
+import AirPurifier from './../homekit/AirPurifier.js'
+import AirQualitySensor from './../homekit/AirQualitySensor.js'
+import ClimateReactSwitch from './../homekit/ClimateReactSwitch.js'
+import HumiditySensor from './../homekit/HumiditySensor.js'
+import OccupancySensor from './../homekit/OccupancySensor.js'
+import RoomSensor from './../homekit/RoomSensor.js'
+import SyncButton from './../homekit/SyncButton.js'
 
-module.exports = platform => {
+export default platform => {
 	return () => {
-		platform.log.easyDebug('syncHomeKitCache.js - starting')
+		platform.log.easyDebug('syncHomeKitCache.js - start')
 
 		platform.devices.forEach(device => {
 			if (platform.ignoreHomeKitDevices && device.homekitSupported) {
-				platform.log.easyDebug(`Ignoring Homekit supported device: ${device.id}`)
+				platform.log.easyDebug(`syncHomeKitCache.js - Ignoring Homekit supported device: ${device.id}`)
 
 				return
 			}
 
 			if (!device.remoteCapabilities) {
-				platform.log.easyDebug(`Ignoring as no remote capabilities available for device: ${device.id}`)
+				platform.log.easyDebug(`syncHomeKitCache.js - Ignoring as no remote capabilities available for device: ${device.id}`)
 
 				return
 			}
 
 			// Add AirConditioner
-			// TODO: tidy productModel matching
+			// TODO: tidy productModel matching - use capabilities instead?
 			if (['sky', 'skyv2', 'skyplus', 'air', 'airq'].includes(device.productModel)
 				|| device.productModel.includes('air')
 				|| device.productModel.includes('sky')) {
@@ -33,37 +33,31 @@ module.exports = platform => {
 					return accessory.type === 'AirConditioner' && accessory.id === device.id
 				})
 
-				platform.log.easyDebug(`Device: ${device.id}, Model: ${device.productModel}, airConditionerIsNew: ${airConditionerIsNew}`)
+				platform.log.easyDebug(`syncHomeKitCache.js - Device: ${device.id}, Model: ${device.productModel}, airConditionerIsNew: ${airConditionerIsNew}`)
 
 				if (airConditionerIsNew) {
+					platform.log.success(`syncHomeKitCache.js - Adding AirConditioner accessory (${device.id})`)
+
 					// TODO: what if aircon isn't needed at all (all services disabled)? Do we still push it?
-					// What about airConditioner variable for other accessories?
+					// What about airConditioner variable for other accessories like humiditySensor?
+
 					const airConditioner = new AirConditioner(device, platform)
 
 					platform.activeAccessories.push(airConditioner)
 
 					// Add external Humidity Sensor if enabled
 					if (platform.externalHumiditySensor) {
+						platform.log.info(`syncHomeKitCache.js - Adding HumiditySensor`)
+
 						const humiditySensor = new HumiditySensor(airConditioner, platform)
 
 						platform.activeAccessories.push(humiditySensor)
 					}
 
-					// TODO: make if statements single line?
-					// Add external Air Quality Sensor if available
-					if (['airq'].includes(device.productModel)) {
-						// Check that at least one of AirQuality or CarbonDioxide sensor is enabled before creating
-						if (!platform.disableAirQuality || !platform.disableCarbonDioxide) {
-							// TODO: check for a better way to get measurements
-							airConditioner.measurements = device.measurements
-							const airQualitySensor = new AirQualitySensor(airConditioner, platform)
-
-							platform.activeAccessories.push(airQualitySensor)
-						}
-					}
-
 					// Add separate Sync Button if enabled
 					if (platform.enableSyncButton && !platform.syncButtonInAccessory) {
+						platform.log.info(`syncHomeKitCache.js - Adding SyncButton`)
+
 						const syncButton = new SyncButton(airConditioner, platform)
 
 						platform.activeAccessories.push(syncButton)
@@ -71,6 +65,8 @@ module.exports = platform => {
 
 					// Add Climate React Switch if enabled
 					if (platform.enableClimateReactSwitch && !platform.climateReactSwitchInAccessory) {
+						platform.log.info(`syncHomeKitCache.js - Adding ClimateReactSwitch`)
+
 						const climateReactSwitch = new ClimateReactSwitch(airConditioner, platform)
 
 						platform.activeAccessories.push(climateReactSwitch)
@@ -84,16 +80,32 @@ module.exports = platform => {
 					return accessory.type === 'AirPurifier' && accessory.id === device.id
 				})
 
-				platform.log.easyDebug(`Device: ${device.id}, airPurifierIsNew: ${airPurifierIsNew}`)
+				platform.log.easyDebug(`syncHomeKitCache.js - Device: ${device.id}, airPurifierIsNew: ${airPurifierIsNew}`)
 
 				if (airPurifierIsNew) {
+					platform.log.success(`syncHomeKitCache.js - Adding AirPurifier accessory (${device.id})`)
+
 					const airPurifier = new AirPurifier(device, platform)
 
 					platform.activeAccessories.push(airPurifier)
+				}
+			}
 
+			// Add AirQualitySensor
+			if (['pure', 'airq', 'elements'].includes(device.productModel)) {
+				const airQualityIsNew = !platform.activeAccessories.find(accessory => {
+					return accessory.type === 'AirQualitySensor' && accessory.id === device.id
+				})
+
+				platform.log.easyDebug(`syncHomeKitCache.js - Device: ${device.id}, Model: ${device.productModel}, airQualityIsNew: ${airQualityIsNew}`)
+
+				if (airQualityIsNew) {
 					// Check that at least one of AirQuality or CarbonDioxide sensor is enabled before creating
-					if (!platform.disableAirQuality || !platform.disableCarbonDioxide) {
-						// TODO: why are we using 'device' here? Compare to line 57 where aircon is used with AirQualitySensor
+					if (platform.disableAirQuality && platform.disableCarbonDioxide) {
+						platform.log.info(`syncHomeKitCache.js - Skipped adding AirQualitySensor as both AirQuality and CarbonDioxide are disabled`)
+					} else {
+						platform.log.success(`syncHomeKitCache.js - Adding AirQualitySensor accessory (${device.id})`)
+
 						const airQualitySensor = new AirQualitySensor(device, platform)
 
 						platform.activeAccessories.push(airQualitySensor)
@@ -103,15 +115,17 @@ module.exports = platform => {
 
 			// Add Sensibo Room Sensors if exists
 			if (device.motionSensors && Array.isArray(device.motionSensors)) {
-				device.motionSensors.forEach(sensor => {
+				device.motionSensors.forEach(motionSensor => {
 					const roomSensorIsNew = !platform.activeAccessories.find(accessory => {
-						return accessory.type === 'RoomSensor' && accessory.id === sensor.id
+						return accessory.type === 'RoomSensor' && accessory.id === motionSensor.id
 					})
 
-					platform.log.easyDebug(`Device: ${device.id}, roomSensorIsNew: ${roomSensorIsNew}`)
+					platform.log.easyDebug(`syncHomeKitCache.js - Device: ${device.id}, roomSensorIsNew: ${roomSensorIsNew}`)
 
 					if (roomSensorIsNew) {
-						const roomSensor = new RoomSensor(sensor, device, platform)
+						platform.log.success(`syncHomeKitCache.js - Adding RoomSensor accessory (${device.id})`)
+
+						const roomSensor = new RoomSensor(motionSensor, device, platform)
 
 						platform.activeAccessories.push(roomSensor)
 					}
@@ -121,6 +135,8 @@ module.exports = platform => {
 			// Add Occupancy Sensor if enabled
 			if (platform.enableOccupancySensor && !platform.locations.includes(device.location.id)) {
 				platform.locations.push(device.location.id)
+				platform.log.success(`syncHomeKitCache.js - Adding OccupancySensor accessory (${device.id})`)
+
 				const occupancySensor = new OccupancySensor(device, platform)
 
 				platform.activeAccessories.push(occupancySensor)
@@ -134,7 +150,7 @@ module.exports = platform => {
 
 		platform.cachedAccessories.forEach(accessory => {
 			if (!accessory.context.type) {
-				platform.log.easyDebug(`Old cached accessory to be removed, name: ${accessory.name}`)
+				platform.log.info(`Old cached accessory to be removed, name: ${accessory.displayName}`)
 				accessoriesToRemove.push(accessory)
 			}
 
@@ -144,14 +160,16 @@ module.exports = platform => {
 
 			if (!isActive) {
 				// TODO: should we remove non-active accessories immediately? see also AirQualitySensor below
-				platform.log.easyDebug(`Accessory type: ${accessory.context.type}, Name: ${accessory.name}, not in activeAccessories[]`)
+				platform.log.easyDebug(`Accessory type: ${accessory.context.type}, Name: ${accessory.displayName}, not in activeAccessories[]`)
 			}
 
 			let deviceExists, sensorExists, locationExists
 
+			// TODO: this switch statement feels longer and more complicated than necessary...
+			//       some cases (e.g. AirConditioner and AirPurifier) could be combined or moved to the default at the bottom
 			switch (accessory.context.type) {
 				case 'AirConditioner':
-				// TODO: tidy productModel matching
+				// TODO: tidy productModel matching (use capabilities?)
 					deviceExists = platform.devices.find(device => {
 						return device.id === accessory.context.deviceId
 							&& device.remoteCapabilities
@@ -160,7 +178,7 @@ module.exports = platform => {
 								|| device.productModel.includes('sky'))
 					})
 					if (!deviceExists) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
@@ -170,18 +188,18 @@ module.exports = platform => {
 						return device.id === accessory.context.deviceId && device.remoteCapabilities && device.productModel === 'pure'
 					})
 					if (!deviceExists) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
 
 				case 'AirQualitySensor':
 					deviceExists = platform.devices.find(device => {
-						return device.id === accessory.context.deviceId && device.remoteCapabilities && ['pure', 'airq'].includes(device.productModel)
+						return device.id === accessory.context.deviceId && device.remoteCapabilities && ['pure', 'airq', 'elements'].includes(device.productModel)
 					})
 					// TODO: should disabled check be moved out? see also isActive above
 					if (!deviceExists || (deviceExists && platform.disableAirQuality && platform.disableCarbonDioxide)) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
@@ -191,14 +209,14 @@ module.exports = platform => {
 						return device.id === accessory.context.deviceId
 					})
 					if (!deviceExists || !Array.isArray(deviceExists.motionSensors)) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 						accessoriesToRemove.push(accessory)
 					} else {
 						sensorExists = deviceExists.motionSensors.find(sensor => {
 							return sensor.id === accessory.context.sensorId
 						})
 						if (!sensorExists) {
-							platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
+							platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 							accessoriesToRemove.push(accessory)
 						}
 					}
@@ -209,7 +227,7 @@ module.exports = platform => {
 						return device.id === accessory.context.deviceId && device.remoteCapabilities
 					})
 					if (!deviceExists || !platform.externalHumiditySensor) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
@@ -220,7 +238,7 @@ module.exports = platform => {
 					})
 
 					if (!deviceExists || !platform.enableSyncButton || platform.syncButtonInAccessory) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
@@ -232,7 +250,7 @@ module.exports = platform => {
 					})
 
 					if (!deviceExists || !platform.enableClimateReactSwitch || platform.climateReactSwitchInAccessory) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 						accessoriesToRemove.push(accessory)
 					}
 					break
@@ -243,7 +261,7 @@ module.exports = platform => {
 					})
 
 					if (!locationExists || !platform.enableOccupancySensor) {
-						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.name}`)
+						platform.log.easyDebug(`Cached ${accessory.context.type} accessory to be removed, name: ${accessory.displayName}`)
 						accessoriesToRemove.push(accessory)
 						// TODO: check why platform.locations is updated below
 						platform.locations = platform.locations.filter(location => {
@@ -253,12 +271,17 @@ module.exports = platform => {
 					break
 
 				default:
-					platform.log.warn(`Cached ${accessory.context.type} accessory, name: ${accessory.name}, did not match Switch, not removed`)
+					platform.log.warn(`Cached ${accessory.context.type} accessory, name: ${accessory.displayName}, did not match switch statement, not removed`)
 			}
 		})
 
 		if (accessoriesToRemove.length) {
-			platform.log.easyDebug('Unregistering Unnecessary Cached Devices:')
+			platform.log.warn(`syncHomeKitCache.js - Unregistering ${accessoriesToRemove.length} unnecessary cached accessories:`)
+
+			accessoriesToRemove.forEach(accessory => {
+				platform.log.info(`${accessory.displayName} (${accessory.context.roomName}) - ${accessory.context.type} - ${accessory.context.deviceId}`)
+			})
+
 			platform.log.easyDebug(accessoriesToRemove)
 
 			// unregistering accessories

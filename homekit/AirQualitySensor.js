@@ -1,48 +1,49 @@
-const unified = require('../sensibo/unified')
+import fakegato from 'fakegato-history'
+import StateHandler from './StateHandler.js'
+import StateManager from './StateManager.js'
+import Utils from '../sensibo/Utils.js'
+
 let Characteristic, Service
-const Constants = {}
 
 class AirQualitySensor {
 
 	constructor(device, platform) {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
+		const FAHRENHEIT_UNIT = platform.FAHRENHEIT_UNIT
 
-		Constants.carbonDioxideAlertThreshold = platform.carbonDioxideAlertThreshold
-		Constants.PM2_5DENSITY_MAX = platform.PM2_5DENSITY_MAX
-		Constants.VOCDENSITY_MAX = platform.VOCDENSITY_MAX
+		this.Utils = Utils(this, platform)
 
-		this.Utils = require('../sensibo/Utils')(this, platform)
-
-		const deviceInfo = unified.deviceInformation(device)
+		const deviceInfo = this.Utils.deviceInformation(device)
 
 		this.log = platform.log
 		this.api = platform.api
 		this.storage = platform.storage
 		this.cachedState = platform.cachedState
 		this.id = deviceInfo.id
-		this.appId = deviceInfo.appId
 		this.model = deviceInfo.model
 		this.serial = deviceInfo.serial
 		this.manufacturer = deviceInfo.manufacturer
 		this.roomName = deviceInfo.roomName
 		this.name = this.roomName + ' Air Quality'
 		this.type = 'AirQualitySensor'
+
+		this.temperatureUnit = deviceInfo.temperatureUnit
+		this.usesFahrenheit = this.temperatureUnit === FAHRENHEIT_UNIT
+
 		this.disableAirQuality = platform.disableAirQuality
 		this.disableCarbonDioxide = platform.disableCarbonDioxide
-		this.measurements = device.measurements
-		this.capabilities = this.Utils.airQualityCapabilities()
 
-		const StateHandler = require('./StateHandler')(this, platform)
+		this.capabilities = this.Utils.airQualityCapabilities(device.measurements)
 
 		// Required to add airQuality to this.cachedState for existing installs
 		if ('airQuality' in this.cachedState === false) {
 			this.cachedState.airQuality = {}
 		}
 
-		this.state = this.cachedState.airQuality[this.id] = unified.airQualityStateFromDevice(device, Constants)
-		this.state = new Proxy(this.state, StateHandler)
-		this.stateManager = require('./StateManager')(this, platform)
+		this.state = this.cachedState.airQuality[this.id] = this.Utils.airQualityStateFromDeviceMeasurements(device.measurements)
+		this.state = new Proxy(this.state, StateHandler(this, platform))
+		this.stateManager = StateManager(this, platform)
 
 		this.UUID = this.api.hap.uuid.generate(this.id + '_airQuality')
 		this.accessory = platform.cachedAccessories.find(accessory => {
@@ -50,7 +51,7 @@ class AirQualitySensor {
 		})
 
 		if (!this.accessory) {
-			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
+			this.log.info(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
 			this.accessory = new this.api.platformAccessory(this.name, this.UUID)
 			this.accessory.context.type = this.type
 			this.accessory.context.deviceId = this.id
@@ -61,19 +62,18 @@ class AirQualitySensor {
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
 
-		// FIXME: Add support for Sensibo Elements - see Github issue #103
-
-		// TODO: enable logging? See also line 143
-		// if (platform.enableHistoryStorage) {
-		// 	const FakeGatoHistoryService = require('fakegato-history')(this.api)
-
-		// 	this.loggingService = new FakeGatoHistoryService('weather', this.accessory, {
-		// 		storage: 'fs',
-		// 		path: platform.persistPath
-		// 	})
-		// }
-
+		// This isn't with the others above as roomName can change
 		this.accessory.context.roomName = this.roomName
+
+		if (platform.enableHistoryStorage) {
+			const FakeGatoHistoryService = fakegato(this.api)
+
+			this.loggingService = new FakeGatoHistoryService('room2', this.accessory, {
+				log: this.log,
+				storage: 'fs',
+				path: platform.persistPath
+			})
+		}
 
 		let informationService = this.accessory.getService(Service.AccessoryInformation)
 
@@ -99,8 +99,17 @@ class AirQualitySensor {
 		} else {
 			this.removeCarbonDioxideService()
 		}
+
+		// Add temperature service to enable showing of history in Eve app
+		if (!this.disableAirQuality && platform.enableHistoryStorage) {
+			this.addTemperatureSensorService()
+		} else {
+			this.removeTemperatureSensorService()
+		}
 	}
 
+	// TODO: see if additional values from Elements could be added as custom characteristics
+	//       e.g. ethanol, PM10... - see Github issue #103
 	addAirQualityService() {
 		this.log.easyDebug(`${this.name} - Adding AirQualitySensorService`)
 		this.AirQualitySensorService = this.accessory.getService(Service.AirQualitySensor)
@@ -114,13 +123,17 @@ class AirQualitySensor {
 
 		if (this.capabilities.tvoc?.homeKitSupported) {
 			this.AirQualitySensorService.getCharacteristic(Characteristic.VOCDensity)
-				.setProps({ maxValue: Constants.VOCDENSITY_MAX })
+				.setProps({ maxValue: this.Utils.getConstantValue('VOCDENSITY_MAX') })
 				.on('get', this.stateManager.get.VOCDensity)
 		}
 
+		// TODO: decide on how to get constant values moving forward
+		// this.log.success(`${this.name} - 1 - ${this.Utils.getConstantValue('VOCDENSITY_MAX')}`)
+		// this.log.warn(`${this.name} - 4 - ${this.Utils.Constants().VOCDENSITY_MAX}`)
+
 		if (this.capabilities.pm25?.homeKitSupported) {
 			this.AirQualitySensorService.getCharacteristic(Characteristic.PM2_5Density)
-				.setProps({ maxValue: Constants.PM2_5DENSITY_MAX })
+				.setProps({ maxValue: this.Utils.Constants().PM2_5DENSITY_MAX })
 				.on('get', this.stateManager.get.PM2_5Density)
 		}
 	}
@@ -159,16 +172,49 @@ class AirQualitySensor {
 		}
 	}
 
+	addTemperatureSensorService() {
+		this.log.info(`${this.name} - Adding TemperatureSensorService as required for FakeGato logging to show history in Eve app.`)
+		this.TemperatureSensorService = this.accessory.getService(Service.TemperatureSensor)
+
+		if (!this.TemperatureSensorService) {
+			this.TemperatureSensorService = this.accessory.addService(Service.TemperatureSensor, this.name, 'TemperatureSensor')
+		}
+
+		this.TemperatureSensorService.getCharacteristic(Characteristic.CurrentTemperature)
+			.on('get', this.stateManager.get.CurrentTemperature)
+
+		this.log.info(`${this.name} - Adding CurrentRelativeHumidity as required for FakeGato logging. Homebridge warning expected and can be ignored.`)
+		this.TemperatureSensorService.getCharacteristic(Characteristic.TemperatureDisplayUnits)
+			.on('get', this.stateManager.get.TemperatureDisplayUnits)
+
+		this.log.error('added Characteristic.TemperatureDisplayUnits\n\n\n\n\n')
+	}
+
+	removeTemperatureSensorService() {
+		const TemperatureSensor = this.accessory.getService(Service.TemperatureSensor) || this.accessory.getService('TemperatureSensor')
+
+		if (TemperatureSensor) {
+			// remove service
+			this.log.easyDebug(`${this.name} - Removing TemperatureSensorService`)
+			this.accessory.removeService(TemperatureSensor)
+		}
+	}
+
 	updateHomeKit() {
-		// TODO: add logging of CO2 and VOCs? See also line 57 - see Github issue #110
 		// log new state with FakeGato
-		// if (this.loggingService) {
-		// 	this.loggingService.addEntry({
-		// 		time: Math.floor((new Date()).getTime()/1000),
-		// 		temp: this.state.currentTemperature,
-		// 		humidity: this.state.relativeHumidity
-		// 	})
-		// }
+		// Note: Display of CO2 history doesn't appear to be possible due to Eve / FakeGato limitations - see Github issue #110
+		if (this.loggingService) {
+			this.log.easyDebug(`${this.name} - Making FakeGato log entry`)
+
+			this.loggingService.addEntry({
+				time: Math.floor((new Date()).getTime() / 1000),
+				temp: this.state.currentTemperature,
+				voc: this.state.VOCDensity,
+				ppm: this.state.carbonDioxideLevel
+			})
+
+			this.Utils.updateValue('TemperatureSensorService', 'CurrentTemperature', this.state.currentTemperature)
+		}
 
 		if (!this.disableAirQuality) {
 			this.Utils.updateValue('AirQualitySensorService', 'AirQuality', this.state.airQuality)
@@ -193,4 +239,4 @@ class AirQualitySensor {
 
 }
 
-module.exports = AirQualitySensor
+export default AirQualitySensor

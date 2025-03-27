@@ -1,4 +1,8 @@
-const unified = require('../sensibo/unified')
+import fakegato from 'fakegato-history'
+import StateHandler from './StateHandler.js'
+import StateManager from './StateManager.js'
+import Utils from '../sensibo/Utils.js'
+
 let Characteristic, Service, CELSIUS_UNIT, FAHRENHEIT_UNIT
 
 class AirConditioner {
@@ -9,43 +13,43 @@ class AirConditioner {
 		CELSIUS_UNIT = platform.CELSIUS_UNIT
 		FAHRENHEIT_UNIT = platform.FAHRENHEIT_UNIT
 
-		this.Utils = require('../sensibo/Utils')(this, platform)
+		this.Utils = Utils(this, platform)
 
-		const deviceInfo = unified.deviceInformation(device)
+		const deviceInfo = this.Utils.deviceInformation(device)
 
 		this.log = platform.log
 		this.api = platform.api
 		this.storage = platform.storage
 		this.cachedState = platform.cachedState
 		this.id = deviceInfo.id
-		this.appId = deviceInfo.appId
 		this.model = deviceInfo.model
 		this.serial = deviceInfo.serial
 		this.manufacturer = deviceInfo.manufacturer
 		this.roomName = deviceInfo.roomName
 		this.name = this.roomName + ' AC'
 		this.type = 'AirConditioner'
-		this.disableHumidity = platform.disableHumidity
-		this.modesToExclude = platform.modesToExclude
+
+		this.sensiboFilterValuesExist = deviceInfo.filterService
 		this.temperatureUnit = deviceInfo.temperatureUnit
-		this.climateReactSwitchInAccessory = platform.climateReactSwitchInAccessory
 		this.usesFahrenheit = this.temperatureUnit === FAHRENHEIT_UNIT
 		this.temperatureStep = this.temperatureUnit === FAHRENHEIT_UNIT ? 0.1 : 1
+
+		this.modesToExclude = platform.modesToExclude
 		this.disableAirConditioner = platform.disableAirConditioner
 		this.disableDry = platform.disableDry
 		this.disableFan = platform.disableFan
+		this.disableHumidity = platform.disableHumidity
 		this.disableHorizontalSwing = platform.disableHorizontalSwing
 		this.disableVerticalSwing = platform.disableVerticalSwing
 		this.disableLightSwitch = platform.disableLightSwitch
+		this.climateReactSwitchInAccessory = platform.climateReactSwitchInAccessory
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
-		this.sensiboFilterValuesExist = deviceInfo.filterService
-		this.capabilities = unified.capabilities(device, platform)
 
-		const StateHandler = require('./StateHandler')(this, platform)
+		this.capabilities = this.Utils.airConditionerCapabilities(device.remoteCapabilities.modes)
 
-		this.state = this.cachedState.devices[this.id] = unified.acStateFromDevice(device)
-		this.state = new Proxy(this.state, StateHandler)
-		this.stateManager = require('./StateManager')(this, platform)
+		this.state = this.cachedState.devices[this.id] = this.Utils.airConditionerStateFromDevice(device)
+		this.state = new Proxy(this.state, StateHandler(this, platform))
+		this.stateManager = StateManager(this, platform)
 
 		this.UUID = this.api.hap.uuid.generate(this.id)
 		this.accessory = platform.cachedAccessories.find(accessory => {
@@ -53,7 +57,7 @@ class AirConditioner {
 		})
 
 		if (!this.accessory) {
-			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
+			this.log.info(`Creating new ${platform.PLATFORM_NAME} ${this.type} accessory in the ${this.roomName}`)
 			this.accessory = new this.api.platformAccessory(this.name, this.UUID)
 			this.accessory.context.type = this.type
 			this.accessory.context.deviceId = this.id
@@ -64,16 +68,18 @@ class AirConditioner {
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
 
+		// This isn't with the others above as roomName can change
+		this.accessory.context.roomName = this.roomName
+
 		if (platform.enableHistoryStorage) {
-			const FakeGatoHistoryService = require('fakegato-history')(this.api)
+			const FakeGatoHistoryService = fakegato(this.api)
 
 			this.loggingService = new FakeGatoHistoryService('weather', this.accessory, {
+				log: this.log,
 				storage: 'fs',
 				path: platform.persistPath
 			})
 		}
-
-		this.accessory.context.roomName = this.roomName
 
 		let informationService = this.accessory.getService(Service.AccessoryInformation)
 
@@ -139,16 +145,16 @@ class AirConditioner {
 	// TODO: move this in to Utils.js
 	/**
 	 * Convert degrees F to degrees C
-	 * @param  {string}      ServiceName               Name of the Service to add new characteristic to
-	 * @param  {string}      CharacteristicName        Name of the Characteristic to add
-	 * @param  {object|null} Props                     Object containing the properties (max, min, valid values, minStep etc)
-	 * @param  {boolean}     Getter                    If a Getter should be added, default is true
-	 * @param  {boolean}     Setter                    If a Setter should be added, default is true
-	 * @param  {string|null} StateManagerFunctionName  Name of the Getter and Setter functions (in StateManager.js), if different to CharacteristicName
-	 * @returns {void}
+	 * @param    {string}       ServiceName               Name of the Service to add new characteristic to
+	 * @param    {string}       CharacteristicName        Name of the Characteristic to add
+	 * @param    {Object|null}  Props                     Object containing the properties (max, min, valid values, minStep etc)
+	 * @param    {boolean}      Getter                    If a Getter should be added, default is true
+	 * @param    {boolean}      Setter                    If a Setter should be added, default is true
+	 * @param    {string|null}  StateManagerFunctionName  Name of the Getter and Setter functions (in StateManager.js), if different to CharacteristicName
+	 * @returns  {void}
 	 */
 	addCharacteristicToService(ServiceName, CharacteristicName, Props = null, Getter = true, Setter = true, StateManagerFunctionName = null) {
-		this.log.easyDebug(`${this.name} - Adding ${CharacteristicName} to ${ServiceName}`)
+		this.log.easyDebug(`${this.name} - AirConditioner addCharacteristicToService - Adding ${CharacteristicName} to ${ServiceName}`)
 
 		const service = this.accessory.getService(Service[ServiceName])
 		const characteristic = service?.getCharacteristic(Characteristic[CharacteristicName])
@@ -167,8 +173,9 @@ class AirConditioner {
 		}
 
 		if (Props) {
-			// TODO: I think the below only needs to be > (not >=), because if they are already equal updating it won't CHANGE anything...
-			if (Props.minValue && Props.minValue >= characteristic.props.minValue) {
+			// Characteristic.value defaults to Characteristic.props.minVaue when characteristic is first created.
+			// The below is required if Props.minValue is lower than the default to prevent a warning that the current value is out of range
+			if (Props.minValue && Props.minValue > characteristic.props.minValue) {
 				// TODO: updateValue via this.Utils.updateValue?
 				characteristic.updateValue(Props.minValue)
 			}
@@ -212,9 +219,11 @@ class AirConditioner {
 			// TODO: check on warning... Humidity isn't a supported Characteristic of HeaterCooler
 			// Could we create a new custom Characteristic?
 			// const customHumidity = new Characteristic('CustomHumidity', this.api.hap.uuid.generate('CustomHumidity'+this.id))
+
 			this.addCharacteristicToService('HeaterCooler', 'CurrentRelativeHumidity', null, true, false, null)
 		} else {
 			this.log.easyDebug(`${this.name} - Removing Humidity characteristic`)
+
 			this.HeaterCoolerService.removeCharacteristic(Characteristic.CurrentRelativeHumidity)
 		}
 
@@ -321,6 +330,9 @@ class AirConditioner {
 			// 4. Try to see if the characteristic exists? this.HeaterCoolerService.testCharacteristic(Characteristic.SwingMode)
 			// 5. Set StatusActive Characteristic - https://github.com/homebridge/HAP-NodeJS/wiki/Presenting-Erroneous-Accessory-State-to-the-User
 			this.HeaterCoolerService.removeCharacteristic(Characteristic.SwingMode)
+
+			// FIXME: below to be tested
+			// this.api.updatePlatformAccessories([this.accessory])
 		}
 
 		if ((this.capabilities.COOL && this.capabilities.COOL.fanSpeeds) || (this.capabilities.HEAT && this.capabilities.HEAT.fanSpeeds)) {
@@ -338,6 +350,8 @@ class AirConditioner {
 			this.addCharacteristicToService('HeaterCooler', 'FilterLifeLevel', null, true, false, null)
 			this.addCharacteristicToService('HeaterCooler', 'ResetFilterIndication', null, false, true, null)
 		}
+
+		this.log.easyDebug(`${this.name} - addHeaterCoolerService - end`)
 	}
 
 	removeHeaterCoolerService() {
@@ -376,6 +390,8 @@ class AirConditioner {
 				.on('get', this.stateManager.get.FanRotationSpeed)
 				.on('set', this.stateManager.set.FanRotationSpeed)
 		}
+
+		this.log.easyDebug(`${this.name} - addFanService - end`)
 	}
 
 	removeFanService() {
@@ -408,6 +424,10 @@ class AirConditioner {
 		this.DryService.getCharacteristic(Characteristic.CurrentHumidifierDehumidifierState)
 			.on('get', this.stateManager.get.CurrentHumidifierDehumidifierState)
 
+		// Below is specific logic to change TargetHumidifierDehumidifierState and prevent warnings when its current value is not
+		// in the list of (new) validValues
+		this.DryService.getCharacteristic(Characteristic.TargetHumidifierDehumidifierState).updateValue(Characteristic.TargetHumidifierDehumidifierState.DEHUMIDIFIER)
+
 		this.DryService.getCharacteristic(Characteristic.TargetHumidifierDehumidifierState)
 			.setProps({
 				minValue: 2,
@@ -430,6 +450,8 @@ class AirConditioner {
 				.on('get', this.stateManager.get.DryRotationSpeed)
 				.on('set', this.stateManager.set.DryRotationSpeed)
 		}
+
+		this.log.easyDebug(`${this.name} - addDryService - end`)
 	}
 
 	removeDryService() {
@@ -443,7 +465,7 @@ class AirConditioner {
 	}
 
 	addHorizontalSwingSwitch() {
-		this.log.easyDebug(`${this.name} - addHorizontalSwingSwitch - start`)
+		this.log.easyDebug(`${this.name} - addHorizontalSwingSwitch`)
 
 		this.HorizontalSwingSwitchService = this.accessory.getService(this.roomName + ' Horizontal Swing')
 		if (!this.HorizontalSwingSwitchService) {
@@ -468,7 +490,7 @@ class AirConditioner {
 	}
 
 	addLightSwitch() {
-		this.log.easyDebug(`${this.name} - addLightSwitch - start`)
+		this.log.easyDebug(`${this.name} - addLightSwitch`)
 
 		// Required due to #141 - v2.5.0 changed LightSwitch service name, which caused conflicts, v2.5.1 restored previous naming
 		// TODO: plan for this to be removed in a future version
@@ -512,7 +534,7 @@ class AirConditioner {
 	}
 
 	addSyncButtonService() {
-		this.log.easyDebug(`${this.name} - addSyncButtonService - start`)
+		this.log.easyDebug(`${this.name} - addSyncButtonService`)
 
 		this.SyncButtonService = this.accessory.getService(this.roomName + ' Sync')
 		if (!this.SyncButtonService) {
@@ -544,7 +566,7 @@ class AirConditioner {
 	}
 
 	addClimateReactService() {
-		this.log.easyDebug(`${this.roomName} - addClimateReactService - start`)
+		this.log.easyDebug(`${this.roomName} - addClimateReactService`)
 
 		this.ClimateReactService = this.accessory.getService(this.roomName + ' Climate React')
 		if (!this.ClimateReactService) {
@@ -571,12 +593,18 @@ class AirConditioner {
 	updateHomeKit() {
 		// log new state with FakeGato
 		if (this.loggingService) {
-			// TODO: remove humidity if disabled
-			this.loggingService.addEntry({
+			this.log.easyDebug(`${this.name} - Making FakeGato log entry`)
+
+			const logEntry = {
 				time: Math.floor((new Date()).getTime() / 1000),
-				temp: this.state.currentTemperature,
-				humidity: this.state.relativeHumidity
-			})
+				temp: this.state.currentTemperature
+			}
+
+			if (!this.disableHumidity || this.DryService) {
+				logEntry.humidity = this.state.relativeHumidity
+			}
+
+			this.loggingService.addEntry(logEntry)
 		}
 
 		if (this.ClimateReactService) {
@@ -756,4 +784,4 @@ class AirConditioner {
 
 }
 
-module.exports = AirConditioner
+export default AirConditioner

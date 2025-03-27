@@ -1,4 +1,8 @@
-const unified = require('../sensibo/unified')
+// import fakegato from 'fakegato-history'
+import StateHandler from './StateHandler.js'
+import StateManager from './StateManager.js'
+import Utils from '../sensibo/Utils.js'
+
 let Characteristic, Service
 
 class AirPurifier {
@@ -7,32 +11,30 @@ class AirPurifier {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
 
-		this.Utils = require('../sensibo/Utils')(this, platform)
+		this.Utils = Utils(this, platform)
 
-		const deviceInfo = unified.deviceInformation(device)
+		const deviceInfo = this.Utils.deviceInformation(device)
 
 		this.log = platform.log
 		this.api = platform.api
 		this.storage = platform.storage
 		this.cachedState = platform.cachedState
 		this.id = deviceInfo.id
-		this.appId = deviceInfo.appId
 		this.model = deviceInfo.model
 		this.serial = deviceInfo.serial
 		this.manufacturer = deviceInfo.manufacturer
 		this.roomName = deviceInfo.roomName
 		this.name = this.roomName + ' Pure'
 		this.type = 'AirPurifier'
-		this.disableLightSwitch = platform.disableLightSwitch
+
 		this.sensiboFilterValuesExist = deviceInfo.filterService
-		this.capabilities = unified.capabilities(device, platform)
+		this.disableLightSwitch = platform.disableLightSwitch
 
-		const StateHandler = require('./StateHandler')(this, platform)
+		this.capabilities = this.Utils.airPurifierCapabilities(device.remoteCapabilities.modes)
 
-		// FIXME: likely needs a dedicated airPurifierStateFromDevice function
-		this.state = this.cachedState.devices[this.id] = unified.acStateFromDevice(device)
-		this.state = new Proxy(this.state, StateHandler)
-		this.stateManager = require('./StateManager')(this, platform)
+		this.state = this.cachedState.devices[this.id] = this.Utils.airPurifierStateFromDevice(device)
+		this.state = new Proxy(this.state, StateHandler(this, platform))
+		this.stateManager = StateManager(this, platform)
 
 		this.UUID = this.api.hap.uuid.generate(this.id)
 		this.accessory = platform.cachedAccessories.find(accessory => {
@@ -40,7 +42,7 @@ class AirPurifier {
 		})
 
 		if (!this.accessory) {
-			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
+			this.log.info(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
 			this.accessory = new this.api.platformAccessory(this.name, this.UUID)
 			this.accessory.context.type = this.type
 			this.accessory.context.deviceId = this.id
@@ -51,17 +53,19 @@ class AirPurifier {
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
 
-		// TODO: enable logging? See also line 143
-		// if (platform.enableHistoryStorage) {
-		// 	const FakeGatoHistoryService = require('fakegato-history')(this.api)
+		// This isn't with the others above as roomName can change
+		this.accessory.context.roomName = this.roomName
 
-		// 	this.loggingService = new FakeGatoHistoryService('weather', this.accessory, {
+		// Note: At this time (March 2025) FakeGato and Eve don't support logging any values relevant to AirPurifier
+		// if (platform.enableHistoryStorage) {
+		// 	const FakeGatoHistoryService = fakegato(this.api)
+
+		// 	this.loggingService = new FakeGatoHistoryService('room2', this.accessory, {
+		//		log: this.log,
 		// 		storage: 'fs',
 		// 		path: platform.persistPath
 		// 	})
 		// }
-
-		this.accessory.context.roomName = this.roomName
 
 		let informationService = this.accessory.getService(Service.AccessoryInformation)
 
@@ -85,6 +89,7 @@ class AirPurifier {
 
 	addAirPurifierService() {
 		this.log.easyDebug(`${this.name} - Adding AirPurifierService`)
+
 		this.AirPurifierService = this.accessory.getService(Service.AirPurifier)
 		if (!this.AirPurifierService) {
 			this.AirPurifierService = this.accessory.addService(Service.AirPurifier, this.name, this.type)
@@ -142,13 +147,12 @@ class AirPurifier {
 	}
 
 	updateHomeKit() {
-		// TODO: add logging? See also line 53
+		// Note: At this time (March 2025) FakeGato and Eve don't support logging any values relevant to AirPurifier
 		// log new state with FakeGato
 		// if (this.loggingService) {
 		// 	this.loggingService.addEntry({
 		// 		time: Math.floor((new Date()).getTime()/1000),
-		// 		temp: this.state.currentTemperature,
-		// 		humidity: this.state.relativeHumidity
+		// 		voc: this.state.VOCDensity,
 		// 	})
 		// }
 
@@ -185,4 +189,4 @@ class AirPurifier {
 
 }
 
-module.exports = AirPurifier
+export default AirPurifier

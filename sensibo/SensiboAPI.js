@@ -1,19 +1,21 @@
-const axios = require('axios').default
-const version = require('./../package.json').version
-const integrationName = 'homebridge-sensibo-ac@' + version
+import axios from 'axios'
+
 const baseURL = 'https://home.sensibo.com/api/v2'
 let log
+let username, password, storage
 
 function getToken(username, password, storage) {
 	// FIXME: check on if the below is required
 	// eslint-disable-next-line no-async-promise-executor
 	return new Promise(async (resolve, reject) => {
+		// TODO: move getItem etc in to dedicated function, call that from init
 		const token = await storage.getItem('token')
 
 		// TODO: what happens if returned token doesn't work? E.g. password change... should token be "checked" for validity?
 		// TODO: Looks like Token expiry might be 15 years?!
 		if (token && token.username && token.username === username && new Date().getTime() < token.expirationDate) {
-			log.easyDebug('api.js getToken - Found valid token in storage')
+			log.easyDebug('SensiboAPI.js getToken - Found valid token in storage')
+
 			resolve(token.key)
 
 			return
@@ -31,7 +33,11 @@ function getToken(username, password, storage) {
 		axios.post(
 			tokenURL,
 			data,
-			{ headers: { 'content-type': 'application/x-www-form-urlencoded' } })
+			{
+				headers: { 'content-type': 'application/x-www-form-urlencoded' },
+				// FIXME: this is to overwrite the (default) inclusion of integrationName which appears to break auth calls
+				params: null
+			})
 			.then(async response => {
 				if (response.data.access_token) {
 					const tokenObj = {
@@ -40,31 +46,34 @@ function getToken(username, password, storage) {
 						expirationDate: new Date().getTime() + response.data.expires_in * 1000
 					}
 
-					log.easyDebug('api.js getToken - Token successfully acquired from Sensibo API')
+					log.easyDebug('SensiboAPI.js getToken - Token successfully acquired from Sensibo API')
 					// log.easyDebug(tokenObj)
+
 					await storage.setItem('token', tokenObj)
+
 					resolve(tokenObj.key)
 				} else {
-					const errorMessage = `api.js getToken - Inner Could NOT complete token request -> Error message: "${response.data}"`
+					const errorMessage = `SensiboAPI.js getToken INNER - Could NOT complete token request -> Error message: "${response.data}"`
 
 					log.error(errorMessage)
+
 					reject(errorMessage)
 				}
 			})
-			.catch(err => {
+			.catch(error => {
 				const errorContent = {}
 
-				errorContent.message = `api.js getToken - Could NOT complete token request -> Error message: "${err.response.data.error_description || err.response.data.error}"`
+				errorContent.message = `SensiboAPI.js getToken - Could NOT complete token request\nError message: "${error.response.data.error_description || error.response.data.error}"`
 
 				log.error(errorContent.message)
 
-				if (err.response) {
-					log.warn('api.js getToken - err.response.data content:')
-					log.warn(err.response.data)
-					errorContent.response = err.response.data
+				if (error.response) {
+					log.warn('SensiboAPI.js getToken - error.response.data content:')
+					log.warn(error.response.data)
+					errorContent.response = error.response.data
 				}
 
-				// log.warn(err)
+				// log.warn(error)
 				reject(errorContent)
 			})
 	})
@@ -89,38 +98,50 @@ function fixResponse(results) {
 	})
 }
 
-async function apiRequest(method, url, data) {
+/**
+ * Perform the callout to the Sensibo API using Axious library
+ * @param   {string}                 method  GET, POST, PUT, PATCH, DELETE
+ * @param   {string}                 path    The URL path for the API call
+ * @param   {Object}                 data    The object (in JSON) that will be sent to Sensibo for action
+ * @returns {Promise<object|Error>}          API response (in JSON) or an error (object?)
+ */
+async function apiRequest(method, path, data) {
 	// TODO: Authorization header (login token) expiry isn't checked... could result in API failures
 	// Though it does look like Token expiry might be 15 years?!
 	// maybe https://www.thedutchlab.com/en/insights/using-axios-interceptors-for-refreshing-your-api-token
 
 	// TODO: could add auto-retry for timeouts etc
 	if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
-		log.easyDebug('api.js apiReqest - Error message: No API Token or Authorization Header found')
+		log.warn('SensiboAPI.js apiRequest - No API Token or Authorization Header found, trying to get a new one...')
 
 		try {
-			const token = await getToken(this.username, this.password, this.storage)
+			const token = await getToken(username, password, storage)
 
+			// To ensure nothing changed during the 'await' we run the exact same logic check again
 			if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
 				axios.defaults.headers = { Authorization: 'Bearer ' + token }
 			}
-		} catch (err) {
-			log.error('api.js apiRequest - Token error message:', err.message || err)
-			throw err
+		} catch (error) {
+			log.error('SensiboAPI.js apiRequest - getToken failed.\nError message:')
+			log.warn(error.message || error)
+
+			throw error
 		}
 	}
 
 	return new Promise((resolve, reject) => {
-		log.easyDebug(`api.js apiRequest - Creating ${method.toUpperCase()} request to Sensibo API ->`)
-		log.easyDebug(baseURL + url)
+		log.easyDebug(`SensiboAPI.js apiRequest - Creating ${method.toUpperCase()} request to Sensibo API ->`)
+		log.easyDebug(baseURL + path)
+
 		if (data) {
 			log.easyDebug(`data: ${JSON.stringify(data, null, 4)}`)
 		}
 
 		axios({
-			method,
-			url,
-			data,
+			method: method,
+			// NOTE: url here is actually PATH (but axios calls it url)
+			url: path,
+			data: data,
 			headers: { 'Accept-Encoding': 'gzip' },
 			decompress: true
 		})
@@ -129,7 +150,7 @@ async function apiRequest(method, url, data) {
 				let results
 
 				if (json.status && json.status == 'success') {
-					log.easyDebug(`api.js apiRequest - Successful ${method.toUpperCase()} response:`)
+					log.easyDebug(`SensiboAPI.js apiRequest - Successful ${method.toUpperCase()} response:`)
 
 					// TODO: The below is only relevant for getAllDevices and getDevicesStates (and should be moved)
 					// It prevents address details being logged though (and adds ClimateReact if missing),
@@ -141,60 +162,57 @@ async function apiRequest(method, url, data) {
 					}
 
 					log.easyDebug(JSON.stringify(results, null, 4))
+					// log.easyDebug(JSON.stringify(results, null))
 
 					resolve(results)
 				} else {
 					const error = json
 
-					log.error(`api.js apiRequest - Non-success message: ${error.reason} - "${error.message}"`)
+					log.error(`SensiboAPI.js apiRequest - Non-success message: ${error.reason} - "${error.message}"`)
 					log.warn(json)
+
 					reject(error)
 				}
 			})
-			.catch(err => {
+			.catch(error => {
 				const errorContent = {}
 
-				errorContent.errorURL = baseURL + url
-				errorContent.message = err.message
-				log.error(`api.js apiRequest - Error URL: ${errorContent.errorURL}`)
-				log.warn(`api.js apiRequest - Error message: ${errorContent.message}`)
+				errorContent.errorURL = baseURL + path
+				errorContent.message = error.message
 
-				if (err.response) {
-					errorContent.response = err.response.data
-					log.warn(`api.js apiRequest - Error response: ${JSON.stringify(errorContent.response, null, 4)}`)
+				log.error(`SensiboAPI.js apiRequest - Error URL: ${errorContent.errorURL}`)
+				log.warn(`SensiboAPI.js apiRequest - Error message: ${errorContent.message}`)
+
+				if (error.response) {
+					errorContent.response = error.response.data
+					log.warn(`SensiboAPI.js apiRequest - Error response: ${JSON.stringify(errorContent.response, null, 4)}`)
 				}
 
-				// log.warn(err)
+				// log.warn(error)
+
 				reject(errorContent)
 			})
 	})
 }
 
-module.exports = async function (platform) {
+export default async function (platform) {
 	log = platform.log
-	// TODO: check on scope of these
-	this.username = platform.username
-	this.password = platform.password
-	this.storage = platform.storage
+	username = platform.username
+	password = platform.password
+	storage = platform.storage
 
-	// Pretty sure the below only runs during first load...
-	if (platform.apiKey) {
-		axios.defaults.params = {
-			integration: integrationName,
-			apiKey: platform.apiKey
-		}
-	} else {
-		try {
-			const token = await getToken(platform.username, platform.password, platform.storage)
+	const integrationName = platform.PLUGIN_NAME + '@' + platform.PLUGIN_VERSION
 
-			axios.defaults.headers = { Authorization: 'Bearer ' + token }
-			axios.defaults.params = { integration: integrationName }
-		} catch (err) {
-			log.error('api.js check for apiKey or getToken - The plugin was NOT able to find a stored token or acquire a new one from Sensibo API -> plugin is not able to GET or SET the units!')
-			log.warn(`Error message: ${err.message}`)
-		}
-	}
 	axios.defaults.baseURL = baseURL
+	axios.defaults.params = { integration: integrationName }
+
+	// Runs during first load only...
+	if (platform.apiKey) {
+		axios.defaults.params.apiKey = platform.apiKey
+	} else {
+		// TODO: move getItem (from getToken) to a dedicated function, then call that new func
+		log.error('SensiboAPI.js init - No apiKey found, will try to getToken using login credentials during first API request.')
+	}
 
 	return {
 
@@ -205,13 +223,15 @@ module.exports = async function (platform) {
 
 			try {
 				allDevices = await apiRequest('get', path + '?' + queryString)
-			} catch (err) {
-				log.error('api.js getAllDevices - Error message:', err.message)
-				throw err
+			} catch (error) {
+				log.error('SensiboAPI.js getAllDevices - apiRequest failed.\nError message:')
+				log.warn(error.message)
+
+				throw error
 			}
 
-			// TODO: the below will cause an exception if above "get" fails... null check?
-			// Or return void after throw err above (or return an empty array)? The thrown error _should_ be caught by the callers.
+			// Note: if an error occurs above the throw will also "return" void
+			// However if getAllDevices provides an empty response (but no error) the below will cause an exception, null check?
 			return allDevices.filter(device => {
 				return (
 					platform.locationsToInclude.length === 0

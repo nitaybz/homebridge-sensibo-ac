@@ -1,4 +1,8 @@
-const unified = require('../sensibo/unified')
+import fakegato from 'fakegato-history'
+import StateHandler from './StateHandler.js'
+import StateManager from './StateManager.js'
+import Utils from '../sensibo/Utils.js'
+
 let Characteristic, Service, FAHRENHEIT_UNIT
 
 class RoomSensor {
@@ -8,10 +12,10 @@ class RoomSensor {
 		Characteristic = platform.api.hap.Characteristic
 		FAHRENHEIT_UNIT = platform.FAHRENHEIT_UNIT
 
-		this.Utils = require('../sensibo/Utils')(this, platform)
+		this.Utils = Utils(this, platform)
 
-		const deviceInfo = unified.deviceInformation(device)
-		const sensorInfo = unified.sensorInformation(sensor)
+		const deviceInfo = this.Utils.deviceInformation(device)
+		const sensorInfo = this.Utils.sensorInformation(sensor)
 
 		this.log = platform.log
 		this.api = platform.api
@@ -21,7 +25,6 @@ class RoomSensor {
 		this.deviceId = deviceInfo.id
 		this.model = sensorInfo.model
 		this.serial = sensorInfo.serial
-		this.appId = deviceInfo.appId
 		this.manufacturer = deviceInfo.manufacturer
 		this.roomName = deviceInfo.roomName
 		this.name = this.roomName + ' Sensor'
@@ -29,11 +32,9 @@ class RoomSensor {
 		this.temperatureUnit = deviceInfo.temperatureUnit
 		this.usesFahrenheit = this.temperatureUnit === FAHRENHEIT_UNIT
 
-		const StateHandler = require('./StateHandler')(this, platform)
-
-		this.state = this.cachedState.sensors[this.id] = unified.sensorState(sensor)
-		this.state = new Proxy(this.state, StateHandler)
-		this.stateManager = require('./StateManager')(this, platform)
+		this.state = this.cachedState.sensors[this.id] = this.Utils.sensorStateFromSensorMeasurements(sensor.measurements)
+		this.state = new Proxy(this.state, StateHandler(this, platform))
+		this.stateManager = StateManager(this, platform)
 
 		this.UUID = this.api.hap.uuid.generate(this.id)
 		this.accessory = platform.cachedAccessories.find(accessory => {
@@ -41,7 +42,7 @@ class RoomSensor {
 		})
 
 		if (!this.accessory) {
-			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
+			this.log.info(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory in the ${this.roomName}`)
 			this.accessory = new this.api.platformAccessory(this.name, this.UUID)
 			this.accessory.context.type = this.type
 			this.accessory.context.sensorId = this.id
@@ -53,16 +54,18 @@ class RoomSensor {
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
 
+		// This isn't with the others above as roomName can change
+		this.accessory.context.roomName = this.roomName
+
 		if (platform.enableHistoryStorage) {
-			const FakeGatoHistoryService = require('fakegato-history')(this.api)
+			const FakeGatoHistoryService = fakegato(this.api)
 
 			this.loggingService = new FakeGatoHistoryService('weather', this.accessory, {
+				log: this.log,
 				storage: 'fs',
 				path: platform.persistPath
 			})
 		}
-
-		this.accessory.context.roomName = this.roomName
 
 		let informationService = this.accessory.getService(Service.AccessoryInformation)
 
@@ -158,4 +161,4 @@ class RoomSensor {
 
 }
 
-module.exports = RoomSensor
+export default RoomSensor

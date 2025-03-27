@@ -1,4 +1,7 @@
-const unified = require('../sensibo/unified')
+import StateHandler from './StateHandler.js'
+import StateManager from './StateManager.js'
+import Utils from '../sensibo/Utils.js'
+
 let Characteristic, Service
 
 class OccupancySensor {
@@ -7,10 +10,10 @@ class OccupancySensor {
 		Service = platform.api.hap.Service
 		Characteristic = platform.api.hap.Characteristic
 
-		this.Utils = require('../sensibo/Utils')(this, platform)
+		this.Utils = Utils(this, platform)
 
-		const deviceInfo = unified.deviceInformation(device)
-		const locationInfo = unified.locationInformation(device.location)
+		const deviceInfo = this.Utils.deviceInformation(device)
+		const locationInfo = this.Utils.locationInformation(device.location)
 
 		this.log = platform.log
 		this.api = platform.api
@@ -24,11 +27,9 @@ class OccupancySensor {
 		this.name = this.locationName + ' Occupancy'
 		this.type = 'OccupancySensor'
 
-		const StateHandler = require('./StateHandler')(this, platform)
-
-		this.state = this.cachedState.occupancy[this.id] = unified.occupancyState(device.location)
-		this.state = new Proxy(this.state, StateHandler)
-		this.stateManager = require('./StateManager')(this, platform)
+		this.state = this.cachedState.occupancy[this.id] = this.Utils.occupancyStateFromDeviceLocation(device.location)
+		this.state = new Proxy(this.state, StateHandler(this, platform))
+		this.stateManager = StateManager(this, platform)
 
 		this.UUID = this.api.hap.uuid.generate(this.id)
 		this.accessory = platform.cachedAccessories.find(accessory => {
@@ -36,7 +37,7 @@ class OccupancySensor {
 		})
 
 		if (!this.accessory) {
-			this.log(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory at ${this.locationName}`)
+			this.log.info(`Creating New ${platform.PLATFORM_NAME} ${this.type} Accessory at ${this.locationName}`)
 			this.accessory = new this.api.platformAccessory(this.name, this.UUID)
 			this.accessory.context.type = this.type
 			this.accessory.context.locationId = this.id
@@ -47,6 +48,7 @@ class OccupancySensor {
 			this.api.registerPlatformAccessories(platform.PLUGIN_NAME, platform.PLATFORM_NAME, [this.accessory])
 		}
 
+		// This isn't with the others above as roomName can change
 		this.accessory.context.locationName = this.locationName
 
 		let informationService = this.accessory.getService(Service.AccessoryInformation)
@@ -85,4 +87,4 @@ class OccupancySensor {
 
 }
 
-module.exports = OccupancySensor
+export default OccupancySensor

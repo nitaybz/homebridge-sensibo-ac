@@ -1,9 +1,9 @@
-// import stylistic from 'stylistic'
-const globals = require('globals')
-const js = require('@eslint/js')
-const stylistic = require('@stylistic/eslint-plugin')
+// "Flat" config using sourceType: 'module'
+import globals from 'globals'
+import js from '@eslint/js'
+import stylistic from '@stylistic/eslint-plugin'
 
-module.exports = [
+export default [
 	js.configs.recommended,
 	// stylistic.configs comes from https://github.com/eslint-stylistic/eslint-stylistic/blob/main/packages/eslint-plugin/configs/customize.ts
 	// Note: some of the config defaults don't align with documentation defaults
@@ -29,9 +29,9 @@ module.exports = [
 		// ignores: ['index.js'],
 		// TODO: should we set environment as node?
 		languageOptions: {
-			ecmaVersion: 13,
+			ecmaVersion: 'latest',
 			globals: { ...globals.node },
-			sourceType: 'commonjs'
+			sourceType: 'module'
 		},
 		linterOptions: { reportUnusedDisableDirectives: true },
 		plugins: { stylistic: stylistic },
