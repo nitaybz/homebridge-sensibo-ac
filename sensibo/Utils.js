@@ -528,6 +528,29 @@ export default (device, platform) => {
 			return deviceInfo
 		},
 
+		// FIXME: decide on how constants should be retrieved...
+		Constants: () => {
+			return Constants
+		},
+
+		/**
+		 * Retrieves the value of a given constant
+		 * @param   {string}       constantName  The constant to retrieve
+		 * @returns {number|void}
+		 */
+		getConstantValue: constantName => {
+			const constantValue = Constants[constantName]
+
+			if (typeof constantValue === 'undefined') {
+				log.warn(`${device.name} - Utils getConstantValue, constantName: ${constantName}, value undefined, returning null`)
+
+				return
+			}
+
+			log.easyDebug(`${device.name} - Utils getConstantValue, constantName: ${constantName}, value: ${constantValue}`)
+
+			return constantValue
+		},
 
 		/**
 		 * Returns a simplified object of information - such as id and name - about the given Sensibo device
