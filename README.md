@@ -20,38 +20,62 @@
 
 Check with: `node -v` & `homebridge -V` and update if needed
 
+## Devices Supported
+
+- **Sensibo Sky**
+- **Sensibo Air** including additional **Room Sensors**
+- **Sensibo Air Pro** (sometimes called Plus) including air quality, CO2 and additional **Room Sensors**
+- **Sensibo Elements** including air quality, CO2 and PM2.5
+- **Sensibo Pure** (Air Purifier) control, including fan speed and boost control
+
 ## Plugin Features
 
 - Login with **username & password** or **API-key** visit [https://home.sensibo.com/me/api](https://home.sensibo.com/me/api) to get your unique API-key
-- **Sensibo Sky Support**
-- **Sensibo Air Support** including the attached **Room Sensors**
-- **Sensibo Air Plus Support** including air quality and CO2
-- **Pure Support (Air Purifier)** control, including fan speed and boost control, via a separate accessory
-- **Auto Detect Configurations** - Automatically detect your devices, their capabilities and add available control options to the Apple Home app (HomeKit). More details below
-- Accessory type **HeaterCooler** - allowing adjusting fan speed (Rotation Speed) & swing (Oscillate) from within the accessory in the Home app
-- **Dry Mode** control, including fan speed and swing control, via a separate accessory
-- **Fan Mode** control, including fan speed and swing control, via a separate accessory
-- **Horizontal Swing** - allows you to enable/disable horizontal swing of your AC
-- **Vertical Swing** - allows you to enable/disable vertical swing of your AC
+- **Auto Detect Configurations** - Automatically detect your devices, their capabilities and add available control options to the Apple Home app (HomeKit)
+- **HeaterCooler** (Air Conditioner) control, including adjusting fan speed (Rotation Speed) & vertical swing (Oscillate) from within the accessory in the Apple Home app.
 - **AC Sync Button** - easily toggle the state of the AC between ON/OFF in case your AC is out of sync (does not send commands to the AC)
+- **Climate React** - enable/disable Climate React (Smart mode). To adjust the settings, use the Sensibo app or turn on `Climate React Auto Setup`
 - **Occupancy Sensor** - show the Home/Away status from Sensibo in the Home app via Occupancy sensor
-- **Climate React** - enable/disable Climate React (Smart mode). To adjust the settings, use the Sensibo app or turn on Climate React Auto Setup
-- **Filter Cleaning Indication** - show filter status in the Home app for your accessories. Can be reset in the Eve app
 - **History Storage** - store temperature and humidity measurements over time, review them in the Eve app as a graph
+
+Depending on your AC device and which remote code you've setup in the Sensibo app you may also have access to:
+
+- **Dry Mode** (dehumidifer) control, including fan speed and (vertical) swing control
+- **Fan Mode** control, including fan speed and (vertical) swing control
+- **Horizontal Swing** - allows you to enable/disable horizontal swing
+- **Filter Cleaning Indication** - show filter status in the Home app for your accessories. Can be reset in the Eve app
+
+Depending on your Sensibo device, you may also have access to:
+
+- **Air Quality Sensor** - Sensibo Air Pro, Sensibo Pure and Sensibo Elements devices only, see the current air quality, CO2 and PM2.5 (PM2.5 on Elements only)
+- **Air Purifier** - Sensibo Pure only - control, including fan speed and boost control
 
 ## Installation
 
 This plugin is Homebridge verified (and previously HOOBS certified) and can be easily installed and configured through their UI.
 
+1. Install Homebridge, see [https://homebridge.io/how-to-install-homebridge](https://homebridge.io/how-to-install-homebridge)
+2. Install this plugin, login to your Homebridge instance and navigate to Plugins
+3. Search for homebridge-sensibo-ac
+4. Click the down arrow icon to install
+5. Once installed, restart Homebridge
+6. To start using the plugin, click the three dots (menu) for this plugin on the Plugins page and then click `Plugin Config`, at a minimum provide your Sensibo API key or username and password.
+
+See `config-sample.json` in this repository for an example.
+
 ### Manual install
 
-If you don't use Homebridge UI or HOOBS, or if you want to know more about the plugin features and options, keep reading...
+If you don't use Homebridge UI or HOOBS keep reading...
 
-1. Install Homebridge (using NPM): `sudo npm install -g homebridge --unsafe-perm`
-2. Install this plugin: `sudo npm install -g homebridge-sensibo-ac`
-3. Update your configuration file. See `config-sample.json` in this repository for a sample.
+On a device with Homebridge already installled:
 
-\* Install directly from GIT: `sudo npm install -g git+https://github.com/nitaybz/homebridge-sensibo-ac.git`
+1. Install this plugin using NPM: `sudo npm install -g homebridge-sensibo-ac` (Note: this is global)
+2. Update your configuration file manually. See `config-sample.json` in this repository for an example
+
+**OR** alternatively:
+
+1. Install this plugin using GIT: `sudo npm install -g git+https://github.com/nitaybz/homebridge-sensibo-ac.git`
+2. Update your configuration file manually. See `config-sample.json` in this repository for an example
 
 ## Configuration
 
@@ -113,7 +137,7 @@ See below the table for additional details on these settings.
 | `password`                 |  Your Sensibo account password                                   |     ✓*   |     -    |  String  |
 | `allowRepeatedCommands`    |  Allow the plugin to send the same state command again           |          |  `false` |  Boolean |
 | `carbonDioxideAlertThreshold` |  Value, in PPM, over which the Home app will alert you to high CO2 readings. Requires the Carbon Dioxide Sensor be enabled  |          |  `1500` |  Integer |
-| `disableAirQuality`        |  When set to `true`, will remove Air Quality and TVOC readings   |          |  `false` |  Boolean |
+| `disableAirQuality`        |  When set to `true`, will remove Air Quality, TVOC and PM2.5 readings   |          |  `false` |  Boolean |
 | `disableCarbonDioxide`     |  When set to `true`, will remove Carbon Dioxide readings and warnings       |          |  `false` |  Boolean |
 | ~~`disableDry`~~           |  ***Deprecated - use modesToExclude*** When set to `true`, will remove the DRY accessory  |          |  `false` |  Boolean |
 | ~~`disableFan`~~           |  ***Deprecated - use modesToExclude*** When set to `true`, will remove the FAN accessory  |          |  `false` |  Boolean |
@@ -143,20 +167,22 @@ See below the table for additional details on these settings.
 
 The plugin will scan for all your devices and retrieve each device capabilities separately. Therefore in the Home app you will see only the things that the Sensibo app allows you to control, based on your AC units remote capabilities.
 
+***Note**: you can ask Sensibo Support to change your Sensibo remote codes if there is any functions missing within Sensibo.*
+
 In practice:
 
 - Minimum and Maximum temperatures are taken from Sensibo API
 - Temperature unit (Celsius/Fahrenheit) is taken from Sensibo API
-- "AUTO" mode is available in the AC states in the Home app only if it is available in Sensibo app
-- Modes "DRY" (dehumidifier) and "FAN" will create their own accessories, only if you have this ability in Sensibo app
+- "AUTO" mode is available in the AC modes only if it is available in Sensibo app
+- "DRY" (dehumidifier) and "FAN" modes will create their own accessories, only if you have this ability in Sensibo app
 - Fan Speed ("Rotation Speed" in the Home app) will show in the accessory settings, but only if you have this capability in Sensibo app
 - Horizontal Swing capability in Sensibo app will show up as a separate switch in the Home app (because there is no other way to control horizontal swing)
-- Vertical Swing ("Oscillate" in the Home app) will show in the accessory settings, but only if you have this capability in Sensibo app
-- Use `"ignoreHomeKitDevices": true` to automatically ignore, skip or remove HomeKit supported devices like Sensibo Air and Sensibo Pure.
+- Vertical Swing ("Oscillate" in the Home app) will show in the accessory sub-settings, but only if you have this capability in Sensibo app
+- Use `"ignoreHomeKitDevices": true` to automatically ignore, skip or remove HomeKit supported devices like Sensibo Air and Sensibo Pure. For example if you have added them to the Home app directly.
 
 ### State polling
 
-The accessory state will be updated in the background every 90 seconds, this is hard coded and requested specifically by Sensibo company. The state will also refresh every time you open the Home app, or any related HomeKit app.
+The accessory state will be updated in the background every 90 seconds, this is hard coded and requested specifically by Sensibo. The state will also refresh every time you open the Home app, or any related HomeKit app (such as the Eve app).
 
 ### Disabling AC modes
 
@@ -170,17 +196,21 @@ To disable a mode, add `"modesToExclude": ["MODE_TO_HIDE","ANOTHER_MODE_TO_HIDE"
 
 If your unit has **DRY** mode in the Sensibo app, the plugin will create a dehumidifier accessory in the Home app to control the DRY mode of your device. It will also include all the fan speeds and swing possibilities available from Sensibo.
 
-To remove the separate **Dry** (dehumidifier) accessory, add `"disableDry": true` to your config. `modesToExclude` will overwrite this setting.
+To remove the separate **Dry** (dehumidifier) accessory, add `DRY` to `modesToExclude`, example: `"modesToExclude": ["DRY"]`, to your config.
 
-***This setting is deprecated, please use `modesToExclude` instead***
+***The following setting is deprecated, please use `modesToExclude` instead***
+
+To remove the separate **Dry** (dehumidifier) accessory, add `"disableDry": true` to your config. `modesToExclude` will overwrite this setting.
 
 ### Fan mode
 
 If your unit **FAN** mode in the Sensibo app, this plugin will create a fan accessory in the Home app to control the FAN mode of your device. It will include all the fan speeds and swing possibilities available from Sensibo.
 
-To remove the separate **Fan** accessory, add `"disableFan": true` to your config. `modesToExclude` will overwrite this setting.
+To remove the separate **Fan** accessory, add `FAN` to `modesToExclude`, example: `"modesToExclude": ["FAN"]`, to your config.
 
-***This setting is deprecated, please use `modesToExclude` instead***
+***The following setting is deprecated, please use `modesToExclude` instead***
+
+To remove the separate **Fan** accessory, add `"disableFan": true` to your config. `modesToExclude` will overwrite this setting.
 
 ### Auto & Fan speeds
 
@@ -196,61 +226,11 @@ To remove the **Horizontal Swing** switch, add `"disableHorizontalSwing": true` 
 
 ### Vertical swing
 
-If your Sensibo app has **Vertical Swing** control, an "Oscillate" toggle will be added to the existing AC accessory in the Home app to control it.
+If your Sensibo app has **Vertical Swing** control, an "Oscillate" toggle will be added to the existing AC accessory sub-settings (it's a little hidden!) in the Home app to control it.
 
 To disable the **Vertical Swing** (oscillate) toggle, add `"disableVerticalSwing": true` to your config.
 
 Note: Due to Homebridge and Apple (Home app) caching you may need to manually remove the AC accessory to see the change. See [Issue #90](https://github.com/nitaybz/homebridge-sensibo-ac/issues/90) for details. For details on how to remove an accessory take a look at the steps in [Troubleshooting and Debug](#troubleshooting-and-debug) below.
-
-### AC Sync
-
-- Does Sensibo shows your AC is ON while it's actually OFF?
-- Does your sensibo state get out of sync with your AC?
-- Do you find yourself changing commands from the original remote just for the AC and Sensibo to be in sync?
-
-If you have ever found yourself struggling with the above, this feature is exactly for you! It allows you to toggle the state in the Home app (and update Sensibo) without changing the real state of your device, this will help you to sync between them.
-
-When enabled, a switch will be added. The switch is stateless, which means that when clicked, it turns back OFF after 1 second. Behind the scenes, the plugin toggles the state of the device from ON to OFF (or the other way around, depending on the current state of the device), without sending actual commands to the AC.
-
-*This maybe be required if your AC has the same command for ON and OFF because it can go out of sync easily.*
-
-To add the **AC Sync** switch, add `"enableSyncButton": true` to your config.
-
-To show the **AC Sync** switch within the AC accessory, instead of a separate switch, add `"syncButtonInAccessory": true` to your config.
-
-Note: Setting `"syncButtonInAccessory": true` by itself will create the switch, regardless of `enableSyncButton` value.
-
-### Sensor readings
-
-#### Humidity
-
-The current relative humidity, as reported by the Sensibo device, are shown within the Home app under Climate.
-
-To remove AC accessory **Humidity** readings from the Home app, add `"disableHumidity": true` to your config.
-
-Note: If you have Dry mode (dehumidifier) enabled, Humidity will always be shown. Additionally, currently room sensors always add Humidity readings.
-
-To show the **Humidity** reading as a separate sensor, add `"externalHumiditySensor": true` to your config.
-
-Note: Setting `"externalHumiditySensor": true` by itself will create the sensor accessory, regardless of `disableHumidity` value.
-
-#### Air quality and Carbon Dioxide
-
-The current Air Quality, Total Volatile Organic Compounds (TVOCs), in µg/㎥ (micrograms per metre cubed), and Carbon Dioxide (CO2), in Parts Per Million (PPM), as reported by the Sensibo device, are shown within the Home app as an Air Quality and Carbon Dioxide sensor respectively.
-
-The Home app can alert you to high CO2 readings. The default for this plugin is 1500 (PPM). You can change the threshold, by adding `"carbonDioxideAlertThreshold": 1500` to your config, the value must be a whole number. Requires the Carbon Dioxide Sensor be enabled.
-
-To remove **CO2** readings and warnings from the Home app, add `"disableAirQuality": true` to your config.
-
-To remove **Air Quality**a d **TVOC** readings from the Home app, add `"disableAirQuality": true` to your config.
-
-### Occupancy Sensor
-
-Enabling this feature will add **Occupancy Sensor** to the Home app, representing the Home/Away state of the geofence feature in Sensibo app.
-
-Note: Geofencing must be enabled in Sensibo app for it to work
-
-To add the **Occupancy Sensor**, add `"enableOccupancySensor": true` to your config.
 
 ### Climate React
 
@@ -280,7 +260,7 @@ To enable **Climate React Auto Setup**, add `"enableClimateReactAutoSetup": true
 
 Note: only temperature thresholds are supported by Climate React auto setup, for full options, see "Climate React" in the Sensibo app.
 
-Note 2: currently does not work on Dry or Fan modes (as these are treated as separate accessories).
+Note 2: currently this does not work on Dry or Fan modes (as these are treated as separate accessories).
 
 ### Filter cleaning indication
 
@@ -290,11 +270,68 @@ If you have the Filter Cleaning notifications feature in Sensibo (from Sensibo "
 2. **Filter Change Indication** - Whether the filter should be cleaned or not (based on usage time).
 3. **Reset Filter Indication** - Stateless button (appears only in Eve app due to Apple limitations in the Home app) that resets the counter of the filter life. Normally you would click this button right after you cleaned the filters.
 
+### AC Sync
+
+- Does Sensibo shows your AC is ON while it's actually OFF?
+- Does your sensibo state get out of sync with your AC?
+- Do you find yourself changing commands from the original remote just for the AC and Sensibo to be in sync?
+
+If you have ever found yourself struggling with the above, this feature is exactly for you! It allows you to toggle the state in the Home app (and update Sensibo) without changing the real state of your device, this will help you to sync between them.
+
+When enabled, a switch will be added. The switch is stateless, which means that when clicked, it turns back OFF after 1 second. Behind the scenes, the plugin toggles the state of the device from ON to OFF (or the other way around, depending on the current state of the device), without sending actual commands to the AC.
+
+*This maybe be required if your AC has the same command for ON and OFF because it can go out of sync easily.*
+
+To add the **AC Sync** switch, add `"enableSyncButton": true` to your config.
+
+To show the **AC Sync** switch within the AC accessory, instead of a separate switch, add `"syncButtonInAccessory": true` to your config.
+
+Note: Setting `"syncButtonInAccessory": true` by itself will create the switch, regardless of `enableSyncButton` value.
+
+### Sensor readings
+
+#### Humidity
+
+The current relative humidity, as reported by the Sensibo device, are shown within the Home app under Climate.
+
+To remove AC accessory **Humidity** readings from the Home app, add `"disableHumidity": true` to your config.
+
+Note: If you have `Dry` mode (dehumidifier) enabled, Humidity will always be shown. Additionally, currently additional room sensors always add Humidity readings.
+
+To show the **Humidity** reading as a separate sensor, add `"externalHumiditySensor": true` to your config.
+
+Note: Setting `"externalHumiditySensor": true` by itself will create the sensor accessory, regardless of `disableHumidity` value.
+
+#### Air Quality and Carbon Dioxide
+
+***Requires** Sensibo Air Pro, Sensibo Pure or Sensibo Elements*
+
+The following air quality readings, as reported by your Sensibo device, are shown within the Home app where available:
+
+- Indoor Air Quality (IAQ), 0-5 (where 0 is Unknown, 1 is Excellent and 5 is Poor)
+- Total Volatile Organic Compounds (TVOCs), in µg/㎥ (micrograms per metre cubed)
+- Carbon Dioxide (CO2), in Parts Per Million (PPM)
+- Fine Particulate Matter (PM2.5), in µg/㎥ (micrograms per metre cubed) - Elements only
+
+The Home app can also alert you to high CO2 readings. The default for this plugin is 1500 (PPM). You can change the threshold, by adding `"carbonDioxideAlertThreshold": 1500` to your config, the value must be a whole number. Requires the Carbon Dioxide Sensor be enabled.
+
+To remove **CO2** readings and warnings from the Home app, add `"disableAirQuality": true` to your config.
+
+To remove **Air Quality**, **TVOC** and **PM2.5** (where available) readings from the Home app, add `"disableAirQuality": true` to your config.
+
+### Occupancy Sensor
+
+Enabling this feature will add an **Occupancy Sensor** to the Home app, representing the Home/Away state of the geofence feature in Sensibo app.
+
+Note: Geofencing must be enabled in Sensibo app for it to work.
+
+To add the **Occupancy Sensor**, add `"enableOccupancySensor": true` to your config.
+
 ### History storage
 
-Enabling this feature will store measurements of temperature and humidity. This historic data can be viewable in the Eve app under the accessory in a graph.
+Enabling this feature will store measurements of temperature, humidity and TVOCs (where relevant). This historic data can then be viewed as a graph in the Eve app under the accessory.
 
-To enable the **history storage** feature, add `"enableHistoryStorage": true` to your config.
+To enable the **History storage** feature, add `"enableHistoryStorage": true` to your config.
 
 ## Troubleshooting and Debug
 
