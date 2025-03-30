@@ -145,7 +145,7 @@ class SensiboACPlatform {
 			})
 
 			try {
-				this.log.debug(`index.js didFinishLaunching - running getItem('state'), SensiboAPI() and refreshState()`)
+				this.log.easyDebug(`index.js didFinishLaunching - running getItem('state'), SensiboAPI() and refreshState()`)
 
 				this.cachedState = await this.storage.getItem('state') || this.emptyState
 
@@ -167,7 +167,7 @@ class SensiboACPlatform {
 						}
 					})
 
-				this.log.info(`Found ${this.devices.length} Sensibo devices, adding or restoring to Homebridge based on your plugin settings.`)
+				this.log.info(`Found ${this.devices.length} Sensibo devices, restored existing or added new accessories to Homebridge based on your plugin settings.`)
 			} catch (error) {
 				this.log.error('index.js didFinishLaunching - getItem state or refreshState failed. Error message:')
 				this.log.warn(error.message || error)
