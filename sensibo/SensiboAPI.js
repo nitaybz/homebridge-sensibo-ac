@@ -49,7 +49,7 @@ function saveTokenToStorage(tokenToSave) {
 }
 
 function getTokenFromAPI(username, password) {
-	log.info('SensiboAPI.js getTokenFromAPI - calling Sensibo Auth to get a new token')
+	log.easyDebug('SensiboAPI.js getTokenFromAPI - calling Sensibo Auth to get a new token')
 
 	return new Promise((resolve, reject) => {
 		const tokenURL = 'https://home.sensibo.com/o/token/'
