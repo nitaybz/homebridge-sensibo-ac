@@ -105,7 +105,7 @@ class SensiboACPlatform {
 		this.refreshDelay = 5000
 		this.pollingInterval = requestedInterval - this.refreshDelay
 		this.pollingTimeout = null
-		this.processingState = false
+		this.refreshStateProcessing = false
 		this.setProcessing = false
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
@@ -130,7 +130,7 @@ class SensiboACPlatform {
 				// TODO: once min version is Node 20 and above, move to using the below to colour log messages
 				// https://nodejs.org/docs/latest/api/util.html#utilstyletextformat-text-options
 				// e.g. this.log(util.styleText(['bgRed', 'bold', 'doubleunderline'], 'devDebug'), content.reduce((previous, current) => {
-				this.log('\x1b[41mdevDebug\x1b[0m ' + content.reduce((previous, current) => {
+				this.log('\x1b[44mdevDebug\x1b[0m ' + content.reduce((previous, current) => {
 					return previous + ' ' + current
 				}))
 				// console.trace('tracing')
@@ -138,13 +138,14 @@ class SensiboACPlatform {
 		}
 
 		this.api.on('didFinishLaunching', async () => {
+			this.log.info('Starting initialisation...')
 			await this.storage.init({
 				dir: this.persistPath,
 				forgiveParseErrors: true
 			})
 
 			try {
-				this.log.debug('index.js didFinishLaunching - starting getItem state and refreshState()')
+				this.log.debug(`index.js didFinishLaunching - running getItem('state'), SensiboAPI() and refreshState()`)
 
 				this.cachedState = await this.storage.getItem('state') || this.emptyState
 
@@ -155,11 +156,21 @@ class SensiboACPlatform {
 				this.sensiboApi = await SensiboApi(this)
 
 				await this.refreshState()
+					.then(result => {
+						this.log.easyDebug('index.js refreshState.then - result:')
+						this.log.easyDebug(result)
 
-				this.log.info(`Found ${this.devices.length} Sensibo devices, refreshing or adding to Homebridge based on your plugin settings.`)
+						if (!this.devices || !this.devices.length) {
+							log.easyDebug('index.js refreshState.then - this.devices is not set!')
+
+							throw ('this.devices is not set')
+						}
+					})
+
+				this.log.info(`Found ${this.devices.length} Sensibo devices, adding or restoring to Homebridge based on your plugin settings.`)
 			} catch (error) {
-				this.log.error('index.js didFinishLaunching - get state or refreshState failed.\nError response:')
-				this.log.warn(error)
+				this.log.error('index.js didFinishLaunching - getItem state or refreshState failed. Error message:')
+				this.log.warn(error.message || error)
 
 				this.log.info('Trying to retrieve "devices" from storage instead, otherwise will create an empty list.')
 

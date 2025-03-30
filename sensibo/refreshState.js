@@ -1,215 +1,285 @@
-export default async function (platform) {
-	// TODO: could this be func (promise), .then (if required, e.g. ln 101 forEach), .catch (for error handling), .finally (to call itself)
+let log
+
+function getAllDevicesAndUpdatePlatform(platform) {
+	log.easyDebug('refreshState getAllDevicesAndUpdatePlatform - Starting...')
+
 	return new Promise((resolve, reject) => {
-		platform.log.easyDebug('refreshState.js - refreshState() called')
-		platform.log.devDebug(`processingState: ${platform.processingState}  setProcessing: ${!platform.setProcessing}`)
-
-		if (platform.processingState || platform.setProcessing) {
-			platform.log.easyDebug(`refreshState.js - One of platform.processingState: ${platform.processingState} OR platform.setProcessing: ${platform.setProcessing} is true. Skipping refresh.`)
-
-			// reject the overall promise
-			reject(`platform.processingState: ${platform.processingState} OR platform.setProcessing: ${platform.setProcessing} are true, exiting early`)
-
-			return
-		}
-		platform.processingState = true
-		platform.log.devDebug('refreshState.js - clearTimeout to prevent duplicates')
-		clearTimeout(platform.pollingTimeout)
-		setTimeout(async () => {
-			// TODO: make try/catch block separate function?
-			try {
-				platform.log.easyDebug('refreshState.js - Starting refresh...')
-
-				const allDevices = await platform.sensiboApi.getAllDevices()
-
-				// TODO: Should we null check in case the above getAllDevices returns empty (but no error)?
-
-				platform.log.easyDebug('refreshState.js - API getAllDevices complete')
-
-				// To ensure nothing changed during the 'await' / timeout we recheck the attributes
-				if (platform.setProcessing) {
-					platform.log.easyDebug('refreshState.js - platform.setProcessing now == true, throwing as outbound API now running')
-
-					platform.processingState = false
-
-					// throwing to the catch below
-					// FIXME: TBC maybe this isn't error worthy?
-					throw `platform.setProcessing now == true, exiting early`
-				}
-
-				// To ensure nothing changed during the 'await' / timeout we recheck the attributes
-				if (!platform.processingState) {
-					platform.log.warn('refreshState.js - platform.processingState now == false, throwing as this is unexpected')
-
-					// throwing to the catch below
-					// FIXME: TBC maybe this isn't error worthy?
-					throw `platform.processingState now == false, exiting early`
-				}
-
-				platform.log.easyDebug('refreshState.js - updating platform.devices and platform.storage.devices')
-
-				platform.devices = allDevices
-
-				await platform.storage.setItem('devices', allDevices)
-
-				platform.log.easyDebug('refreshState.js - platform.devices and platform.storage.devices update complete')
-			} catch (error) {
-				platform.log.error('refreshState.js - <<<< ---- Refresh State FAILED! ---- >>>>\nError message:')
-				platform.log.warn(error.message || error)
-
-				platform.processingState = false
-
-				// TODO: should we have max retries and/or back-off?
+		platform.sensiboApi.getAllDevices()
+			.catch(error => {
+				// TODO: should we have max retries and/or back-off for the API callout?
 				// failureCount = failureCount++
 				// backoffFactor = 2 [2, 4, 8, 16...]  //  3 [3, 9, 27, 81, 243...]
 				// newPollingInterval = platform.pollingInterval * (backoffFactor ** failureCount)  // if 2 [170, 340, 680, 1360]
-				if (platform.pollingInterval) {
-					platform.log(`refreshState.js - Will try again in ${platform.pollingInterval / 1000} seconds...`)
 
-					platform.pollingTimeout = setTimeout(async () => {
-						platform.refreshState()
-							.catch(error => {
-								platform.log.error('refreshState.js - error occurred after requeuing refreshState() following an earlier error\nError content:')
-								platform.log.warn(error)
-							})
-					}, platform.pollingInterval)
+				log.easyDebug('refreshState getAllDevices.catch 1 - getAllDevices API call failed, caught error:')
+				log.easyDebug(error.message || error)
+
+				// rejecting here still goes in to the .then, throwing goes to the .catch
+				// reject(error)
+				throw error
+			})
+			.then(allDevices => {
+				if (!allDevices || !allDevices.length) {
+					log.easyDebug('refreshState getAllDevices.then - allDevices is not set')
+
+					throw ('allDevices is not set')
 				}
 
-				// reject the overall Promise
+				log.easyDebug('refreshState getAllDevices.then - getAllDevices API complete')
+
+				// Recheck flags to ensure nothing changed while waiting for API
+				if (platform.setProcessing) {
+					log.easyDebug('refreshState getAllDevices.then - platform.setProcessing now == true')
+					log.easyDebug('refreshState getAllDevices.then - Outbound API running, stopping refreshState to prevent overwriting device state')
+
+					platform.refreshStateProcessing = false
+
+					// throw 'platform.setProcessing now == true, stopping refreshState to prevent overwriting'
+
+					// rejecting and returning here goes to the caller (doRefresh)
+					reject('platform.setProcessing now == true')
+
+					return
+				}
+
+				// Recheck flags to ensure nothing changed while waiting for API
+				if (!platform.refreshStateProcessing) {
+					log.easyDebug('refreshState getAllDevices.then - platform.refreshStateProcessing now == false')
+					log.easyDebug('refreshState getAllDevices.then - Multiple refreshStates running? Stopping current refreshState to try and prevent overwriting device state')
+
+					// throw 'platform.refreshStateProcessing now == stopping refreshState to prevent overwriting'
+
+					// rejecting and returning here goes to the caller (doRefresh)
+					reject('platform.refreshStateProcessing now == false')
+
+					return
+				}
+
+				// TODO: the below could be in their own ".then" (or even their own function/Promise?)
+				log.devDebug('refreshState getAllDevices.then - updating platform.devices and platform.storage.devices')
+
+				platform.devices = allDevices
+
+				platform.storage.setItem('devices', allDevices)
+
+				log.easyDebug('refreshState getAllDevices.then - getAllDevices and platform.storage.setItem update complete')
+
+				// TODO: reset failure counter (for backoff / max retries)
+				// failureCount = 0
+
+				resolve('getAllDevices.then - getAllDevices and platform.storage.setItem complete')
+
+				return
+			}).catch(error => {
+				log.error('refreshState getAllDevices.catch 2 - allDevices is empty or storage.setItem failed, caught error:')
+				log.warn(error.message || error)
+
 				reject(error)
 
 				return
-			}
+			})
+	})
+}
 
-			// TODO: reset failure counter (for backoff / max retries)
-			// failureCount = 0
+function refreshAllDevices(platform) {
+	log.easyDebug('refreshState refreshAllDevices - Starting...')
 
-			// register new devices / unregister removed devices
-			platform.log.easyDebug('refreshState.js - Running syncHomeKitCache')
-			platform.syncHomeKitCache()
+	// Needs to be here outside the forEach loop so that each location is only stored once
+	const occupancySensorHandledLocations = []
 
-			platform.log.easyDebug('refreshState.js - starting refresh of individual devices')
+	platform.devices.forEach(device => {
+		log.easyDebug(`refreshState refreshAllDevices - forEach ${device.room?.name} (${device.id})`)
 
-			// TODO: make below separate function
-			// TODO: refactor below to retrieve accessory.type and run "find" only once
-			//       Might be hard as deviceId is potentially reused (e.g. AC and AirQuality for airq units)?
-			//       e.g could use .filter (rather than .find), but would then need to forEarch a second time...
-			platform.devices.forEach(device => {
-				// Air Conditioner
-				const airConditioner = platform.activeAccessories.find(accessory => {
-					return accessory.type === 'AirConditioner' && accessory.id === device.id
-				})
+		const activeAccessories = platform.activeAccessories.filter(accessory => {
+			// device.id for ACs, Purifiers etc, device.location.id for occupancy sensor
+			return (accessory.id === device.id || accessory.id === device.location.id)
+		})
 
-				if (airConditioner) {
+		activeAccessories.forEach(accessory => {
+			log.easyDebug(`refreshState refreshAllDevices - Updating state for ${device.room?.name} (${device.id}) - ${accessory.type}`)
+
+			switch (accessory.type) {
+				case 'AirConditioner':
 					// Update AC state, note: updateHomeKit gets called within StateHandler.js, e.g. GET when prop === 'update'
-					platform.log.easyDebug(`Updating AC state for ${device.room?.name} (${device.id})`)
-					airConditioner.state.update(airConditioner.Utils.airConditionerStateFromDevice(device))
+					accessory.state.update(accessory.Utils.airConditionerStateFromDevice(device))
 
-					// Climate React
-					const climateReactSwitch = platform.activeAccessories.find(accessory => {
-						return (accessory.type === 'ClimateReactSwitch') && accessory.id === device.id
-					})
+					break
+				case 'AirPurifier':
+					// Update Pure state, note: updateHomeKit gets called within StateHandler.js, e.g. GET when prop === 'update'
+					accessory.state.update(accessory.Utils.airPurifierStateFromDevice(device))
 
-					// Update Climate React Switch in HomeKit
-					if (climateReactSwitch) {
-						platform.log.easyDebug(`Updating Climate React Switch in HomeKit for ${device.room?.name} (${device.id})`)
-						climateReactSwitch.updateHomeKit()
+					break
+				case 'AirQualitySensor':
+					// Update Air Quality state, note: updateHomeKit gets called within StateHandler.js, e.g. GET when prop === 'update'
+					accessory.state.update(accessory.Utils.airQualityStateFromDeviceMeasurements(device.measurements))
+
+					break
+				case 'ClimateReactSwitch':
+					accessory.updateHomeKit()
+
+					break
+				case 'HumiditySensor':
+					accessory.updateHomeKit()
+
+					break
+				case 'OccupancySensor':
+					// Occupancy Sensor (device.location) - e.g. home or not
+					// Update Occupancy state, note: updateHomeKit gets called within StateHandler.js, e.g. GET when prop === 'update'
+					if (accessory && !occupancySensorHandledLocations.includes(accessory.id)) {
+						occupancySensorHandledLocations.push(accessory.id)
+
+						accessory.state.update(accessory.Utils.occupancyStateFromDeviceLocation(device.location))
+					} else {
+						log.easyDebug(`refreshState refreshAllDevices - Duplicate location, skipping ${device.room?.name} (${device.id}) - ${accessory.type}`)
 					}
-				}
 
-				// Air Purifier
-				const airPurifier = platform.activeAccessories.find(accessory => {
-					return accessory.type === 'AirPurifier' && accessory.id === device.id
+					break
+				case 'RoomSensor':
+					// Room Sensors (device.motionSensors) - e.g. in room or not
+					// TODO: See if this can be brought in from below
+
+					break
+				case 'SyncButton':
+					// SyncButton is stateless so no need to update, adding here to show it hasn't been forgotten
+
+					break
+				default:
+					log.warn(`refreshState refreshAllDevices - Unmatched accessory.type: ${accessory.type}`)
+			}
+		})
+
+		// Room Sensors (device.motionSensors) - e.g. in room or not
+		// TODO: can this be moved in to switch statement above?
+		if (device.motionSensors && Array.isArray(device.motionSensors)) {
+			device.motionSensors.forEach(sensor => {
+				const roomSensor = platform.activeAccessories.find(accessory => {
+					return accessory.type === 'RoomSensor' && accessory.id === sensor.id
 				})
 
-				// Update Pure state, note: updateHomeKit gets called within StateHandler.js, e.g. GET when prop === 'update'
-				if (airPurifier) {
-					platform.log.easyDebug(`Updating Pure state for ${device.room?.name} (${device.id})`)
-					airPurifier.state.update(airPurifier.Utils.airPurifierStateFromDevice(device))
-				}
+				// Update Room Sensor state, note: updateHomeKit gets called within StateHandler.js, e.g. GET when prop === 'update'
+				if (roomSensor) {
+					log.easyDebug(`Updating state for ${device.room?.name} (${device.id}) - RoomSensor`)
 
-				// Air Quality Sensor
-				const airQualitySensor = platform.activeAccessories.find(accessory => {
-					return accessory.type === 'AirQualitySensor' && accessory.id === device.id
-				})
-
-				// Update Air Quality state, note: updateHomeKit gets called within StateHandler.js, e.g. GET when prop === 'update'
-				if (airQualitySensor) {
-					platform.log.easyDebug(`Updating Air Quality Sensor state for ${device.room?.name} (${device.id})`)
-					airQualitySensor.state.update(airQualitySensor.Utils.airQualityStateFromDeviceMeasurements(device.measurements))
-				}
-
-				// Humidity Sensor
-				const humiditySensor = platform.activeAccessories.find(accessory => {
-					return accessory.type === 'HumiditySensor' && accessory.id === device.id
-				})
-
-				// Update Humidity Sensor in HomeKit
-				if (humiditySensor) {
-					platform.log.easyDebug(`Updating Humidity Sensor in HomeKit for ${device.id}`)
-					humiditySensor.updateHomeKit()
-				}
-
-				// Room Sensors (device.motionSensors) - e.g. in room or not
-				if (device.motionSensors && Array.isArray(device.motionSensors)) {
-					device.motionSensors.forEach(sensor => {
-						const roomSensor = platform.activeAccessories.find(accessory => {
-							return accessory.type === 'RoomSensor' && accessory.id === sensor.id
-						})
-
-						// Update Room Sensor state, note: updateHomeKit gets called within StateHandler.js, e.g. GET when prop === 'update'
-						if (roomSensor) {
-							platform.log.easyDebug(`Updating Room Sensor state for ${device.id}`)
-							roomSensor.state.update(roomSensor.Utils.sensorStateFromSensorMeasurements(sensor.measurements))
-						}
-					})
-				}
-
-				// Occupancy Sensor (device.location) - e.g. home or not
-				const occupancySensor = platform.activeAccessories.find(accessory => {
-					return accessory.type === 'OccupancySensor' && accessory.id === device.location.id
-				})
-				const handledLocations = []
-
-				// Update Occupancy state, note: updateHomeKit gets called within StateHandler.js, e.g. GET when prop === 'update'
-				if (occupancySensor && !handledLocations.includes(occupancySensor.id)) {
-					handledLocations.push(occupancySensor.id)
-					platform.log.easyDebug(`Updating Occupancy Sensor state for ${device.id}`)
-					occupancySensor.state.update(occupancySensor.Utils.occupancyStateFromDeviceLocation(device.location))
+					roomSensor.state.update(roomSensor.Utils.sensorStateFromSensorMeasurements(sensor.measurements))
 				}
 			})
+		}
+	})
+}
 
-			platform.log.easyDebug(`refreshState.js - Create new timeout, waiting ${platform.pollingInterval / 1000} seconds, then calling refreshState()`)
+function doRefresh(platform) {
+	log.easyDebug('refreshState doRefresh - Starting...')
+
+	return getAllDevicesAndUpdatePlatform(platform)
+		.then(outcome => {
+			log.devDebug('refreshState doRefresh.then - getAllDevicesAndUpdatePlatform outcome:')
+			log.devDebug(outcome)
+
+			log.devDebug('refreshState doRefresh - Running syncHomeKitCache')
+
+			// Register new devices / unregister removed devices
+			platform.syncHomeKitCache()
+
+			log.easyDebug('refreshState doRefresh - syncHomeKitCache complete')
+
+			log.devDebug('refreshState doRefresh - Running refreshAllDevices (refresh individual devices)')
+
+			// Iterate through all the devices returned from Sensibo and update state on activeAccessories
+			refreshAllDevices(platform)
+
+			log.easyDebug('refreshState doRefresh - refreshAllDevices complete')
+
+			return 'doRefresh.then - syncHomeKitCache and refreshAllDevices complete'
+		}).catch(error => {
+			// This also catches rejections from getAllDevicesAndUpdatePlatform
+			if (error === 'platform.refreshStateProcessing now == false' || error === 'platform.setProcessing now == true') {
+				// Exit early but still queue new refreshState call
+				log.easyDebug('refreshState doRefresh - skipping syncHomeKitCache and refreshAllDevices due to parallel calls')
+
+				return 'doRefresh.catch - skipped syncHomeKitCache and refreshAllDevices'
+			}
+
+			log.error('refreshState doRefresh.catch - caught error:')
+			log.warn(error.message || error)
+
+			// This "throws" to the doRefresh.catch within timeout below
+			// return 'doRefresh.catch error message: ' + (error.message || error)
+			throw (error.message || error)
+		}).finally(() => {
+			log.devDebug('refreshState doRefresh.finally')
+			log.easyDebug(`refreshState - Creating new timeout, will wait ${platform.pollingInterval / 1000} seconds and then call refreshState again`)
 			// create new timeout to initiate next refresh in 85 seconds
 			if (platform.pollingInterval) {
 				platform.pollingTimeout = setTimeout(async () => {
 					platform.refreshState()
 						.catch(error => {
-							platform.log.error(`refreshState.js - error occurred within refreshState() after timeout (${platform.pollingInterval / 1000} seconds)\nError content:`)
-							platform.log.warn(error)
+							log.error(`refreshState doRefresh.finally - error occurred within refreshState after timeout (${platform.pollingInterval / 1000} seconds). Error message:`)
+							log.warn(error.message || error)
 						})
 				}, platform.pollingInterval)
 				// NOTE: pollingInterval is 85 seconds, requestedInterval (90 seconds) - refreshDelay (5 seconds)
 			}
+		})
+}
 
-			// wait 5 more seconds before removing block (platform.processingState) preventing new requests
+export default async function (platform) {
+	log = platform.log
+
+	// TODO: more refactoring is probably possible, at the moment still feels like 1 (or 2) too many Promises...
+	return new Promise((resolve, reject) => {
+		log.easyDebug('refreshState.js - refreshState() called')
+
+		if (platform.refreshStateProcessing || platform.setProcessing) {
+			// Be aware, if this happens on first load then the refreshState loop won't start...
+			log.easyDebug(`refreshState.js - One of platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true. Skipping refresh.`)
+			log.easyDebug(`refreshState.js - If this has occurred on first load of the plugin then the refreshState loop won't start (and that's bad).`)
+
+			// reject the overall promise
+			reject(`Either platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true, exiting early`)
+
+			return
+		}
+
+		platform.refreshStateProcessing = true
+
+		log.devDebug('refreshState.js - clearTimeout to prevent duplicates')
+		clearTimeout(platform.pollingTimeout)
+
+		setTimeout(async () => {
+			log.devDebug('refreshState.js - Primary setTimeout starting')
+
+			await doRefresh(platform)
+				.catch(error => {
+					// This "catches" throws from within doRefresh.catch
+					log.easyDebug('refreshState doRefresh - outer catch block, error message:')
+					log.easyDebug(error.message || error)
+
+					// reject('refreshState doRefresh - outer catch block rejection')
+					reject(error.message || error)
+				})
+
+			// wait 5 more seconds before removing block (platform.refreshStateProcessing) preventing new requests
 			// TODO: should this be where we "block" subsequent requests that occur in quick succession?
 			// e.g. change refreshDelay from 5 seconds to 30 seconds
 			setTimeout(() => {
-				platform.processingState = false
-				platform.log.devDebug('refreshState.js - Removed block (platform.processingState), new refresh requests allowed')
+				platform.refreshStateProcessing = false
+
+				log.devDebug('refreshState.js - Removed block (platform.refreshStateProcessing), new refresh requests allowed')
+				// NOTE: refreshDelay is 5 seconds
 			}, platform.refreshDelay)
-			// NOTE: refreshDelay is 5 seconds
-			platform.log.devDebug('refreshState.js - Primary setTimeout completed')
+
+			log.devDebug('refreshState.js - Primary setTimeout completed')
 
 			// resolve the overall Promise
-			resolve('refreshState() finished')
+			resolve('refreshState completed')
+
+			// NOTE: refreshDelay is 5 seconds
 		}, platform.refreshDelay)
-		// NOTE: refreshDelay is 5 seconds
 
 		return
 	}).catch(error => {
-		platform.log.debug('refreshState.js (end) re-throwing caught error')
+		// "Catches" errors or rejections from within "main" timeout doRefresh above
+		log.easyDebug('refreshState.js final catch - re-throwing caught error')
 
 		throw error
 	})

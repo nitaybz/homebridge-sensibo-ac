@@ -135,19 +135,19 @@ export default (device, platform) => {
 		get: (target, prop, ...args) => {
 			// log.easyDebug(`StateHandler.js GET Prop: ${prop} for Target: ${JSON.stringify(target, null, 4)}`)
 
-			// Skips if already refreshing (processingState) and/or outbound API running (setProcessing)
+			// Skips if already refreshing (refreshStateProcessing) and/or outbound API running (setProcessing)
 			// TODO: maybe also SKIP refreshState when done in the last 30 seconds? Though that could probably be handled within
 			//       refreshState() by extending the existing 5 second timeout at the end
-			if (!platform.processingState && !platform.setProcessing) {
-				// log.easyDebug(`StateHandler.js GET Prop: ${prop} for Target: ${JSON.stringify(target, null, 4)}`)
+			if (!platform.refreshStateProcessing && !platform.setProcessing) {
+				log.devDebug(`${device.name} - StateHandler GET Prop: ${prop} for Target: ${JSON.stringify(target, null, 4)}`)
 				platform.refreshState()
 					.catch(error => {
-						log.error(`${device.name} - StateHandler GET - error occurred in refreshState\nError content:`)
-						log.warn(error)
+						log.error(`${device.name} - StateHandler GET - error occurred in refreshState. Error message:`)
+						log.warn(error.message || error)
 					})
 			} else {
-				log.devDebug(`${device.name} - StateHandler GET - skipping refreshState() as processingState=${platform.processingState} or setProcessing=${platform.setProcessing} is true`)
-				log.devDebug(`${device.name} - StateHandler GET - Prop: ${prop}`)
+				// log.devDebug(`${device.name} - StateHandler GET - skipping refreshState() as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR setProcessing: ${platform.setProcessing} is true`)
+				// log.devDebug(`${device.name} - StateHandler GET - Prop: ${prop}`)
 			}
 
 			// returns an anonymous *function* to update state (multiple properties)
@@ -165,7 +165,7 @@ export default (device, platform) => {
 						})
 						device.updateHomeKit()
 					} else {
-						log.devDebug(`${device.name} - StateHandler GET update - skipping (state) update and updateHomeKit() as setProcessing=${platform.setProcessing} is true`)
+						log.devDebug(`${device.name} - StateHandler GET update - skipping (state) update and updateHomeKit() as setProcessing: ${platform.setProcessing} is true`)
 					}
 				}
 			}
@@ -178,11 +178,12 @@ export default (device, platform) => {
 						log.easyDebug(`${device.name} - StateHandler syncState - syncing`)
 
 						await sensiboApi.syncDeviceState(device.id, !target.active)
+
 						target.active = !target.active
 						device.updateHomeKit()
 					} catch (error) {
 						log.error(`${device.name} - StateHandler syncState - ERROR Syncing!`)
-						log.warn(`${device.name} - Error message: ${error.message}`)
+						log.warn(`${device.name} - Error message: ${error.message || error}`)
 					}
 				}
 			}
@@ -207,14 +208,20 @@ export default (device, platform) => {
 					if (state.smartMode.updateRunning) {
 						log.easyDebug(`${device.name} - StateHandler - state.smartMode.updateRunning = ${state.smartMode.updateRunning}, returning without updating`)
 
-						return false
+						// In strict mode returning false will throw a TypeError, this would need to be caught EVERYWHERE (i.e. StateManager)
+						// See: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set
+						// Therefore we are returning true (as the value and outcome is the same, so hopefully shouldn't cause issues)
+						return true
 					}
 
 					state.smartMode.updateRunning = true
 				} else {
 					log.easyDebug(`${device.name} - StateHandler - ${prop} already set to ${JSON.stringify(value, null, 4)}, returning without updating`)
 
-					return false
+					// In strict mode returning false will throw a TypeError, this would need to be caught EVERYWHERE (i.e. StateManager)
+					// See: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set
+					// Therefore we are returning true (as the value and outcome is the same, so hopefully shouldn't cause issues)
+					return true
 				}
 			}
 
@@ -228,7 +235,7 @@ export default (device, platform) => {
 					sensiboApi.resetFilterIndicator(device.id)
 				} catch (error) {
 					log.error(`${device.name} - StateHandler filterChange - Error occurred! -> Could not reset filter indicator`)
-					log.warn(`${device.name} - Error message: ${error.message}`)
+					log.warn(`${device.name} - Error message: ${error.message || error}`)
 				}
 
 				return true
@@ -252,23 +259,25 @@ export default (device, platform) => {
 						log.warn(`${device.name} - Error message: ${JSON.stringify(error, null, 4)}`)
 					}
 
-					if (!platform.setProcessing) {
+					if (!platform.refreshStateProcessing && !platform.setProcessing) {
 						// TODO: do we need to update ALL devices (refreshState) or could we do just device.updateHomeKit
 						platform.refreshState()
 							.catch(error => {
-								log.error('StateHandler smartMode - error occurred in refreshState\nError content:')
-								log.warn(error)
+								log.error(`${device.name} - StateHandler smartMode - error occurred in refreshState. Error message:`)
+								log.warn(error.message || error)
 							})
 					} else {
-						log.easyDebug(`${device.name} - StateHandler - setProcessing is true, skipping refreshState() after Climate React SET`)
+						log.easyDebug(`${device.name} - StateHandler smartMode SET - skipping refreshState() as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
 					}
 
 					log.easyDebug(`${device.name} - StateHandler - smartMode update complete, deleting state.smartMode.updateRunning`)
 					delete state.smartMode.updateRunning
 				})()
 
-				// TODO: should we "catch" if the API calls fail and prevent it from updating state (e.g. line 200)
-				//       and return false instead?
+				// TODO: should we "catch" if the API call fails and prevent it from updating state?
+
+				// Note: In strict mode returning false will throw a TypeError, this would need to be caught EVERYWHERE (i.e. StateManager)
+				// See: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set
 				return true
 			}
 
@@ -279,18 +288,18 @@ export default (device, platform) => {
 					sensiboApi.enableDisablePureBoost(device.id, value)
 				} catch (error) {
 					log.error(`${device.name} - StateHandler pureBoost - Error occurred! -> Pure Boost state did not change`)
-					log.warn(`${device.name} - Error message: ${error.message}`)
+					log.warn(`${device.name} - Error message: ${error.message || error}`)
 				}
 
-				if (!platform.setProcessing) {
+				if (!platform.refreshStateProcessing && !platform.setProcessing) {
 					// TODO: do we need to update ALL devices (refreshState) or could we do just device.updateHomeKit
 					platform.refreshState()
 						.catch(error => {
-							log.error('StateHandler pureBoost - error occurred in refreshState\nError content:')
-							log.warn(error)
+							log.error(`${device.name} - StateHandler pureBoost - error occurred in refreshState. Error message:`)
+							log.warn(error.message || error)
 						})
 				} else {
-					log.easyDebug(`${device.name} - setProcessing is true, skipping refreshState() after Pure Boost SET`)
+					log.easyDebug(`${device.name} - StateHandler pureBoost SET - skipping refreshState() as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
 				}
 
 				return true
@@ -326,16 +335,22 @@ export default (device, platform) => {
 					// send state command to Sensibo
 					await sensiboApi.setDeviceACState(device.id, sensiboNewACState)
 				} catch (error) {
+					// If something goes wrong, wait 1 second and then call refreshState to get the current Sensibo state for all devices and update to match
 					log.error(`${device.name} - StateHandler - ERROR setting ${prop} to ${value}`)
 					log.warn(`${device.name} - Error message: ${JSON.stringify(error, null, 4)}`)
 
 					setTimeout(() => {
 						platform.setProcessing = false
-						platform.refreshState()
-							.catch(error => {
-								log.error('StateHandler setDeviceACState - error occurred in refreshState\nError content:')
-								log.warn(error)
-							})
+
+						if (!platform.refreshStateProcessing && !platform.setProcessing) {
+							platform.refreshState()
+								.catch(error => {
+									log.error(`${device.name} - StateHandler setDeviceACState - error occurred in refreshState. Error message:`)
+									log.warn(error.message || error)
+								})
+						} else {
+							log.easyDebug(`${device.name} - StateHandler setDeviceACState SET - skipping refreshState() as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
+						}
 					}, setTimeoutDelay)
 					// setTimeoutDelay = 1000ms, wait 1 second
 
@@ -343,6 +358,8 @@ export default (device, platform) => {
 				}
 
 				setTimeout(() => {
+					log.easyDebug(`${device.name} - StateHandler - resetting setProcessing to false after successful API call, Prop: ${prop}`)
+
 					platform.setProcessing = false
 					device.updateHomeKit()
 				}, (setTimeoutDelay / 2))

@@ -391,6 +391,8 @@ class AirConditioner {
 				.on('set', this.stateManager.set.FanRotationSpeed)
 		}
 
+		// TODO: see if there would be any benefit to adding CurrentFanState / TargetFanState (optional characteristics)
+
 		this.log.easyDebug(`${this.name} - addFanService - end`)
 	}
 
@@ -654,6 +656,7 @@ class AirConditioner {
 
 			if (this.FanService) {
 				this.Utils.updateValue('FanService', 'Active', 0)
+				// this.Utils.updateValue('FanService', 'CurrentFanState', Characteristic.CurrentFanState.INACTIVE)
 			}
 
 			return

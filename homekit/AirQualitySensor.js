@@ -183,11 +183,9 @@ class AirQualitySensor {
 		this.TemperatureSensorService.getCharacteristic(Characteristic.CurrentTemperature)
 			.on('get', this.stateManager.get.CurrentTemperature)
 
-		this.log.info(`${this.name} - Adding CurrentRelativeHumidity as required for FakeGato logging. Homebridge warning expected and can be ignored.`)
+		this.log.info(`${this.name} - Adding TemperatureDisplayUnits as required for FakeGato logging. Homebridge warning expected and can be ignored.`)
 		this.TemperatureSensorService.getCharacteristic(Characteristic.TemperatureDisplayUnits)
 			.on('get', this.stateManager.get.TemperatureDisplayUnits)
-
-		this.log.error('added Characteristic.TemperatureDisplayUnits\n\n\n\n\n')
 	}
 
 	removeTemperatureSensorService() {

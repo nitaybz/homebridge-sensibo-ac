@@ -161,7 +161,7 @@ export default (device, platform) => {
 				const stateCurrentMode = device.state.mode
 				const stateCurrentModeValue = stateCurrentMode ? Characteristic.TargetHeaterCoolerState[stateCurrentMode] ??= deviceCurrentModeValue : deviceCurrentModeValue
 
-				log.easyDebug(device.name, '(GET) - Target HeaterCooler State:', active ? stateCurrentMode + ' (' + stateCurrentModeValue + ')' : 'OFF')
+				log.easyDebug(device.name, '(GET) - Target HeaterCooler State:', active ? stateCurrentMode + ' (' + stateCurrentModeValue + ')' : 'OFF (' + stateCurrentModeValue + ')')
 				if (!active || stateCurrentMode === 'FAN' || stateCurrentMode === 'DRY') {
 					callback(null, deviceCurrentModeValue)
 				} else {
