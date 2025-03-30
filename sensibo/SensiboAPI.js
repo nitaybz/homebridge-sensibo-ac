@@ -1,26 +1,57 @@
 import axios from 'axios'
 
 const baseURL = 'https://home.sensibo.com/api/v2'
+let credentials
 let log
-let username, password, storage
+let storage
 
-function getToken(username, password, storage) {
-	// FIXME: check on if the below is required
-	// eslint-disable-next-line no-async-promise-executor
-	return new Promise(async (resolve, reject) => {
-		// TODO: move getItem etc in to dedicated function, call that from init
-		const token = await storage.getItem('token')
+async function getAuthKeyFromStorage(username) {
+	log.easyDebug('SensiboAPI.js getAuthKeyFromStorage - Checking for token in local storage')
+
+	try {
+		const tokenFromStorage = await storage.getItem('token')
 
 		// TODO: what happens if returned token doesn't work? E.g. password change... should token be "checked" for validity?
-		// TODO: Looks like Token expiry might be 15 years?!
-		if (token && token.username && token.username === username && new Date().getTime() < token.expirationDate) {
-			log.easyDebug('SensiboAPI.js getToken - Found valid token in storage')
+		// Note: Looks like Token expiry might be 15 years?!
+		if (tokenFromStorage) {
+			log.easyDebug('SensiboAPI.js getAuthKeyFromStorage - Found a token in local storage')
 
-			resolve(token.key)
+			if (tokenFromStorage.username && tokenFromStorage.username === username && new Date().getTime() < tokenFromStorage.expirationDate) {
+				log.info('SensiboAPI.js getAuthKeyFromStorage - Token is valid, returning...')
 
-			return
+				return tokenFromStorage.key
+			}
+
+			throw `Retrieved token doesn't match given username (${username}) or is expired (${tokenFromStorage.expirationDate})`
 		}
+	} catch (error) {
+		log.warn('SensiboAPI.js getAuthKeyFromStorage - getItem failed or token retrieved is invalid. Error message:')
+		log.warn(error.message || error)
+	}
 
+	return
+}
+
+function saveTokenToStorage(tokenToSave) {
+	log.easyDebug('SensiboAPI.js saveTokenToStorage - Trying to save token in local stoage')
+
+	try {
+		storage.setItem('token', tokenToSave)
+
+		log.easyDebug('SensiboAPI.js saveTokenToStorage - Token should be saved')
+	} catch (error) {
+		log.error('SensiboAPI.js saveTokenToStorage - setItem failed. Error message:')
+		log.warn(error.message || error)
+		log.info('SensiboAPI.js saveTokenToStorage - Note: Not stopping, but storage issue should be investigated')
+	}
+
+	return
+}
+
+function getTokenFromAPI(username, password) {
+	log.info('SensiboAPI.js getTokenFromAPI - calling Sensibo Auth to get a new token')
+
+	return new Promise((resolve, reject) => {
 		const tokenURL = 'https://home.sensibo.com/o/token/'
 		const data = {
 			username: username,
@@ -38,37 +69,36 @@ function getToken(username, password, storage) {
 				// FIXME: this is to overwrite the (default) inclusion of integrationName which appears to break auth calls
 				params: null
 			})
-			.then(async response => {
+			.then(response => {
 				if (response.data.access_token) {
-					const tokenObj = {
+					const tokenObject = {
 						username: username,
 						key: response.data.access_token,
 						expirationDate: new Date().getTime() + response.data.expires_in * 1000
 					}
 
-					log.easyDebug('SensiboAPI.js getToken - Token successfully acquired from Sensibo API')
-					// log.easyDebug(tokenObj)
+					log.info('SensiboAPI.js getTokenFromAPI - Token successfully acquired from Sensibo API.')
+					// log.easyDebug(tokenObject)
 
-					await storage.setItem('token', tokenObj)
-
-					resolve(tokenObj.key)
+					resolve(tokenObject)
 				} else {
-					const errorMessage = `SensiboAPI.js getToken INNER - Could NOT complete token request -> Error message: "${response.data}"`
+					// TODO: double check on this errorMessage "shape"
+					const errorMessage = `SensiboAPI.js getTokenFromAPI INNER - Could NOT complete token request -> Error message: "${response.data}"`
 
 					log.error(errorMessage)
 
 					reject(errorMessage)
 				}
-			})
-			.catch(error => {
+			}).catch(error => {
 				const errorContent = {}
 
-				errorContent.message = `SensiboAPI.js getToken - Could NOT complete token request\nError message: "${error.response.data.error_description || error.response.data.error}"`
+				errorContent.message = error.response.data.error_description || error.response.data.error
 
-				log.error(errorContent.message)
+				log.error('SensiboAPI.js getTokenFromAPI - Could NOT complete token request. Error message:')
+				log.warn(errorContent.message)
 
 				if (error.response) {
-					log.warn('SensiboAPI.js getToken - error.response.data content:')
+					log.warn('SensiboAPI.js getTokenFromAPI - error.response.data:')
 					log.warn(error.response.data)
 					errorContent.response = error.response.data
 				}
@@ -77,6 +107,62 @@ function getToken(username, password, storage) {
 				reject(errorContent)
 			})
 	})
+}
+
+async function checkAuth(apiKey, username, password) {
+	log.easyDebug('SensiboAPI.js checkAuth - Start')
+
+	if (apiKey) {
+		log.success('SensiboAPI.js checkAuth - apiKey found')
+
+		axios.defaults.params.apiKey = apiKey
+
+		return
+	} else {
+		log.info('SensiboAPI.js checkAuth - No apiKey found, will check for an existing login token.')
+
+		const authKeyFromStoage = await getAuthKeyFromStorage(username)
+
+		if (authKeyFromStoage) {
+			log.success('SensiboAPI.js checkAuth - Login token found in local storage')
+
+			if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
+				axios.defaults.headers = { Authorization: 'Bearer ' + authKeyFromStoage }
+			}
+
+			return
+		}
+
+		log.warn('SensiboAPI.js checkAuth - No valid login token found, will try to get a new one using login credentials...')
+
+		await getTokenFromAPI(username, password)
+			.then(tokenFromAPI => {
+				log.easyDebug(`SensiboAPI.js checkAuth - getTokenFromAPI successful. Expiry: ${tokenFromAPI.expirationDate}`)
+				// log.devDebug(tokenFromAPI)
+
+				if (tokenFromAPI && tokenFromAPI.key) {
+					if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
+						axios.defaults.headers = { Authorization: 'Bearer ' + tokenFromAPI.key }
+					}
+
+					saveTokenToStorage(tokenFromAPI)
+
+					log.success(`SensiboAPI.js checkAuth - Token retrieved from API and stored for future use.`)
+				} else {
+					// This shouldn't ever happen...
+					throw { message: 'tokenFromAPI is unexpectedly empty' }
+				}
+			}).catch(error => {
+				log.error('SensiboAPI.js checkAuth - getTokenFromAPI failed, stopping. Error message:')
+				log.warn(error.message || error)
+
+				throw error
+			})
+
+		log.easyDebug('SensiboAPI.js checkAuth - completed')
+
+		return
+	}
 }
 
 function fixResponse(results) {
@@ -112,21 +198,20 @@ async function apiRequest(method, path, data) {
 
 	// TODO: could add auto-retry for timeouts etc
 	if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
-		log.warn('SensiboAPI.js apiRequest - No API Token or Authorization Header found, trying to get a new one...')
+		log.warn('SensiboAPI.js apiRequest - No API Token or Authorization Header found!')
 
+		// TODO: is this really required? Could potentially use a timeout during init to try again after some time
+		// In case the previous attempt failed due to errors other than bad details (e.g. timeout)
 		try {
-			const token = await getToken(username, password, storage)
-
-			// To ensure nothing changed during the 'await' we run the exact same logic check again
-			if (!axios.defaults?.params?.apiKey && !axios.defaults?.headers?.Authorization) {
-				axios.defaults.headers = { Authorization: 'Bearer ' + token }
-			}
+			// apiKey is null here because if it's been changed after startup then Homebridge needs to be restarted
+			await checkAuth(null, credentials.username, credentials.password)
 		} catch (error) {
-			log.error('SensiboAPI.js apiRequest - getToken failed.\nError message:')
+			log.warn('SensiboAPI.js apiRequest - checkAuth failed...')
 			log.warn(error.message || error)
-
-			throw error
+			log.error('Please check your authKey or username and password details in Homebridge in this plugins config.')
 		}
+
+		throw { message: 'No valid authentication details found, stopping API request.' }
 	}
 
 	return new Promise((resolve, reject) => {
@@ -173,8 +258,7 @@ async function apiRequest(method, path, data) {
 
 					reject(error)
 				}
-			})
-			.catch(error => {
+			}).catch(error => {
 				const errorContent = {}
 
 				errorContent.errorURL = baseURL + path
@@ -196,9 +280,11 @@ async function apiRequest(method, path, data) {
 }
 
 export default async function (platform) {
+	credentials = {
+		username: platform.username,
+		password: platform.password
+	}
 	log = platform.log
-	username = platform.username
-	password = platform.password
 	storage = platform.storage
 
 	const integrationName = platform.PLUGIN_NAME + '@' + platform.PLUGIN_VERSION
@@ -206,13 +292,16 @@ export default async function (platform) {
 	axios.defaults.baseURL = baseURL
 	axios.defaults.params = { integration: integrationName }
 
-	// Runs during first load only...
-	if (platform.apiKey) {
-		axios.defaults.params.apiKey = platform.apiKey
-	} else {
-		// TODO: move getItem (from getToken) to a dedicated function, then call that new func
-		log.error('SensiboAPI.js init - No apiKey found, will try to getToken using login credentials during first API request.')
+	// Runs during first load...
+	try {
+		await checkAuth(platform.apiKey, credentials.username, credentials.password)
+	} catch (error) {
+		log.warn('SensiboAPI.js init - checkAuth failed...')
+		log.warn(error.message || error)
+		log.error('Please check your authKey or username and password details in Homebridge in this plugins config.')
 	}
+
+	log.easyDebug('SensiboAPI.js init - finished')
 
 	return {
 
@@ -224,13 +313,13 @@ export default async function (platform) {
 			try {
 				allDevices = await apiRequest('get', path + '?' + queryString)
 			} catch (error) {
-				log.error('SensiboAPI.js getAllDevices - apiRequest failed.\nError message:')
-				log.warn(error.message)
+				log.error('SensiboAPI.js getAllDevices - apiRequest failed. Error message:')
+				log.warn(error.message || error)
 
 				throw error
 			}
 
-			// Note: if an error occurs above the throw will also "return" void
+			// Note: if an error occurs above the throw will also "return"
 			// However if getAllDevices provides an empty response (but no error) the below will cause an exception, null check?
 			return allDevices.filter(device => {
 				return (
