@@ -11,6 +11,7 @@ function getAllDevicesAndUpdatePlatform(platform) {
 				// backoffFactor = 2 [2, 4, 8, 16...]  //  3 [3, 9, 27, 81, 243...]
 				// newPollingInterval = platform.pollingInterval * (backoffFactor ** failureCount)  // if 2 [170, 340, 680, 1360]
 
+				// This error is caught again below (and logged), so only debug logging here to reduce log duplicates
 				log.easyDebug('refreshState getAllDevices.catch 1 - getAllDevices API call failed, caught error:')
 				log.easyDebug(error.message || error)
 
@@ -71,7 +72,8 @@ function getAllDevicesAndUpdatePlatform(platform) {
 
 				return
 			}).catch(error => {
-				log.error('refreshState getAllDevices.catch 2 - allDevices is empty or storage.setItem failed, caught error:')
+				log.easyDebug(`refreshState getAllDevices.catch 2 - Error caught.`)
+				log.error('refreshState getAllDevices.catch - allDevices is empty or storage.setItem failed, caught error:')
 				log.warn(error.message || error)
 
 				reject(error)
@@ -172,7 +174,7 @@ function doRefresh(platform) {
 
 	return getAllDevicesAndUpdatePlatform(platform)
 		.then(outcome => {
-			log.devDebug('refreshState doRefresh.then - getAllDevicesAndUpdatePlatform outcome:')
+			log.devDebug('refreshState doRefresh - getAllDevicesAndUpdatePlatform.then outcome:')
 			log.devDebug(outcome)
 
 			log.devDebug('refreshState doRefresh - Running syncHomeKitCache')
@@ -194,27 +196,30 @@ function doRefresh(platform) {
 			// This also catches rejections from getAllDevicesAndUpdatePlatform
 			if (error === 'platform.refreshStateProcessing now == false' || error === 'platform.setProcessing now == true') {
 				// Exit early but still queue new refreshState call
-				log.easyDebug('refreshState doRefresh - skipping syncHomeKitCache and refreshAllDevices due to parallel calls')
+				log.easyDebug('refreshState doRefresh catch - skipping syncHomeKitCache and refreshAllDevices due to parallel calls')
 
 				return 'doRefresh.catch - skipped syncHomeKitCache and refreshAllDevices'
 			}
 
-			log.error('refreshState doRefresh.catch - caught error:')
-			log.warn(error.message || error)
+			// This error is caught again below (and logged), so only debug logging here to reduce log duplicates
+			log.easyDebug('refreshState doRefresh.catch - caught error:')
+			log.easyDebug(error.message || error)
 
 			// This "throws" to the doRefresh.catch within timeout below
 			// return 'doRefresh.catch error message: ' + (error.message || error)
 			throw (error.message || error)
 		}).finally(() => {
-			log.devDebug('refreshState doRefresh.finally')
-			log.easyDebug(`refreshState - Creating new timeout, will wait ${platform.pollingInterval / 1000} seconds and then call refreshState again`)
+			log.easyDebug(`refreshState doRefresh getAllDevicesAndUpdatePlatform.finally - Creating new timeout, will wait ${platform.pollingInterval / 1000} seconds and then call refreshState again`)
 			// create new timeout to initiate next refresh in 85 seconds
 			if (platform.pollingInterval) {
 				platform.pollingTimeout = setTimeout(async () => {
+					// Has a .catch ✓
 					platform.refreshState()
 						.catch(error => {
-							log.error(`refreshState doRefresh.finally - error occurred within refreshState after timeout (${platform.pollingInterval / 1000} seconds). Error message:`)
+							log.easyDebug(`refreshState doRefresh getAllDevicesAndUpdatePlatform.finally - Error caught.`)
+							log.error(`refreshState doRefresh - Error occurred within refreshState after main timeout. Error message:`)
 							log.warn(error.message || error)
+							log.error(`refreshState doRefresh - Will try again in ${platform.pollingInterval / 1000} seconds.`)
 						})
 				}, platform.pollingInterval)
 				// NOTE: pollingInterval is 85 seconds, requestedInterval (90 seconds) - refreshDelay (5 seconds)
@@ -279,6 +284,7 @@ export default async function (platform) {
 		return
 	}).catch(error => {
 		// "Catches" errors or rejections from within "main" timeout doRefresh above
+		// These errors should be caught by the callers of refreshState (and logged), so only debug logging here to reduce log duplicates
 		log.easyDebug('refreshState.js final catch - re-throwing caught error')
 
 		throw error

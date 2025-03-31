@@ -140,13 +140,14 @@ export default (device, platform) => {
 			//       refreshState() by extending the existing 5 second timeout at the end
 			if (!platform.refreshStateProcessing && !platform.setProcessing) {
 				log.devDebug(`${device.name} - StateHandler GET Prop: ${prop} for Target: ${JSON.stringify(target, null, 4)}`)
+				// Has a .catch ✓
 				platform.refreshState()
 					.catch(error => {
 						log.error(`${device.name} - StateHandler GET - error occurred in refreshState. Error message:`)
 						log.warn(error.message || error)
 					})
 			} else {
-				// log.devDebug(`${device.name} - StateHandler GET - skipping refreshState() as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR setProcessing: ${platform.setProcessing} is true`)
+				// log.devDebug(`${device.name} - StateHandler GET - skipping refreshState as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR setProcessing: ${platform.setProcessing} is true`)
 				// log.devDebug(`${device.name} - StateHandler GET - Prop: ${prop}`)
 			}
 
@@ -261,13 +262,14 @@ export default (device, platform) => {
 
 					if (!platform.refreshStateProcessing && !platform.setProcessing) {
 						// TODO: do we need to update ALL devices (refreshState) or could we do just device.updateHomeKit
+						// Has a catch ✓
 						platform.refreshState()
 							.catch(error => {
 								log.error(`${device.name} - StateHandler smartMode - error occurred in refreshState. Error message:`)
 								log.warn(error.message || error)
 							})
 					} else {
-						log.easyDebug(`${device.name} - StateHandler smartMode SET - skipping refreshState() as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
+						log.easyDebug(`${device.name} - StateHandler smartMode SET - skipping refreshState as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
 					}
 
 					log.easyDebug(`${device.name} - StateHandler - smartMode update complete, deleting state.smartMode.updateRunning`)
@@ -293,13 +295,14 @@ export default (device, platform) => {
 
 				if (!platform.refreshStateProcessing && !platform.setProcessing) {
 					// TODO: do we need to update ALL devices (refreshState) or could we do just device.updateHomeKit
+					// Has a catch ✓
 					platform.refreshState()
 						.catch(error => {
 							log.error(`${device.name} - StateHandler pureBoost - error occurred in refreshState. Error message:`)
 							log.warn(error.message || error)
 						})
 				} else {
-					log.easyDebug(`${device.name} - StateHandler pureBoost SET - skipping refreshState() as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
+					log.easyDebug(`${device.name} - StateHandler pureBoost SET - skipping refreshState as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
 				}
 
 				return true
@@ -343,13 +346,14 @@ export default (device, platform) => {
 						platform.setProcessing = false
 
 						if (!platform.refreshStateProcessing && !platform.setProcessing) {
+							// Has a catch ✓
 							platform.refreshState()
 								.catch(error => {
 									log.error(`${device.name} - StateHandler setDeviceACState - error occurred in refreshState. Error message:`)
 									log.warn(error.message || error)
 								})
 						} else {
-							log.easyDebug(`${device.name} - StateHandler setDeviceACState SET - skipping refreshState() as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
+							log.easyDebug(`${device.name} - StateHandler setDeviceACState SET - skipping refreshState as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
 						}
 					}, setTimeoutDelay)
 					// setTimeoutDelay = 1000ms, wait 1 second

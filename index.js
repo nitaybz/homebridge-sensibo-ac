@@ -155,6 +155,7 @@ class SensiboACPlatform {
 
 				this.sensiboApi = await SensiboApi(this)
 
+				// In a try/catch block so no need for refreshState().catch
 				await this.refreshState()
 					.then(result => {
 						this.log.easyDebug('index.js refreshState.then - result:')
