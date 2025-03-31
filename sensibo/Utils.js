@@ -528,28 +528,15 @@ export default (device, platform) => {
 			return deviceInfo
 		},
 
-		// FIXME: decide on how constants should be retrieved...
-		Constants: () => {
-			return Constants
-		},
-
 		/**
-		 * Retrieves the value of a given constant
-		 * @param   {string}       constantName  The constant to retrieve
-		 * @returns {number|void}
+		 * Returns the Constants object for easy use in other files, e.g. this.Utils.Constants().VOCDENSITY_MAX
+		 * @param   {void}
+		 * @returns {Object}
 		 */
-		getConstantValue: constantName => {
-			const constantValue = Constants[constantName]
+		Constants: () => {
+			log.easyDebug(`${device.name} - Utils Constants`)
 
-			if (typeof constantValue === 'undefined') {
-				log.warn(`${device.name} - Utils getConstantValue, constantName: ${constantName}, value undefined, returning null`)
-
-				return
-			}
-
-			log.easyDebug(`${device.name} - Utils getConstantValue, constantName: ${constantName}, value: ${constantValue}`)
-
-			return constantValue
+			return Constants
 		},
 
 		/**

@@ -123,13 +123,9 @@ class AirQualitySensor {
 
 		if (this.capabilities.tvoc?.homeKitSupported) {
 			this.AirQualitySensorService.getCharacteristic(Characteristic.VOCDensity)
-				.setProps({ maxValue: this.Utils.getConstantValue('VOCDENSITY_MAX') })
+				.setProps({ maxValue: this.Utils.Constants().VOCDENSITY_MAX })
 				.on('get', this.stateManager.get.VOCDensity)
 		}
-
-		// TODO: decide on how to get constant values moving forward
-		// this.log.success(`${this.name} - 1 - ${this.Utils.getConstantValue('VOCDENSITY_MAX')}`)
-		// this.log.warn(`${this.name} - 4 - ${this.Utils.Constants().VOCDENSITY_MAX}`)
 
 		if (this.capabilities.pm25?.homeKitSupported) {
 			this.AirQualitySensorService.getCharacteristic(Characteristic.PM2_5Density)
