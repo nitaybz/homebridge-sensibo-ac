@@ -102,7 +102,8 @@ export default platform => {
 				if (airQualityIsNew) {
 					// Check that at least one of AirQuality or CarbonDioxide sensor is enabled before creating
 					if (platform.disableAirQuality && platform.disableCarbonDioxide) {
-						platform.log.info(`syncHomeKitCache.js - Skipped adding AirQualitySensor as both AirQuality and CarbonDioxide are disabled`)
+						// This logs every time syncHomeKitCache runs if AirQuality and CarbonDioxide are disabled!
+						platform.log.easyDebug(`syncHomeKitCache.js - Skipped adding AirQualitySensor as both AirQuality and CarbonDioxide are disabled`)
 					} else {
 						platform.log.success(`syncHomeKitCache.js - Adding AirQualitySensor accessory (${device.id})`)
 

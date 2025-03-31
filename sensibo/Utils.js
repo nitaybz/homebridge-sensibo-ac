@@ -506,6 +506,17 @@ export default (device, platform) => {
 		},
 
 		/**
+		 * Returns the Constants object for easy use in other files, e.g. this.Utils.Constants().VOCDENSITY_MAX
+		 * @param   {void}
+		 * @returns {Object}
+		 */
+		Constants: () => {
+			log.easyDebug(`${device.name} - Utils Constants`)
+
+			return Constants
+		},
+
+		/**
 		 * Returns a simplified object of information - such as id, model and roomName - about the given Sensibo device
 		 * @param   {Object}  deviceFromSensiboResponse  The device details from the Sensibo API response
 		 * @returns {Object}                             The new object containing simplified device information - such as id, model and roomName
@@ -526,17 +537,6 @@ export default (device, platform) => {
 			log.easyDebug(deviceInfo)
 
 			return deviceInfo
-		},
-
-		/**
-		 * Returns the Constants object for easy use in other files, e.g. this.Utils.Constants().VOCDENSITY_MAX
-		 * @param   {void}
-		 * @returns {Object}
-		 */
-		Constants: () => {
-			log.easyDebug(`${device.name} - Utils Constants`)
-
-			return Constants
 		},
 
 		/**
@@ -723,7 +723,7 @@ export default (device, platform) => {
 		 */
 		updateValue: (serviceName, characteristicName, newValue) => {
 			// log.easyDebug(`${device.name} - Utils updateValue - start`)
-			// log.easyDebug(`${device.name} - updateValue: ${newValue} for characteristic ${characteristicName} on service ${serviceName}`)
+			log.devDebug(`${device.name} - updateValue: ${newValue} for characteristic ${characteristicName} on service ${serviceName}`)
 			// Could we use .validateUserInput or .validateClientSuppliedValue from HAP Characteristics definition? Probably not as both are private...
 
 			const characteristic = device[serviceName]?.getCharacteristic(Characteristic[characteristicName])

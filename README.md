@@ -69,12 +69,9 @@ If you don't use Homebridge UI or HOOBS keep reading...
 
 On a device with Homebridge already installled:
 
-1. Install this plugin using NPM: `sudo npm install -g homebridge-sensibo-ac` (Note: this is global)
-2. Update your configuration file manually. See `config-sample.json` in this repository for an example
-
-**OR** alternatively:
-
-1. Install this plugin using GIT: `sudo npm install -g git+https://github.com/nitaybz/homebridge-sensibo-ac.git`
+1. Install this plugin (Note: this is global) using NPM from:
+    - NPM: `sudo npm install -g homebridge-sensibo-ac`, or
+    - GIT: `sudo npm install -g git+https://github.com/nitaybz/homebridge-sensibo-ac.git`
 2. Update your configuration file manually. See `config-sample.json` in this repository for an example
 
 ## Configuration
@@ -173,11 +170,11 @@ In practice:
 
 - Minimum and Maximum temperatures are taken from Sensibo API
 - Temperature unit (Celsius/Fahrenheit) is taken from Sensibo API
-- "AUTO" mode is available in the AC modes only if it is available in Sensibo app
-- "DRY" (dehumidifier) and "FAN" modes will create their own accessories, only if you have this ability in Sensibo app
-- Fan Speed ("Rotation Speed" in the Home app) will show in the accessory settings, but only if you have this capability in Sensibo app
-- Horizontal Swing capability in Sensibo app will show up as a separate switch in the Home app (because there is no other way to control horizontal swing)
-- Vertical Swing ("Oscillate" in the Home app) will show in the accessory sub-settings, but only if you have this capability in Sensibo app
+- "AUTO" mode is available (in the AC modes), and will only appear if it is available in the Sensibo app
+- "DRY" (dehumidifier) and "FAN" modes will create their own accessories, and will only appear if it is available in the Sensibo app
+- Fan Speed ("Rotation Speed" in the Home app) will show within the accessory sub-settings, and will only appear if it is available in the Sensibo app
+- Horizontal Swing will create a separate switch in the Home app (because there is no other way to control horizontal swing), and will only appear if it is avaiable in the Sensibo app
+- Vertical Swing ("Oscillate" in the Home app) will show in the accessory sub-settings, and will only appear if it is available in the Sensibo app
 - Use `"ignoreHomeKitDevices": true` to automatically ignore, skip or remove HomeKit supported devices like Sensibo Air and Sensibo Pure. For example if you have added them to the Home app directly.
 
 ### State polling
@@ -198,9 +195,9 @@ If your unit has **DRY** mode in the Sensibo app, the plugin will create a dehum
 
 To remove the separate **Dry** (dehumidifier) accessory, add `DRY` to `modesToExclude`, example: `"modesToExclude": ["DRY"]`, to your config.
 
-***The following setting is deprecated, please use `modesToExclude` instead***
-
-To remove the separate **Dry** (dehumidifier) accessory, add `"disableDry": true` to your config. `modesToExclude` will overwrite this setting.
+><span style="color:red">***The following setting is deprecated, please use `modesToExclude` instead.***</span>
+>
+>To remove the separate **Dry** (dehumidifier) accessory, add `"disableDry": true` to your config. `modesToExclude` will overwrite this setting.
 
 ### Fan mode
 
@@ -208,9 +205,9 @@ If your unit **FAN** mode in the Sensibo app, this plugin will create a fan acce
 
 To remove the separate **Fan** accessory, add `FAN` to `modesToExclude`, example: `"modesToExclude": ["FAN"]`, to your config.
 
-***The following setting is deprecated, please use `modesToExclude` instead***
-
-To remove the separate **Fan** accessory, add `"disableFan": true` to your config. `modesToExclude` will overwrite this setting.
+><span style="color:red">***The following setting is deprecated, please use `modesToExclude` instead.***</span>
+>
+>To remove the separate **Fan** accessory, add `"disableFan": true` to your config. `modesToExclude` will overwrite this setting.
 
 ### Auto & Fan speeds
 
@@ -296,7 +293,7 @@ The current relative humidity, as reported by the Sensibo device, are shown with
 
 To remove AC accessory **Humidity** readings from the Home app, add `"disableHumidity": true` to your config.
 
-Note: If you have `Dry` mode (dehumidifier) enabled, Humidity will always be shown. Additionally, currently additional room sensors always add Humidity readings.
+Note: If you have `Dry` mode (dehumidifier) enabled, Humidity will always be shown. Additionally, currently add-on room sensors always add Humidity readings.
 
 To show the **Humidity** reading as a separate sensor, add `"externalHumiditySensor": true` to your config.
 
@@ -311,7 +308,7 @@ The following air quality readings, as reported by your Sensibo device, are show
 - Indoor Air Quality (IAQ), 0-5 (where 0 is Unknown, 1 is Excellent and 5 is Poor)
 - Total Volatile Organic Compounds (TVOCs), in µg/㎥ (micrograms per metre cubed)
 - Carbon Dioxide (CO2), in Parts Per Million (PPM)
-- Fine Particulate Matter (PM2.5), in µg/㎥ (micrograms per metre cubed) - Elements only
+- Fine Particulate Matter (PM2.5), in µg/㎥ (micrograms per metre cubed) - **Elements only**
 
 The Home app can also alert you to high CO2 readings. The default for this plugin is 1500 (PPM). You can change the threshold, by adding `"carbonDioxideAlertThreshold": 1500` to your config, the value must be a whole number. Requires the Carbon Dioxide Sensor be enabled.
 
