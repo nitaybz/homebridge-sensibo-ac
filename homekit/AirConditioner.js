@@ -142,9 +142,9 @@ class AirConditioner {
 		}
 	}
 
-	// TODO: move this in to Utils.js
+	// TODO: move this in to Utils.js. Or should we revert and keep doing it inline instead? Does this actually add value?
 	/**
-	 * Convert degrees F to degrees C
+	 * Helper function to add a given characteristic to the provided service, includes getters and setters and naming
 	 * @param    {string}       ServiceName               Name of the Service to add new characteristic to
 	 * @param    {string}       CharacteristicName        Name of the Characteristic to add
 	 * @param    {Object|null}  Props                     Object containing the properties (max, min, valid values, minStep etc)
@@ -331,7 +331,6 @@ class AirConditioner {
 			// 5. Set StatusActive Characteristic - https://github.com/homebridge/HAP-NodeJS/wiki/Presenting-Erroneous-Accessory-State-to-the-User
 			this.HeaterCoolerService.removeCharacteristic(Characteristic.SwingMode)
 
-			// FIXME: below to be tested
 			// this.api.updatePlatformAccessories([this.accessory])
 		}
 

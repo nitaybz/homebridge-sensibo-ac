@@ -44,6 +44,7 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 	smartModeState.type = 'temperature'
 	smartModeState.highTemperatureWebhook = null
 	smartModeState.lowTemperatureWebhook = null
+
 	smartModeState.highTemperatureState = {
 		targetTemperature: device.state.targetTemperature,
 		temperatureUnit: device.temperatureUnit,

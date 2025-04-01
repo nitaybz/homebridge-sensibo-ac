@@ -287,6 +287,9 @@ export default async function (platform) {
 		// These errors should be caught by the callers of refreshState (and logged), so only debug logging here to reduce log duplicates
 		log.easyDebug('refreshState.js final catch - re-throwing caught error')
 
+		// TODO: We could NOT "throw" here, that would eliminate the need for .catch every time refreshState() is called (e.g. in StateHandler.js)...
+		// We already have a .then in index.js which checks for allDevices and then errors if not set.
+		// It would mean API errors etc would stop bubbling here, but that's probably okay
 		throw error
 	})
 }

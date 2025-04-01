@@ -35,9 +35,9 @@ function sensiboFormattedClimateReactState(device, state) {
 	//       prevented the ClimateReact state (sensiboFormattedClimateReactState) from being set correctly and prevented
 	//       the API call.
 
-	// Note 2: See Github issue #148, previous implementation caused some users ClimateReact property settings to be overwritten
-	//         with the current values from HomeKit. As HomeKit doesn't support all values (e.g. fixed swing modes) that Sensibo does
-	//         this was unexpectedly, and unwantedly, changing users ClimateReact settings.
+	// Note 2: See Github issue #148, the previous implementation caused some users ClimateReact property settings to be
+	//         overwritten with the (current) values from HomeKit. As HomeKit doesn't support all the values that Sensibo does
+	//         (e.g. fixed swing modes) this was unexpectedly, and unwantedly, changing users ClimateReact settings.
 	//         We now use the values directly from the pre-existing state.smartMode, including:
 	//         fanLevel, light, swing and horizontalSwing
 
