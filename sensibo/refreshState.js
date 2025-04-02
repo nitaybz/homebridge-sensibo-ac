@@ -76,6 +76,7 @@ function getAllDevicesAndUpdatePlatform(platform) {
 				log.error('refreshState getAllDevices.catch - allDevices is empty or storage.setItem failed, caught error:')
 				log.warn(error.message || error)
 
+				// This reject goes to the .catch within doRefresh below (e.g. where getAllDevicesAndUpdatePlatform is called)
 				reject(error)
 
 				return
@@ -90,13 +91,16 @@ function refreshAllDevices(platform) {
 	const occupancySensorHandledLocations = []
 
 	platform.devices.forEach(device => {
-		log.easyDebug(`refreshState refreshAllDevices - forEach ${device.room?.name} (${device.id})`)
+		log.easyDebug(`refreshState refreshAllDevices - in forEach ${device.room?.name} (${device.id})`)
 
+		// TODO: should activeAccessories be declared outside the platform.devices.forEach loop and appended (pushed) to?
 		const activeAccessories = platform.activeAccessories.filter(accessory => {
 			// device.id for ACs, Purifiers etc, device.location.id for occupancy sensor
 			return (accessory.id === device.id || accessory.id === device.location.id)
 		})
 
+
+		// TODO: Should this be outside the platform.devices.forEach loop? We'd (probably) lose the device context though
 		activeAccessories.forEach(accessory => {
 			log.easyDebug(`refreshState refreshAllDevices - Updating state for ${device.room?.name} (${device.id}) - ${accessory.type}`)
 
@@ -138,7 +142,12 @@ function refreshAllDevices(platform) {
 					break
 				case 'RoomSensor':
 					// Room Sensors (device.motionSensors) - e.g. in room or not
+					// Update Room Sensor state, note: updateHomeKit gets called within StateHandler.js, e.g. GET when prop === 'update'
+
 					// TODO: See if this can be brought in from below
+					// device.sensor should be an array... how would we find the correct item in the array here?
+					// device.sensor.find(sensor => sensor.id === accessory.id).measurements
+					// accessory.state.update(accessory.Utils.sensorStateFromSensorMeasurements(/* device.sensor[].measurements */)) NOTE
 
 					break
 				case 'SyncButton':
@@ -209,6 +218,7 @@ function doRefresh(platform) {
 			// return 'doRefresh.catch error message: ' + (error.message || error)
 			throw (error.message || error)
 		}).finally(() => {
+			// This always runs, even if an error is caught and thrown above in .catch
 			log.easyDebug(`refreshState doRefresh getAllDevicesAndUpdatePlatform.finally - Creating new timeout, will wait ${platform.pollingInterval / 1000} seconds and then call refreshState again`)
 			// create new timeout to initiate next refresh in 85 seconds
 			if (platform.pollingInterval) {
@@ -230,7 +240,9 @@ function doRefresh(platform) {
 export default async function (platform) {
 	log = platform.log
 
-	// TODO: more refactoring is probably possible, at the moment still feels like 1 (or 2) too many Promises...
+	// TODO: more refactoring is probably possible, at the moment still feels like 1 (or 2) too many Promises/logic functions...
+	//       e.g. platform.sensiboApi.getAllDevices().catch?(or catch API errors in SensiboAPI.js and not rethrow).then(recheck flags and set allDevices).then(syncHomeKitCache + refreshAllDevices)...
+	//       .catch().finally(queue new refreshState)
 	return new Promise((resolve, reject) => {
 		log.easyDebug('refreshState.js - refreshState() called')
 
