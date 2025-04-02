@@ -99,7 +99,6 @@ function refreshAllDevices(platform) {
 			return (accessory.id === device.id || accessory.id === device.location.id)
 		})
 
-
 		// TODO: Should this be outside the platform.devices.forEach loop? We'd (probably) lose the device context though
 		activeAccessories.forEach(accessory => {
 			log.easyDebug(`refreshState refreshAllDevices - Updating state for ${device.room?.name} (${device.id}) - ${accessory.type}`)
