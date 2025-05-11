@@ -300,7 +300,7 @@ export default async function (platform) {
 
 		// TODO: We could NOT "throw" here, that would eliminate the need for .catch every time refreshState() is called (e.g. in StateHandler.js)...
 		// We already have a .then in index.js which checks for allDevices and then errors if not set.
-		// It would mean API errors etc would stop bubbling here, but that's probably okay
+		// It would mean API errors etc would stop bubbling here, but that's probably okay (or maybe they should stop within SensiboAPI.js?)
 		throw error
 	})
 }

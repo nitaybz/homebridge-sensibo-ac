@@ -94,7 +94,7 @@ class AirQualitySensor {
 		}
 
 		// Carbon Dioxide Sensor, co2
-		if (!this.disableCarbonDioxide && this.capabilities.co2.homeKitSupported) {
+		if (!this.disableCarbonDioxide && this.capabilities.co2?.homeKitSupported) {
 			this.addCarbonDioxideService()
 		} else {
 			this.removeCarbonDioxideService()

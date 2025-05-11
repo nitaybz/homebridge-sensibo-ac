@@ -35,7 +35,7 @@ class SensiboACPlatform {
 		this.PLUGIN_VERSION = PLUGIN_VERSION
 		this.MINIMUM_NODE = MINIMUM_NODE
 
-		this.log.info(`Starting ${this.PLUGIN_NAME}`)
+		this.log.info(`Starting ${this.PLUGIN_NAME}...`)
 
 		// ~~~~~~~~~~~~~~~~~~~~~ Sensibo Specials ~~~~~~~~~~~~~~~~~~~~~ //
 
@@ -138,7 +138,7 @@ class SensiboACPlatform {
 		}
 
 		this.api.on('didFinishLaunching', async () => {
-			this.log.info('Starting initialisation...')
+			this.log.info('Loading API and devices...')
 			await this.storage.init({
 				dir: this.persistPath,
 				forgiveParseErrors: true

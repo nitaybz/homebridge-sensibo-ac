@@ -36,7 +36,7 @@ export default platform => {
 				platform.log.easyDebug(`syncHomeKitCache.js - Device: ${device.id}, Model: ${device.productModel}, airConditionerIsNew: ${airConditionerIsNew}`)
 
 				if (airConditionerIsNew) {
-					platform.log.success(`syncHomeKitCache.js - Adding AirConditioner accessory (${device.id})`)
+					platform.log.success(`syncHomeKitCache.js - Found AirConditioner accessory (${device.id})`)
 
 					// TODO: what if aircon isn't needed at all (all services disabled)? Do we still push it?
 					// What about airConditioner variable for other accessories like humiditySensor?
@@ -47,7 +47,7 @@ export default platform => {
 
 					// Add external Humidity Sensor if enabled
 					if (platform.externalHumiditySensor) {
-						platform.log.info(`syncHomeKitCache.js - Adding HumiditySensor`)
+						platform.log.info(`syncHomeKitCache.js - Found HumiditySensor`)
 
 						const humiditySensor = new HumiditySensor(airConditioner, platform)
 
@@ -56,7 +56,7 @@ export default platform => {
 
 					// Add separate Sync Button if enabled
 					if (platform.enableSyncButton && !platform.syncButtonInAccessory) {
-						platform.log.info(`syncHomeKitCache.js - Adding SyncButton`)
+						platform.log.info(`syncHomeKitCache.js - Found SyncButton`)
 
 						const syncButton = new SyncButton(airConditioner, platform)
 
@@ -65,7 +65,7 @@ export default platform => {
 
 					// Add Climate React Switch if enabled
 					if (platform.enableClimateReactSwitch && !platform.climateReactSwitchInAccessory) {
-						platform.log.info(`syncHomeKitCache.js - Adding ClimateReactSwitch`)
+						platform.log.info(`syncHomeKitCache.js - Found ClimateReactSwitch`)
 
 						const climateReactSwitch = new ClimateReactSwitch(airConditioner, platform)
 
@@ -83,7 +83,7 @@ export default platform => {
 				platform.log.easyDebug(`syncHomeKitCache.js - Device: ${device.id}, airPurifierIsNew: ${airPurifierIsNew}`)
 
 				if (airPurifierIsNew) {
-					platform.log.success(`syncHomeKitCache.js - Adding AirPurifier accessory (${device.id})`)
+					platform.log.success(`syncHomeKitCache.js - Found AirPurifier accessory (${device.id})`)
 
 					const airPurifier = new AirPurifier(device, platform)
 
@@ -103,9 +103,9 @@ export default platform => {
 					// Check that at least one of AirQuality or CarbonDioxide sensor is enabled before creating
 					if (platform.disableAirQuality && platform.disableCarbonDioxide) {
 						// This logs every time syncHomeKitCache runs if AirQuality and CarbonDioxide are disabled!
-						platform.log.easyDebug(`syncHomeKitCache.js - Skipped adding AirQualitySensor as both AirQuality and CarbonDioxide are disabled`)
+						platform.log.easyDebug(`syncHomeKitCache.js - Skipped AirQualitySensor as both AirQuality and CarbonDioxide are disabled.`)
 					} else {
-						platform.log.success(`syncHomeKitCache.js - Adding AirQualitySensor accessory (${device.id})`)
+						platform.log.success(`syncHomeKitCache.js - Found AirQualitySensor accessory (${device.id})`)
 
 						const airQualitySensor = new AirQualitySensor(device, platform)
 
@@ -124,7 +124,7 @@ export default platform => {
 					platform.log.easyDebug(`syncHomeKitCache.js - Device: ${device.id}, roomSensorIsNew: ${roomSensorIsNew}`)
 
 					if (roomSensorIsNew) {
-						platform.log.success(`syncHomeKitCache.js - Adding RoomSensor accessory (${device.id})`)
+						platform.log.success(`syncHomeKitCache.js - Found RoomSensor accessory (${device.id})`)
 
 						const roomSensor = new RoomSensor(motionSensor, device, platform)
 
@@ -136,7 +136,7 @@ export default platform => {
 			// Add Occupancy Sensor if enabled
 			if (platform.enableOccupancySensor && !platform.locations.includes(device.location.id)) {
 				platform.locations.push(device.location.id)
-				platform.log.success(`syncHomeKitCache.js - Adding OccupancySensor accessory (${device.id})`)
+				platform.log.success(`syncHomeKitCache.js - Found OccupancySensor accessory (${device.id})`)
 
 				const occupancySensor = new OccupancySensor(device, platform)
 
