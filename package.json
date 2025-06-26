@@ -1,16 +1,15 @@
 {
-  "displayName": "Sensibo for Homebridge (Fan & Dry Support)",
-  "name": "homebridge-sensibo-ac-fan-dry",
-  "version": "2.5.1-fan-dry",
-  "description": "Homebridge plugin for Sensibo - Smart AC Control with enhanced fan speed and swing controls",
+  "displayName": "Sensibo for Homebridge",
+  "name": "homebridge-sensibo-ac",
+  "version": "2.5.1",
+  "description": "Homebridge plugin for Sensibo - Smart AC Control",
   "license": "GNU",
   "repository": {
     "type": "git",
-    "url": "git://github.com/JacobsonGal/homebridge-sensibo-ac.git"
+    "url": "git://github.com/nitaybz/homebridge-sensibo-ac.git"
   },
   "keywords": [
     "homebridge-plugin",
-    "homebridge-sensibo-ac-fan-dry",
     "homebridge-sensibo-ac",
     "homebridge-sensibo",
     "sensibo",
@@ -19,13 +18,10 @@
     "sensibo-airq",
     "sensibo-air-plus",
     "sensibo-ac",
-    "smart-ac",
-    "category-climate",
-    "fan-control",
-    "swing-control"
+    "smart-ac"
   ],
   "bugs": {
-    "url": "https://github.com/JacobsonGal/homebridge-sensibo-ac/issues"
+    "url": "https://github.com/nitaybz/homebridge-sensibo-ac/issues"
   },
   "engines": {
     "node": ">=18.17.0",
@@ -47,5 +43,19 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "watch": "nodemon"
-  }
+  },
+  "funding": [
+    {
+      "type": "paypal",
+      "url": "https://paypal.me/nitaybz"
+    },
+    {
+      "type": "patreon",
+      "url": "https://www.patreon.com/nitaybz"
+    },
+    {
+      "type": "kofi",
+      "url": "https://ko-fi.com/nitaybz"
+    }
+  ]
 }

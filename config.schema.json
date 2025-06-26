@@ -1,9 +1,9 @@
 {
-	"pluginAlias": "SensiboACFanDry",
+	"pluginAlias": "SensiboAC",
 	"pluginType": "platform",
 	"singular": true,
-	"headerDisplay": "Homebridge plugin for Sensibo - Smart AC Control (Fan & Dry Support)",
-	"footerDisplay": "Enhanced version with fan speed and swing controls",
+	"headerDisplay": "Homebridge plugin for Sensibo - Smart AC Control",
+	"footerDisplay": "Created by @nitaybz",
 	"schema": {
 		"type": "object",
 		"properties": {
@@ -121,7 +121,6 @@
 				"default": false,
 				"required": false
 			},
-
 			"disableVerticalSwing": {
 				"title": "Disable Vertical Swing",
 				"description": "Remove vertical swing (Oscillate) control switch from accessory",

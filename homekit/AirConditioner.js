@@ -111,7 +111,7 @@ class AirConditioner {
 
 		// TODO: see if HorizontalSwing can be created via a custom characteristic, rather than a separate accessory
 		// https://developers.homebridge.io/HAP-NodeJS/classes/Characteristic.html
-		if (!this.disableHorizontalSwing && !this.horizontalSwingInAccessory && ((this.capabilities.COOL && this.capabilities.COOL.horizontalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.horizontalSwing))) {
+		if (!this.disableHorizontalSwing && ((this.capabilities.COOL && this.capabilities.COOL.horizontalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.horizontalSwing))) {
 			this.addHorizontalSwingSwitch()
 		} else {
 			this.removeHorizontalSwingSwitch()
@@ -293,13 +293,7 @@ class AirConditioner {
 		this.addCharacteristicToService('HeaterCooler', 'TargetHeaterCoolerState', { validValues: validModes })
 
 		if (!this.disableVerticalSwing && ((this.capabilities.COOL && this.capabilities.COOL.verticalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.verticalSwing))) {
-			// Configure swing mode properties for better Home app integration
-			const swingModeProps = {
-				validValues: [Characteristic.SwingMode.SWING_DISABLED, Characteristic.SwingMode.SWING_ENABLED]
-			}
-			
 			this.HeaterCoolerService.getCharacteristic(Characteristic.SwingMode)
-				.setProps(swingModeProps)
 				.on('get', this.stateManager.get.ACSwing)
 				.on('set', this.stateManager.set.ACSwing)
 		} else {
@@ -316,16 +310,8 @@ class AirConditioner {
 		}
 
 
-		// Add horizontal swing control to HeaterCooler service for better integration
 		if (!this.disableHorizontalSwing && ((this.capabilities.COOL && this.capabilities.COOL.horizontalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.horizontalSwing))) {
-			// Create a custom characteristic for horizontal swing since it's not standard in HeaterCooler
-			const HorizontalSwingCharacteristic = new Characteristic('Horizontal Swing', this.api.hap.uuid.generate('HorizontalSwing' + this.id), {
-				format: Characteristic.Formats.BOOL,
-				perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY],
-				description: 'Horizontal Swing Control'
-			})
-			
-			this.HeaterCoolerService.addCharacteristic(HorizontalSwingCharacteristic)
+			this.HeaterCoolerService.addCharacteristic(Characteristic.SwingMode)
 				.on('get', this.stateManager.get.HorizontalSwing)
 				.on('set', this.stateManager.set.HorizontalSwing)
 		}
@@ -371,16 +357,7 @@ class AirConditioner {
 			.on('get', this.stateManager.get.FanSpeedActive)
 			.on('set', this.stateManager.set.FanSpeedActive)
 
-		// Configure fan speed properties for better Home app integration
-		const fanSpeedProps = {
-			minValue: 0,
-			maxValue: 100,
-			minStep: 1,
-			unit: Characteristic.Units.PERCENTAGE
-		}
-		
 		this.FanService.getCharacteristic(Characteristic.RotationSpeed)
-			.setProps(fanSpeedProps)
 			.on('get', this.stateManager.get.FanSpeedRotationSpeed)
 			.on('set', this.stateManager.set.FanSpeedRotationSpeed)
 
@@ -427,13 +404,7 @@ class AirConditioner {
 			.on('set', this.stateManager.set.TargetHumidifierDehumidifierState)
 
 		if (!this.disableVerticalSwing && this.capabilities.DRY.verticalSwing) {
-			// Configure swing mode properties for better Home app integration
-			const drySwingModeProps = {
-				validValues: [Characteristic.SwingMode.SWING_DISABLED, Characteristic.SwingMode.SWING_ENABLED]
-			}
-			
 			this.DryService.getCharacteristic(Characteristic.SwingMode)
-				.setProps(drySwingModeProps)
 				.on('get', this.stateManager.get.DrySwing)
 				.on('set', this.stateManager.set.DrySwing)
 		} else {
@@ -671,20 +642,8 @@ class AirConditioner {
 					}
 
 					// update horizontal swing for HeaterCoolerService
-					if (this.HorizontalSwingSwitchService && !this.horizontalSwingInAccessory) {
+					if (this.HorizontalSwingSwitchService) {
 						this.Utils.updateValue('HorizontalSwingSwitchService', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
-					}
-
-					// update horizontal swing characteristic in HeaterCoolerService if it exists
-					if (!this.disableHorizontalSwing && this.horizontalSwingInAccessory && ((this.capabilities.COOL && this.capabilities.COOL.horizontalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.horizontalSwing))) {
-						const horizontalSwingCharacteristic = this.HeaterCoolerService.getCharacteristic('Horizontal Swing')
-						if (horizontalSwingCharacteristic) {
-							const horizontalSwingValue = this.state.horizontalSwing === 'SWING_ENABLED'
-							if (horizontalSwingCharacteristic.value !== horizontalSwingValue) {
-								this.log.easyDebug(`${this.name} - Setting horizontal swing to ${horizontalSwingValue} in HeaterCoolerService`)
-								horizontalSwingCharacteristic.updateValue(horizontalSwingValue)
-							}
-						}
 					}
 
 					// update light switch for HeaterCoolerService
