@@ -140,9 +140,10 @@ class AirConditioner {
 		if (platform.separateFanSpeedAccessory) {
 			this.addSeparateFanSpeedAccessory()
 		}
-		if ((this.capabilities.COOL && this.capabilities.COOL.verticalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.verticalSwing)) {
+		if (platform.separateVerticalSwingAccessory) {
 			this.addSeparateVerticalSwingAccessory()
 		}
+		
 	}
 
 	// TODO: move this in to Utils.js
@@ -628,7 +629,7 @@ class AirConditioner {
 	addSeparateFanSpeedAccessory() {
 		const name = this.roomName + ' Fan Speed'
 		const uuid = this.api.hap.uuid.generate(this.id + '-fan-speed')
-		let accessory = this.api.platformAccessory(name, uuid)
+		let accessory = new this.api.platformAccessory(name, uuid)
 		accessory.context.type = 'FanSpeed'
 		accessory.context.deviceId = this.id
 		let service = accessory.getService(Service.Fanv2) || accessory.addService(Service.Fanv2, name)
@@ -642,7 +643,7 @@ class AirConditioner {
 	addSeparateVerticalSwingAccessory() {
 		const name = this.roomName + ' Oscillate'
 		const uuid = this.api.hap.uuid.generate(this.id + '-vertical-swing')
-		let accessory = this.api.platformAccessory(name, uuid)
+		let accessory = new this.api.platformAccessory(name, uuid)
 		accessory.context.type = 'VerticalSwing'
 		accessory.context.deviceId = this.id
 		let service = accessory.getService(Service.Switch) || accessory.addService(Service.Switch, name)

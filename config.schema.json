@@ -93,11 +93,18 @@
 				"default": false,
 				"required": false
 			},
-			"fanSpeedInAccessory": {
-				"title": "Fan Speed in AC Accessory",
-				"description": "Show fan speed control in the main AC accessory (enabled by default)",
+			"separateFanSpeedAccessory": {
+				"title": "Separate Fan Speed Accessory",
+				"description": "Create a separate accessory for controlling fan speed (for Cool/Heat/Auto modes)",
 				"type": "boolean",
-				"default": true,
+				"default": false,
+				"required": false
+			},
+			"separateVerticalSwingAccessory": {
+				"title": "Separate Vertical Swing Accessory",
+				"description": "Create a separate accessory for controlling vertical swing (for Cool/Heat/Auto modes)",
+				"type": "boolean",
+				"default": false,
 				"required": false
 			},
 			"disableHumidity": {
@@ -128,13 +135,7 @@
 				"default": false,
 				"required": false
 			},
-			"horizontalSwingInAccessory": {
-				"title": "Horizontal Swing in AC Accessory",
-				"description": "Show horizontal swing control in the main AC accessory instead of as a separate switch",
-				"type": "boolean",
-				"default": true,
-				"required": false
-			},
+
 			"disableVerticalSwing": {
 				"title": "Disable Vertical Swing",
 				"description": "Remove vertical swing (Oscillate) control switch from accessory",
@@ -232,13 +233,6 @@
 			"debug": {
 				"title": "Enable Debug Logs",
 				"description": "Enable extra logging for debugging purposes",
-				"type": "boolean",
-				"default": false,
-				"required": false
-			},
-			"separateFanSpeedAccessory": {
-				"title": "Separate Fan Speed Accessory",
-				"description": "Create a separate accessory for controlling fan speed (for Cool/Heat/Auto modes)",
 				"type": "boolean",
 				"default": false,
 				"required": false
