@@ -310,10 +310,10 @@ class AirConditioner {
 		}
 
 
-		if (!this.disableHorizontalSwing && ((this.capabilities.COOL && this.capabilities.COOL.horizontalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.horizontalSwing))) {
-			this.HeaterCoolerService.addCharacteristic(Characteristic.SwingMode)
-				.on('get', this.stateManager.get.HorizontalSwing)
-				.on('set', this.stateManager.set.HorizontalSwing)
+		if ((this.capabilities.COOL && this.capabilities.COOL.fanSpeeds) || (this.capabilities.HEAT && this.capabilities.HEAT.fanSpeeds)) {
+			this.HeaterCoolerService.getCharacteristic(Characteristic.RotationSpeed)
+				.on('get', this.stateManager.get.ACRotationSpeed)
+				.on('set', this.stateManager.set.ACRotationSpeed)
 		}
 
 		//TODO: check on this warning...

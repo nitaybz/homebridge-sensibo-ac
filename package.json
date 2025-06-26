@@ -17,8 +17,8 @@
     "sensibo-air",
     "sensibo-airq",
     "sensibo-air-plus",
-    "sensibo-ac",
-    "smart-ac"
+    "smart-ac",
+    "category-climate"
   ],
   "bugs": {
     "url": "https://github.com/nitaybz/homebridge-sensibo-ac/issues"
