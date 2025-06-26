@@ -93,6 +93,13 @@
 				"default": false,
 				"required": false
 			},
+			"fanSpeedInAccessory": {
+				"title": "Fan Speed in AC Accessory",
+				"description": "Show fan speed control in the main AC accessory (enabled by default)",
+				"type": "boolean",
+				"default": true,
+				"required": false
+			},
 			"disableHumidity": {
 				"title": "Disable Humidity Sensor",
 				"description": "Remove Humidity readings",
@@ -119,6 +126,13 @@
 				"description": "Remove horizontal swing control switch",
 				"type": "boolean",
 				"default": false,
+				"required": false
+			},
+			"horizontalSwingInAccessory": {
+				"title": "Horizontal Swing in AC Accessory",
+				"description": "Show horizontal swing control in the main AC accessory instead of as a separate switch",
+				"type": "boolean",
+				"default": true,
 				"required": false
 			},
 			"disableVerticalSwing": {
