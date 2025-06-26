@@ -235,6 +235,13 @@
 				"type": "boolean",
 				"default": false,
 				"required": false
+			},
+			"separateFanSpeedAccessory": {
+				"title": "Separate Fan Speed Accessory",
+				"description": "Create a separate accessory for controlling fan speed (for Cool/Heat/Auto modes)",
+				"type": "boolean",
+				"default": false,
+				"required": false
 			}
 		},
 		"anyOf": [

@@ -136,6 +136,13 @@ class AirConditioner {
 		} else {
 			this.removeLightSwitch()
 		}
+
+		if (platform.separateFanSpeedAccessory) {
+			this.addSeparateFanSpeedAccessory()
+		}
+		if ((this.capabilities.COOL && this.capabilities.COOL.verticalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.verticalSwing)) {
+			this.addSeparateVerticalSwingAccessory()
+		}
 	}
 
 	// TODO: move this in to Utils.js
@@ -616,6 +623,33 @@ class AirConditioner {
 			this.log.easyDebug(`${this.roomName} - Removing Climate React Switch Service`)
 			this.accessory.removeService(ClimateReactService)
 		}
+	}
+
+	addSeparateFanSpeedAccessory() {
+		const name = this.roomName + ' Fan Speed'
+		const uuid = this.api.hap.uuid.generate(this.id + '-fan-speed')
+		let accessory = this.api.platformAccessory(name, uuid)
+		accessory.context.type = 'FanSpeed'
+		accessory.context.deviceId = this.id
+		let service = accessory.getService(Service.Fanv2) || accessory.addService(Service.Fanv2, name)
+		service.getCharacteristic(Characteristic.RotationSpeed)
+			.setProps({ minValue: 0, maxValue: 100, minStep: 1, unit: Characteristic.Units.PERCENTAGE })
+			.on('get', cb => cb(null, this.state.fanSpeed))
+			.on('set', (value, cb) => { this.state.fanSpeed = value; this.updateHomeKit(); cb(); })
+		this.api.registerPlatformAccessories(this.api.pluginName, this.api.platformName, [accessory])
+	}
+
+	addSeparateVerticalSwingAccessory() {
+		const name = this.roomName + ' Oscillate'
+		const uuid = this.api.hap.uuid.generate(this.id + '-vertical-swing')
+		let accessory = this.api.platformAccessory(name, uuid)
+		accessory.context.type = 'VerticalSwing'
+		accessory.context.deviceId = this.id
+		let service = accessory.getService(Service.Switch) || accessory.addService(Service.Switch, name)
+		service.getCharacteristic(Characteristic.On)
+			.on('get', cb => cb(null, this.state.verticalSwing === 'SWING_ENABLED'))
+			.on('set', (value, cb) => { this.state.verticalSwing = value ? 'SWING_ENABLED' : 'SWING_DISABLED'; this.updateHomeKit(); cb(); })
+		this.api.registerPlatformAccessories(this.api.pluginName, this.api.platformName, [accessory])
 	}
 
 	updateHomeKit() {
