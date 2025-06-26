@@ -1,12 +1,12 @@
 {
-  "displayName": "Sensibo for Homebridge",
-  "name": "homebridge-sensibo-ac",
-  "version": "2.5.1",
-  "description": "Homebridge plugin for Sensibo - Smart AC Control",
+  "displayName": "Sensibo for Homebridge (Fan & Dry Support)",
+  "name": "homebridge-sensibo-ac-fan-dry",
+  "version": "2.5.1-fan-dry",
+  "description": "Homebridge plugin for Sensibo - Smart AC Control with enhanced fan speed and swing controls",
   "license": "GNU",
   "repository": {
     "type": "git",
-    "url": "git://github.com/nitaybz/homebridge-sensibo-ac.git"
+    "url": "git://github.com/JacobsonGal/homebridge-sensibo-ac.git"
   },
   "keywords": [
     "homebridge-plugin",
