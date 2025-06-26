@@ -37,8 +37,6 @@ class AirConditioner {
 		this.disableHorizontalSwing = platform.disableHorizontalSwing
 		this.disableVerticalSwing = platform.disableVerticalSwing
 		this.disableLightSwitch = platform.disableLightSwitch
-		this.fanSpeedInAccessory = platform.fanSpeedInAccessory
-		this.horizontalSwingInAccessory = platform.horizontalSwingInAccessory
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
 		this.filterService = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device, platform)
@@ -136,14 +134,6 @@ class AirConditioner {
 		} else {
 			this.removeLightSwitch()
 		}
-
-		if (platform.separateFanSpeedAccessory) {
-			this.addSeparateFanSpeedAccessory()
-		}
-		if (platform.separateVerticalSwingAccessory) {
-			this.addSeparateVerticalSwingAccessory()
-		}
-		
 	}
 
 	// TODO: move this in to Utils.js
@@ -325,23 +315,9 @@ class AirConditioner {
 			this.HeaterCoolerService.removeCharacteristic(Characteristic.SwingMode)
 		}
 
-		if (this.fanSpeedInAccessory && ((this.capabilities.COOL && this.capabilities.COOL.fanSpeeds) || (this.capabilities.HEAT && this.capabilities.HEAT.fanSpeeds))) {
-			// Configure fan speed properties for better Home app integration
-			const fanSpeedProps = {
-				minValue: 0,
-				maxValue: 100,
-				minStep: 1,
-				unit: Characteristic.Units.PERCENTAGE
-			}
-			
-			this.HeaterCoolerService.getCharacteristic(Characteristic.RotationSpeed)
-				.setProps(fanSpeedProps)
-				.on('get', this.stateManager.get.ACRotationSpeed)
-				.on('set', this.stateManager.set.ACRotationSpeed)
-		}
 
 		// Add horizontal swing control to HeaterCooler service for better integration
-		if (!this.disableHorizontalSwing && this.horizontalSwingInAccessory && ((this.capabilities.COOL && this.capabilities.COOL.horizontalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.horizontalSwing))) {
+		if (!this.disableHorizontalSwing && ((this.capabilities.COOL && this.capabilities.COOL.horizontalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.horizontalSwing))) {
 			// Create a custom characteristic for horizontal swing since it's not standard in HeaterCooler
 			const HorizontalSwingCharacteristic = new Characteristic('Horizontal Swing', this.api.hap.uuid.generate('HorizontalSwing' + this.id), {
 				format: Characteristic.Formats.BOOL,
@@ -383,45 +359,33 @@ class AirConditioner {
 	}
 
 	addFanService() {
-		this.log.easyDebug(`${this.name} - Adding FanService`)
+		this.log.easyDebug(`${this.name} - Adding Fan Speed Control Service`)
 
 		this.FanService = this.accessory.getService(Service.Fanv2)
 		if (!this.FanService) {
-			this.FanService = this.accessory.addService(Service.Fanv2, this.roomName + ' Fan', 'Fan')
+			this.FanService = this.accessory.addService(Service.Fanv2, this.roomName + ' Fan Speed', 'FanSpeed')
 		}
 
+		// Always show the fan service as active when the AC is active (regardless of mode)
 		this.FanService.getCharacteristic(Characteristic.Active)
-			.on('get', this.stateManager.get.FanActive)
-			.on('set', this.stateManager.set.FanActive)
+			.on('get', this.stateManager.get.FanSpeedActive)
+			.on('set', this.stateManager.set.FanSpeedActive)
 
-		if (!this.disableVerticalSwing && this.capabilities.FAN.verticalSwing) {
-			// Configure swing mode properties for better Home app integration
-			const fanSwingModeProps = {
-				validValues: [Characteristic.SwingMode.SWING_DISABLED, Characteristic.SwingMode.SWING_ENABLED]
-			}
-			
-			this.FanService.getCharacteristic(Characteristic.SwingMode)
-				.setProps(fanSwingModeProps)
-				.on('get', this.stateManager.get.FanSwing)
-				.on('set', this.stateManager.set.FanSwing)
-		} else {
-			this.FanService.removeCharacteristic(Characteristic.SwingMode)
+		// Configure fan speed properties for better Home app integration
+		const fanSpeedProps = {
+			minValue: 0,
+			maxValue: 100,
+			minStep: 1,
+			unit: Characteristic.Units.PERCENTAGE
 		}
+		
+		this.FanService.getCharacteristic(Characteristic.RotationSpeed)
+			.setProps(fanSpeedProps)
+			.on('get', this.stateManager.get.FanSpeedRotationSpeed)
+			.on('set', this.stateManager.set.FanSpeedRotationSpeed)
 
-		if (this.capabilities.FAN.fanSpeeds) {
-			// Configure fan speed properties for better Home app integration
-			const fanSpeedProps = {
-				minValue: 0,
-				maxValue: 100,
-				minStep: 1,
-				unit: Characteristic.Units.PERCENTAGE
-			}
-			
-			this.FanService.getCharacteristic(Characteristic.RotationSpeed)
-				.setProps(fanSpeedProps)
-				.on('get', this.stateManager.get.FanRotationSpeed)
-				.on('set', this.stateManager.set.FanRotationSpeed)
-		}
+		// Remove swing mode from fan service since it's now just for speed control
+		this.FanService.removeCharacteristic(Characteristic.SwingMode)
 	}
 
 	removeFanService() {
@@ -429,7 +393,7 @@ class AirConditioner {
 
 		if (FanService) {
 			// remove service
-			this.log.easyDebug(`${this.name} - Removing FanService`)
+			this.log.easyDebug(`${this.name} - Removing Fan Speed Control Service`)
 			this.accessory.removeService(FanService)
 		}
 	}
@@ -626,32 +590,7 @@ class AirConditioner {
 		}
 	}
 
-	addSeparateFanSpeedAccessory() {
-		const name = this.roomName + ' Fan Speed'
-		const uuid = this.api.hap.uuid.generate(this.id + '-fan-speed')
-		let accessory = new this.api.platformAccessory(name, uuid)
-		accessory.context.type = 'FanSpeed'
-		accessory.context.deviceId = this.id
-		let service = accessory.getService(Service.Fanv2) || accessory.addService(Service.Fanv2, name)
-		service.getCharacteristic(Characteristic.RotationSpeed)
-			.setProps({ minValue: 0, maxValue: 100, minStep: 1, unit: Characteristic.Units.PERCENTAGE })
-			.on('get', cb => cb(null, this.state.fanSpeed))
-			.on('set', (value, cb) => { this.state.fanSpeed = value; this.updateHomeKit(); cb(); })
-		this.api.registerPlatformAccessories(this.api.pluginName, this.api.platformName, [accessory])
-	}
 
-	addSeparateVerticalSwingAccessory() {
-		const name = this.roomName + ' Oscillate'
-		const uuid = this.api.hap.uuid.generate(this.id + '-vertical-swing')
-		let accessory = new this.api.platformAccessory(name, uuid)
-		accessory.context.type = 'VerticalSwing'
-		accessory.context.deviceId = this.id
-		let service = accessory.getService(Service.Switch) || accessory.addService(Service.Switch, name)
-		service.getCharacteristic(Characteristic.On)
-			.on('get', cb => cb(null, this.state.verticalSwing === 'SWING_ENABLED'))
-			.on('set', (value, cb) => { this.state.verticalSwing = value ? 'SWING_ENABLED' : 'SWING_DISABLED'; this.updateHomeKit(); cb(); })
-		this.api.registerPlatformAccessories(this.api.pluginName, this.api.platformName, [accessory])
-	}
 
 	updateHomeKit() {
 		// log new state with FakeGato
@@ -701,6 +640,17 @@ class AirConditioner {
 			}
 
 			return
+		}
+
+		// Update fan speed control service (works across all modes)
+		if (this.FanService) {
+			// Fan service is active whenever the device is active
+			this.Utils.updateValue('FanService', 'Active', 1)
+			
+			// Update fan speed for all modes
+			if (this.capabilities[this.state.mode] && this.capabilities[this.state.mode].fanSpeeds) {
+				this.Utils.updateValue('FanService', 'RotationSpeed', this.state.fanSpeed)
+			}
 		}
 
 		switch (this.state.mode) {
@@ -792,21 +742,6 @@ class AirConditioner {
 					this.Utils.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
 				}
 
-				if (this.FanService) {
-					// turn on FanService
-					this.Utils.updateValue('FanService', 'Active', 1)
-
-					// update swing for FanService
-					if (!this.disableVerticalSwing && this.capabilities.FAN.verticalSwing) {
-						this.Utils.updateValue('FanService', 'SwingMode', Characteristic.SwingMode[this.state.verticalSwing])
-					}
-
-					// update fanSpeed for FanService
-					if (this.capabilities.FAN.fanSpeeds) {
-						this.Utils.updateValue('FanService', 'RotationSpeed', this.state.fanSpeed)
-					}
-				}
-
 				if (this.HeaterCoolerService) {
 					// turn off HeaterCoolerService
 					this.Utils.updateValue('HeaterCoolerService', 'Active', 0)
@@ -830,11 +765,6 @@ class AirConditioner {
 					if (this.capabilities.DRY.fanSpeeds) {
 						this.Utils.updateValue('DryService', 'RotationSpeed', this.state.fanSpeed)
 					}
-				}
-
-				if (this.FanService) {
-					// turn off FanService
-					this.Utils.updateValue('FanService', 'Active', 0)
 				}
 
 				if (this.HeaterCoolerService) {

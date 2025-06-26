@@ -93,20 +93,6 @@
 				"default": false,
 				"required": false
 			},
-			"separateFanSpeedAccessory": {
-				"title": "Separate Fan Speed Accessory",
-				"description": "Create a separate accessory for controlling fan speed (for Cool/Heat/Auto modes)",
-				"type": "boolean",
-				"default": false,
-				"required": false
-			},
-			"separateVerticalSwingAccessory": {
-				"title": "Separate Vertical Swing Accessory",
-				"description": "Create a separate accessory for controlling vertical swing (for Cool/Heat/Auto modes)",
-				"type": "boolean",
-				"default": false,
-				"required": false
-			},
 			"disableHumidity": {
 				"title": "Disable Humidity Sensor",
 				"description": "Remove Humidity readings",

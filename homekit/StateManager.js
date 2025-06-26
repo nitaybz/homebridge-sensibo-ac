@@ -325,6 +325,23 @@ module.exports = (device, platform) => {
 				callback(null, fanSpeed)
 			},
 
+			// FAN SPEED CONTROL (for all modes)
+			FanSpeedActive: (callback) => {
+				const active = device.state.active
+
+				log.easyDebug(device.name, '(GET) - Fan Speed Active State:', active)
+
+				callback(null, active ? 1 : 0)
+			},
+
+			FanSpeedRotationSpeed: (callback) => {
+				const fanSpeed = device.state.fanSpeed ?? 0
+
+				log.easyDebug(device.name, '(GET) - Fan Speed Rotation Speed:', fanSpeed + '%')
+
+				callback(null, fanSpeed)
+			},
+
 			// DEHUMIDIFIER
 			DryActive: (callback) => {
 				const active = device.state.active
@@ -646,6 +663,36 @@ module.exports = (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - Mode to: FAN')
 				device.state.mode = 'FAN'
+
+				callback()
+			},
+
+			// FAN SPEED CONTROL (for all modes)
+			FanSpeedActive: (state, callback) => {
+				state = !!state
+				log.easyDebug(device.name, '(SET) - Fan Speed Active State:', state)
+
+				if (state) {
+					// If turning on fan speed control, ensure the device is active
+					device.state.active = true
+				} else {
+					// If turning off fan speed control, turn off the device
+					device.state.active = false
+				}
+
+				updateClimateReact(device, enableClimateReactAutoSetup)
+
+				callback()
+			},
+
+			FanSpeedRotationSpeed: (speed, callback) => {
+				log.easyDebug(device.name, '(SET) - Fan Speed Rotation Speed:', speed + '%')
+				device.state.fanSpeed = speed
+
+				// Ensure device is active when setting fan speed
+				device.state.active = true
+
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
