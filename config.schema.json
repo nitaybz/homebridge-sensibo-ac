@@ -1,9 +1,9 @@
 {
-	"pluginAlias": "SensiboAC",
+	"pluginAlias": "SensiboACFanDry",
 	"pluginType": "platform",
 	"singular": true,
-	"headerDisplay": "Homebridge plugin for Sensibo - Smart AC Control",
-	"footerDisplay": "Created by @nitaybz",
+	"headerDisplay": "Homebridge plugin for Sensibo - Smart AC Control (Fan & Dry Support)",
+	"footerDisplay": "Enhanced version with fan speed and swing controls",
 	"schema": {
 		"type": "object",
 		"properties": {

@@ -10,6 +10,7 @@
   },
   "keywords": [
     "homebridge-plugin",
+    "homebridge-sensibo-ac-fan-dry",
     "homebridge-sensibo-ac",
     "homebridge-sensibo",
     "sensibo",
@@ -19,10 +20,12 @@
     "sensibo-air-plus",
     "sensibo-ac",
     "smart-ac",
-    "category-climate"
+    "category-climate",
+    "fan-control",
+    "swing-control"
   ],
   "bugs": {
-    "url": "https://github.com/nitaybz/homebridge-sensibo-ac/issues"
+    "url": "https://github.com/JacobsonGal/homebridge-sensibo-ac/issues"
   },
   "engines": {
     "node": ">=18.17.0",
@@ -44,19 +47,5 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "watch": "nodemon"
-  },
-  "funding": [
-    {
-      "type": "paypal",
-      "url": "https://paypal.me/nitaybz"
-    },
-    {
-      "type": "patreon",
-      "url": "https://www.patreon.com/nitaybz"
-    },
-    {
-      "type": "kofi",
-      "url": "https://ko-fi.com/nitaybz"
-    }
-  ]
+  }
 }
