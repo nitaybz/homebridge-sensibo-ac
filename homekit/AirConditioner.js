@@ -292,8 +292,14 @@ class AirConditioner {
 
 		this.addCharacteristicToService('HeaterCooler', 'TargetHeaterCoolerState', { validValues: validModes })
 
-		if (!this.disableVerticalSwing && ((this.capabilities.COOL && this.capabilities.COOL.verticalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.verticalSwing))) {
+		if (!this.disableVerticalSwing) {
+			// Configure swing mode properties for better Home app integration
+			const swingModeProps = {
+				validValues: [Characteristic.SwingMode.SWING_DISABLED, Characteristic.SwingMode.SWING_ENABLED]
+			}
+			
 			this.HeaterCoolerService.getCharacteristic(Characteristic.SwingMode)
+				.setProps(swingModeProps)
 				.on('get', this.stateManager.get.ACSwing)
 				.on('set', this.stateManager.set.ACSwing)
 		} else {
