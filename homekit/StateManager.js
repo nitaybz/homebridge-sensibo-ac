@@ -421,6 +421,15 @@ module.exports = (device, platform) => {
 				callback(null, horizontalSwing === 'SWING_ENABLED')
 			},
 
+			// VERTICAL SWING
+			VerticalSwing: (callback) => {
+				const verticalSwing = device.state.verticalSwing
+
+				log.easyDebug(device.name, '(GET) - Vertical Swing:', verticalSwing)
+
+				callback(null, verticalSwing === 'SWING_ENABLED')
+			},
+
 			// AIR CONDITIONER/PURIFIER LIGHT
 			LightSwitch: (callback) => {
 				const light = device.state.light
@@ -660,9 +669,15 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - Fan Rotation Speed:', speed + '%')
 				device.state.fanSpeed = speed
 
+				// Immediately update HomeKit UI to prevent reset to 0
+				if (device.FanService) {
+					device.FanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(speed)
+				}
+
+				// Ensure device is active when setting fan speed
 				device.state.active = true
-				log.easyDebug(device.name, '(SET) - Mode to: FAN')
-				device.state.mode = 'FAN'
+
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
@@ -688,6 +703,11 @@ module.exports = (device, platform) => {
 			FanSpeedRotationSpeed: (speed, callback) => {
 				log.easyDebug(device.name, '(SET) - Fan Speed Rotation Speed:', speed + '%')
 				device.state.fanSpeed = speed
+
+				// Immediately update HomeKit UI to prevent reset to 0
+				if (device.FanService) {
+					device.FanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(speed)
+				}
 
 				// Ensure device is active when setting fan speed
 				device.state.active = true
@@ -748,6 +768,17 @@ module.exports = (device, platform) => {
 				state = state ? 'SWING_ENABLED' : 'SWING_DISABLED'
 				log.easyDebug(device.name, '(SET) - Horizontal Swing Swing:', state)
 				device.state.horizontalSwing = state
+
+				updateClimateReact(device, enableClimateReactAutoSetup)
+
+				callback()
+			},
+
+			// VERTICAL SWING
+			VerticalSwing: (state, callback) => {
+				state = state ? 'SWING_ENABLED' : 'SWING_DISABLED'
+				log.easyDebug(device.name, '(SET) - Vertical Swing:', state)
+				device.state.verticalSwing = state
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
 

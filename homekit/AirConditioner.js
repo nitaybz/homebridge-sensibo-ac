@@ -117,6 +117,13 @@ class AirConditioner {
 			this.removeHorizontalSwingSwitch()
 		}
 
+		// Add vertical swing switch as separate accessory
+		if (!this.disableVerticalSwing) {
+			this.addVerticalSwingSwitch()
+		} else {
+			this.removeVerticalSwingSwitch()
+		}
+
 		if (this.syncButtonInAccessory) {
 			this.addSyncButtonService()
 		} else {
@@ -292,14 +299,8 @@ class AirConditioner {
 
 		this.addCharacteristicToService('HeaterCooler', 'TargetHeaterCoolerState', { validValues: validModes })
 
-		if (!this.disableVerticalSwing) {
-			// Configure swing mode properties for better Home app integration
-			const swingModeProps = {
-				validValues: [Characteristic.SwingMode.SWING_DISABLED, Characteristic.SwingMode.SWING_ENABLED]
-			}
-			
+		if (!this.disableVerticalSwing && ((this.capabilities.COOL && this.capabilities.COOL.verticalSwing) || (this.capabilities.HEAT && this.capabilities.HEAT.verticalSwing))) {
 			this.HeaterCoolerService.getCharacteristic(Characteristic.SwingMode)
-				.setProps(swingModeProps)
 				.on('get', this.stateManager.get.ACSwing)
 				.on('set', this.stateManager.set.ACSwing)
 		} else {
@@ -466,6 +467,30 @@ class AirConditioner {
 			// remove service
 			this.log.easyDebug(`${this.name} - Removing HorizontalSwingSwitchService`)
 			this.accessory.removeService(HorizontalSwingSwitch)
+		}
+	}
+
+	addVerticalSwingSwitch() {
+		this.log.easyDebug(`${this.name} - Adding VerticalSwingSwitchService`)
+
+		this.VerticalSwingSwitchService = this.accessory.getService(this.roomName + ' Vertical Swing')
+		if (!this.VerticalSwingSwitchService) {
+			this.VerticalSwingSwitchService = this.accessory.addService(Service.Switch, this.roomName + ' Vertical Swing', 'VerticalSwingSwitch')
+		}
+
+		this.VerticalSwingSwitchService.getCharacteristic(Characteristic.On)
+			.on('get', this.stateManager.get.VerticalSwing)
+			.on('set', this.stateManager.set.VerticalSwing)
+	}
+
+	removeVerticalSwingSwitch() {
+		// Below || is required in case of name/type change of VerticalSwingSwitch Service
+		const VerticalSwingSwitch = this.accessory.getService('VerticalSwingSwitch') || this.accessory.getService(this.roomName + ' Vertical Swing')
+
+		if (VerticalSwingSwitch) {
+			// remove service
+			this.log.easyDebug(`${this.name} - Removing VerticalSwingSwitchService`)
+			this.accessory.removeService(VerticalSwingSwitch)
 		}
 	}
 
@@ -648,6 +673,11 @@ class AirConditioner {
 					// update horizontal swing for HeaterCoolerService
 					if (this.HorizontalSwingSwitchService) {
 						this.Utils.updateValue('HorizontalSwingSwitchService', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
+					}
+
+					// update vertical swing switch
+					if (this.VerticalSwingSwitchService) {
+						this.Utils.updateValue('VerticalSwingSwitchService', 'On', this.state.verticalSwing === 'SWING_ENABLED')
 					}
 
 					// update light switch for HeaterCoolerService
