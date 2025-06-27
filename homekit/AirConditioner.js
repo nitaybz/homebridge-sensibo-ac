@@ -637,10 +637,6 @@ class AirConditioner {
 				this.Utils.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
 			}
 
-			if (this.FanService) {
-				this.Utils.updateValue('FanService', 'Active', 0)
-			}
-
 			return
 		}
 
@@ -719,11 +715,6 @@ class AirConditioner {
 					// turn off DryService
 					this.Utils.updateValue('DryService', 'Active', 0)
 					this.Utils.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
-				}
-
-				if (this.FanService) {
-					// turn off FanService
-					this.Utils.updateValue('FanService', 'Active', 0)
 				}
 
 				break
