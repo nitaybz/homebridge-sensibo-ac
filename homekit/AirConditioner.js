@@ -624,10 +624,8 @@ class AirConditioner {
 			// Fan service is active whenever the device is active
 			this.Utils.updateValue('FanService', 'Active', 1)
 			
-			// Update fan speed for all modes
-			if (this.capabilities[this.state.mode] && this.capabilities[this.state.mode].fanSpeeds) {
-				this.Utils.updateValue('FanService', 'RotationSpeed', this.state.fanSpeed)
-			}
+			// Update fan speed for all modes - always show current fan speed
+			this.Utils.updateValue('FanService', 'RotationSpeed', this.state.fanSpeed || 0)
 		}
 
 		switch (this.state.mode) {
