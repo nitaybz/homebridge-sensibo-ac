@@ -93,6 +93,13 @@
 				"default": false,
 				"required": false
 			},
+			"enableFanSpeedControl": {
+				"title": "Enable Fan Speed Control",
+				"description": "Add a separate fan speed control accessory that works across all non-fan modes (COOL, HEAT, AUTO, DRY)",
+				"type": "boolean",
+				"default": false,
+				"required": false
+			},
 			"disableHumidity": {
 				"title": "Disable Humidity Sensor",
 				"description": "Remove Humidity readings",

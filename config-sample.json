@@ -18,6 +18,7 @@
 			"disableCarbonDioxide": false,
 			"disableDry": false,
 			"disableFan": false,
+			"enableFanSpeedControl": false,
 			"disableHorizontalSwing": false,
 			"disableHumidity": false,
 			"disableLightSwitch": false,

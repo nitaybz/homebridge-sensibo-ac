@@ -38,6 +38,7 @@ class AirConditioner {
 		this.disableVerticalSwing = platform.disableVerticalSwing
 		this.disableLightSwitch = platform.disableLightSwitch
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
+		this.enableFanSpeedControl = platform.enableFanSpeedControl
 		this.filterService = deviceInfo.filterService
 		this.capabilities = unified.capabilities(device, platform)
 
@@ -99,6 +100,12 @@ class AirConditioner {
 			this.addFanService()
 		} else {
 			this.removeFanService()
+		}
+
+		if (this.enableFanSpeedControl) {
+			this.addFanSpeedControlService()
+		} else {
+			this.removeFanSpeedControlService()
 		}
 
 		if (!this.disableDry && this.capabilities.DRY && !this.modesToExclude.includes('DRY')) {
@@ -382,6 +389,38 @@ class AirConditioner {
 		}
 	}
 
+	addFanSpeedControlService() {
+		this.log.easyDebug(`${this.name} - Adding Fan Speed Control Service`)
+
+		this.FanSpeedControlService = this.accessory.getService(this.roomName + ' Fan Speed Control')
+		if (!this.FanSpeedControlService) {
+			this.FanSpeedControlService = this.accessory.addService(Service.Fanv2, this.roomName + ' Fan Speed Control', 'FanSpeedControl')
+		}
+
+		// Always show the fan service as active when the AC is active (regardless of mode)
+		this.FanSpeedControlService.getCharacteristic(Characteristic.Active)
+			.on('get', this.stateManager.get.FanSpeedActive)
+			.on('set', this.stateManager.set.FanSpeedActive)
+
+		this.FanSpeedControlService.getCharacteristic(Characteristic.RotationSpeed)
+			.on('get', this.stateManager.get.FanSpeedRotationSpeed)
+			.on('set', this.stateManager.set.FanSpeedRotationSpeed)
+
+		// Remove swing mode from fan service since it's now just for speed control
+		this.FanSpeedControlService.removeCharacteristic(Characteristic.SwingMode)
+	}
+
+	removeFanSpeedControlService() {
+		// Below || is required in case of name/type change of FanSpeedControl Service
+		const FanSpeedControlService = this.accessory.getService('FanSpeedControl') || this.accessory.getService(this.roomName + ' Fan Speed Control')
+
+		if (FanSpeedControlService) {
+			// remove service
+			this.log.easyDebug(`${this.name} - Removing Fan Speed Control Service`)
+			this.accessory.removeService(FanSpeedControlService)
+		}
+	}
+
 	addDryService() {
 		this.log.easyDebug(`${this.name} - Adding DehumidifierService`)
 
@@ -641,12 +680,12 @@ class AirConditioner {
 		}
 
 		// Update fan speed control service (works across all modes)
-		if (this.FanService) {
+		if (this.FanSpeedControlService) {
 			// Fan service is active whenever the device is active
-			this.Utils.updateValue('FanService', 'Active', 1)
+			this.Utils.updateValue('FanSpeedControlService', 'Active', 1)
 			
 			// Update fan speed for all modes - always show current fan speed
-			this.Utils.updateValue('FanService', 'RotationSpeed', this.state.fanSpeed || 0)
+			this.Utils.updateValue('FanSpeedControlService', 'RotationSpeed', this.state.fanSpeed || 0)
 		}
 
 		switch (this.state.mode) {
@@ -715,6 +754,11 @@ class AirConditioner {
 					// turn off DryService
 					this.Utils.updateValue('DryService', 'Active', 0)
 					this.Utils.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
+				}
+
+				if (this.FanService) {
+					// turn off FanService
+					this.Utils.updateValue('FanService', 'Active', 0)
 				}
 
 				break

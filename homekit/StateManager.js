@@ -705,8 +705,8 @@ module.exports = (device, platform) => {
 				device.state.fanSpeed = speed
 
 				// Immediately update HomeKit UI to prevent reset to 0
-				if (device.FanService) {
-					device.FanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(speed)
+				if (device.FanSpeedControlService) {
+					device.FanSpeedControlService.getCharacteristic(Characteristic.RotationSpeed).updateValue(speed)
 				}
 
 				// Ensure device is active when setting fan speed
