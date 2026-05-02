@@ -331,6 +331,7 @@ class AirConditioner {
 			// 5. Set StatusActive Characteristic - https://github.com/homebridge/HAP-NodeJS/wiki/Presenting-Erroneous-Accessory-State-to-the-User
 			this.HeaterCoolerService.removeCharacteristic(Characteristic.SwingMode)
 
+			// FIXME: below to be tested
 			// this.api.updatePlatformAccessories([this.accessory])
 		}
 

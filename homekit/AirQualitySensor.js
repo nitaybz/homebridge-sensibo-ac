@@ -127,9 +127,13 @@ class AirQualitySensor {
 				.on('get', this.stateManager.get.VOCDensity)
 		}
 
+		// Added support for 1 decimal places (minStep: 0.1) as API returns decimal, e.g. "pm25": 0.098147
 		if (this.capabilities.pm25?.homeKitSupported) {
 			this.AirQualitySensorService.getCharacteristic(Characteristic.PM2_5Density)
-				.setProps({ maxValue: this.Utils.Constants().PM2_5DENSITY_MAX })
+				.setProps({
+					maxValue: this.Utils.Constants().PM2_5DENSITY_MAX,
+					minStep: 0.1
+				})
 				.on('get', this.stateManager.get.PM2_5Density)
 		}
 	}
@@ -210,7 +214,7 @@ class AirQualitySensor {
 			this.Utils.updateValue('TemperatureSensorService', 'CurrentTemperature', this.state.currentTemperature)
 		}
 
-		if (!this.disableAirQuality) {
+		if (!this.disableAirQuality && this.AirQualitySensorService) {
 			this.Utils.updateValue('AirQualitySensorService', 'AirQuality', this.state.airQuality)
 
 			if (this.capabilities.tvoc?.homeKitSupported) {
@@ -222,7 +226,7 @@ class AirQualitySensor {
 			}
 		}
 
-		if (!this.disableCarbonDioxide) {
+		if (!this.disableCarbonDioxide && this.CarbonDioxideSensorService) {
 			this.Utils.updateValue('CarbonDioxideSensorService', 'CarbonDioxideDetected', this.state.carbonDioxideDetected)
 			this.Utils.updateValue('CarbonDioxideSensorService', 'CarbonDioxideLevel', this.state.carbonDioxideLevel)
 		}

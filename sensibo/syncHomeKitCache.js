@@ -80,7 +80,7 @@ export default platform => {
 					return accessory.type === 'AirPurifier' && accessory.id === device.id
 				})
 
-				platform.log.easyDebug(`syncHomeKitCache.js - Device: ${device.id}, airPurifierIsNew: ${airPurifierIsNew}`)
+				platform.log.easyDebug(`syncHomeKitCache.js - Device: ${device.id}, Model: ${device.productModel}, airPurifierIsNew: ${airPurifierIsNew}`)
 
 				if (airPurifierIsNew) {
 					platform.log.success(`syncHomeKitCache.js - Found AirPurifier accessory (${device.id})`)

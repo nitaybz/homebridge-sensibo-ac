@@ -37,6 +37,7 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 
 	log.easyDebug(`${device.name} updateClimateReact`)
 
+	// FIXME: check this
 	// If nothing (relevant) has changed should we skip...? Like we do in StateHandler for SET?
 
 	const smartModeState = device.state.smartMode
@@ -421,7 +422,8 @@ export default (device, platform) => {
 
 			// Air Quality Sensor
 			AirQuality: callback => {
-				const airQuality = device.state.airQuality
+				// TODO: Added a default value, should other GETs also have defaults, e.g. VOC, PM2_5 etc ... ?
+				const airQuality = device.state.airQuality ?? 0
 
 				log.easyDebug(device.name, '(GET) - Air Quality:', airQuality)
 

@@ -433,10 +433,10 @@ export default (device, platform) => {
 				return formattedMeasurements
 			}
 
-			// Set AirQuality and TVOC. Note: tvoc is used as a fallback if iaq not set
-			if (deviceMeasurements.tvoc && deviceMeasurements.tvoc > 0) {
-				const iaqReading = deviceMeasurements?.iaq ?? 0
-				const tvocReading = deviceMeasurements.tvoc
+			// Set AirQuality and TVOC. Note: tvoc is used as a fallback if iaq not set. Pure devices only have iaq, no TVOC
+			if (deviceMeasurements.iaq || (deviceMeasurements.tvoc && deviceMeasurements.tvoc > 0)) {
+				const iaqReading = deviceMeasurements.iaq ?? 0
+				const tvocReading = deviceMeasurements.tvoc ?? 0
 				// convert ppb to μg/m3
 				const vocDensity = Math.round(tvocReading * 4.57)
 
@@ -448,6 +448,9 @@ export default (device, platform) => {
 
 					// From Omer Enbar: the IAQ property returns the currently worst pollutant normalized. the values are 0-100 good, 100-150 moderate, 150+ poor
 					const convertedQuality = Math.ceil(iaqReading / 50)
+					// FIXME: what if deviceMeasurements.iaq (and therefore iaqReading) isn't a number? NaN
+					// Math.abs(convertedQuality) to prevent negative?
+
 					// 0/50 = 0 = 0            Note: 0 = UNKNOWN
 					// 1/50 = 0.02 = 1               1 = EXCELLENT
 					// 30/50 = .6 = 1
@@ -457,7 +460,13 @@ export default (device, platform) => {
 					// 207/50 = 4.14 = 5             5 = POOR
 					// 260/50 = 5.2 = 6
 
-					formattedMeasurements.airQuality = convertedQuality <= 5 ? convertedQuality : 5
+					if (convertedQuality < 1) {
+						log.easyDebug(`${device.name} - Utils airQualityStateFromDeviceMeasurements, iaqReading: ${iaqReading}, convertedQuality: ${convertedQuality}, setting airQuality to 0 UNKNOWN`)
+
+						formattedMeasurements.airQuality = 0
+					} else {
+						formattedMeasurements.airQuality = convertedQuality <= 5 ? convertedQuality : 5
+					}
 				} else if (tvocReading > 1500) {
 					// POOR
 					formattedMeasurements.airQuality = 5
@@ -470,11 +479,15 @@ export default (device, platform) => {
 				} else if (tvocReading > 250) {
 					// GOOD
 					formattedMeasurements.airQuality = 2
-				} else {
+				} else if (tvocReading > 0) {
 					// EXCELLENT
 					formattedMeasurements.airQuality = 1
+				} else {
+					// UNKNOWN
+					formattedMeasurements.airQuality = 0
+
+					log.easyDebug(`${device.name} - Utils airQualityStateFromDeviceMeasurements, iaqReading: ${iaqReading}, tvocReading: ${tvocReading}, setting airQuality to 0 UNKNOWN`)
 				}
-				// Note: 0 = UNKNOWN
 			}
 
 			// Set CO2
@@ -486,9 +499,16 @@ export default (device, platform) => {
 
 			// Set PM2.5
 			if (deviceMeasurements.pm25 && deviceMeasurements.pm25 > 0) {
-				// Not sure what units value is in... might need to convert ppb to μg/m3?
-				// NOTE: Looks like API can return decimal??
-				const pm2_5Density = Math.round(deviceMeasurements.pm25)
+				// See https://github.com/nitaybz/homebridge-sensibo-ac/issues/159, looks like API value is probably μg/m3
+				// (compare screenshot and API values)
+				// ug/m³ = ppb * 110 / 24.45
+				// Simplified, this is roughly:
+				// ug/m³ ≈ 4.5 * ppb
+
+				// NOTE: API can return decimal! minStep now 0.1 (not 1), could use the below, however maybe we leave rounding to updateValue func...
+				// Math.round((newValue + Number.EPSILON) * 10) / 10
+				// const pm2_5Density = Math.round(deviceMeasurements.pm25)
+				const pm2_5Density = deviceMeasurements.pm25
 
 				// NOTE: max value is overwritten to 10000 by PM2_5DENSITY_MAX
 				formattedMeasurements.PM2_5Density = pm2_5Density < Constants.PM2_5DENSITY_MAX ? pm2_5Density : Constants.PM2_5DENSITY_MAX
@@ -741,7 +761,8 @@ export default (device, platform) => {
 				return
 			}
 
-			if (newValue === undefined || newValue === null) {
+			// FIXME: looks like maybe newValue can maybe be string "undefined"?
+			if (newValue === null || newValue === undefined || newValue === 'undefined') {
 				log.easyDebug(`${device.name} - Utils updateValue - '${newValue}' undefined or null for characteristic ${characteristicName} on service ${serviceName}... skipping update`)
 
 				return
