@@ -325,6 +325,23 @@ module.exports = (device, platform) => {
 				callback(null, fanSpeed)
 			},
 
+			// FAN SPEED CONTROL (for all modes)
+			FanSpeedActive: (callback) => {
+				const active = device.state.active
+
+				log.easyDebug(device.name, '(GET) - Fan Speed Active State:', active)
+
+				callback(null, active ? 1 : 0)
+			},
+
+			FanSpeedRotationSpeed: (callback) => {
+				const fanSpeed = device.state.fanSpeed ?? 0
+
+				log.easyDebug(device.name, '(GET) - Fan Speed Rotation Speed:', fanSpeed + '%')
+
+				callback(null, fanSpeed)
+			},
+
 			// DEHUMIDIFIER
 			DryActive: (callback) => {
 				const active = device.state.active
@@ -402,6 +419,15 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(GET) - Horizontal Swing:', horizontalSwing)
 
 				callback(null, horizontalSwing === 'SWING_ENABLED')
+			},
+
+			// VERTICAL SWING
+			VerticalSwing: (callback) => {
+				const verticalSwing = device.state.verticalSwing
+
+				log.easyDebug(device.name, '(GET) - Vertical Swing:', verticalSwing)
+
+				callback(null, verticalSwing === 'SWING_ENABLED')
 			},
 
 			// AIR CONDITIONER/PURIFIER LIGHT
@@ -643,9 +669,50 @@ module.exports = (device, platform) => {
 				log.easyDebug(device.name, '(SET) - Fan Rotation Speed:', speed + '%')
 				device.state.fanSpeed = speed
 
+				// Immediately update HomeKit UI to prevent reset to 0
+				if (device.FanService) {
+					device.FanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(speed)
+				}
+
+				// Ensure device is active when setting fan speed
 				device.state.active = true
-				log.easyDebug(device.name, '(SET) - Mode to: FAN')
-				device.state.mode = 'FAN'
+
+				updateClimateReact(device, enableClimateReactAutoSetup)
+
+				callback()
+			},
+
+			// FAN SPEED CONTROL (for all modes)
+			FanSpeedActive: (state, callback) => {
+				state = !!state
+				log.easyDebug(device.name, '(SET) - Fan Speed Active State:', state)
+
+				if (state) {
+					// If turning on fan speed control, ensure the device is active
+					device.state.active = true
+				} else {
+					// If turning off fan speed control, turn off the device
+					device.state.active = false
+				}
+
+				updateClimateReact(device, enableClimateReactAutoSetup)
+
+				callback()
+			},
+
+			FanSpeedRotationSpeed: (speed, callback) => {
+				log.easyDebug(device.name, '(SET) - Fan Speed Rotation Speed:', speed + '%')
+				device.state.fanSpeed = speed
+
+				// Immediately update HomeKit UI to prevent reset to 0
+				if (device.FanSpeedControlService) {
+					device.FanSpeedControlService.getCharacteristic(Characteristic.RotationSpeed).updateValue(speed)
+				}
+
+				// Ensure device is active when setting fan speed
+				device.state.active = true
+
+				updateClimateReact(device, enableClimateReactAutoSetup)
 
 				callback()
 			},
@@ -701,6 +768,17 @@ module.exports = (device, platform) => {
 				state = state ? 'SWING_ENABLED' : 'SWING_DISABLED'
 				log.easyDebug(device.name, '(SET) - Horizontal Swing Swing:', state)
 				device.state.horizontalSwing = state
+
+				updateClimateReact(device, enableClimateReactAutoSetup)
+
+				callback()
+			},
+
+			// VERTICAL SWING
+			VerticalSwing: (state, callback) => {
+				state = state ? 'SWING_ENABLED' : 'SWING_DISABLED'
+				log.easyDebug(device.name, '(SET) - Vertical Swing:', state)
+				device.state.verticalSwing = state
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
 

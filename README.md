@@ -117,6 +117,7 @@ See below the table for additional details on these settings.
 | `disableCarbonDioxide`     |  When set to `true`, will remove Carbon Dioxide readings and warnings       |          |  `false` |  Boolean |
 | ~~`disableDry`~~           |  ***Deprecated - use modesToExclude*** When set to `true`, will remove the DRY accessory  |          |  `false` |  Boolean |
 | ~~`disableFan`~~           |  ***Deprecated - use modesToExclude*** When set to `true`, will remove the FAN accessory  |          |  `false` |  Boolean |
+| `enableFanSpeedControl`    |  When set to `true`, adds a separate fan speed control accessory that works across all non-fan modes (COOL, HEAT, AUTO, DRY)  |          |  `false` |  Boolean |
 | `disableHumidity`          |  When set to `true`, will remove Current Relative Humidity readings from the (AC) accessory. Humidity will still be shown if you have Dry mode enabled for the accessory  |          |  `false` |  Boolean |
 | `externalHumiditySensor`   |  Creates a separate Humidity sensor accessory, ignores the `disableHumidity` setting  |          |  `false` |  Boolean |
 | `disableLightSwitch`       |  When set to `true`, will remove the light switch        |          |  `false` |  Boolean |
@@ -181,6 +182,18 @@ If your unit **FAN** mode in the Sensibo app, this plugin will create a fan acce
 To remove the separate **Fan** accessory, add `"disableFan": true` to your config. `modesToExclude` will overwrite this setting.
 
 ***This setting is deprecated, please use `modesToExclude` instead***
+
+### Fan Speed Control
+
+When enabled, this feature adds a separate fan speed control accessory that works across all non-fan modes (COOL, HEAT, AUTO, DRY). This allows you to control the fan speed independently of the AC mode, providing more granular control over your air conditioning system.
+
+The fan speed control accessory will:
+- Remain active whenever the AC device is active (regardless of mode)
+- Show the current fan speed across all operating modes
+- Allow you to adjust fan speed without changing the AC mode
+- Work with all modes except FAN mode (which has its own dedicated accessory)
+
+To enable the **Fan Speed Control** accessory, add `"enableFanSpeedControl": true` to your config.
 
 ### Auto & Fan speeds
 
