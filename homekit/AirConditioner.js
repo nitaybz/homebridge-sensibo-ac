@@ -465,7 +465,7 @@ class AirConditioner {
 				minStep: 1,
 				unit: Characteristic.Units.PERCENTAGE
 			}
-			
+
 			this.DryService.getCharacteristic(Characteristic.RotationSpeed)
 				.setProps(dryFanSpeedProps)
 				.on('get', this.stateManager.get.DryRotationSpeed)
@@ -676,6 +676,17 @@ class AirConditioner {
 				this.Utils.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
 			}
 
+			// Update fan speed control service state when device turns off
+			if (this.FanSpeedControlService) {
+				this.Utils.updateValue('FanSpeedControlService', 'Active', 0)
+				this.Utils.updateValue('FanSpeedControlService', 'RotationSpeed', 0)
+			}
+
+			// Keep vertical swing switch in sync even when device turns off
+			if (this.VerticalSwingSwitchService) {
+				this.Utils.updateValue('VerticalSwingSwitchService', 'On', this.state.verticalSwing === 'SWING_ENABLED')
+			}
+
 			return
 		}
 
@@ -683,9 +694,14 @@ class AirConditioner {
 		if (this.FanSpeedControlService) {
 			// Fan service is active whenever the device is active
 			this.Utils.updateValue('FanSpeedControlService', 'Active', 1)
-			
+
 			// Update fan speed for all modes - always show current fan speed
 			this.Utils.updateValue('FanSpeedControlService', 'RotationSpeed', this.state.fanSpeed || 0)
+		}
+
+		// Keep vertical swing switch in sync regardless of mode
+		if (this.VerticalSwingSwitchService) {
+			this.Utils.updateValue('VerticalSwingSwitchService', 'On', this.state.verticalSwing === 'SWING_ENABLED')
 		}
 
 		switch (this.state.mode) {
@@ -708,11 +724,6 @@ class AirConditioner {
 					// update horizontal swing for HeaterCoolerService
 					if (this.HorizontalSwingSwitchService) {
 						this.Utils.updateValue('HorizontalSwingSwitchService', 'On', this.state.horizontalSwing === 'SWING_ENABLED')
-					}
-
-					// update vertical swing switch
-					if (this.VerticalSwingSwitchService) {
-						this.Utils.updateValue('VerticalSwingSwitchService', 'On', this.state.verticalSwing === 'SWING_ENABLED')
 					}
 
 					// update light switch for HeaterCoolerService
