@@ -1,4 +1,5 @@
 import path from 'path'
+import migrateLegacyPersist from './sensibo/persistMigration.js'
 import refreshState from './sensibo/refreshState.js'
 import SensiboApi from './sensibo/SensiboAPI.js'
 import storage from 'node-persist'
@@ -143,6 +144,8 @@ class SensiboACPlatform {
 				dir: this.persistPath,
 				forgiveParseErrors: true
 			})
+
+			await migrateLegacyPersist(this.persistPath, this.storage, this.log.easyDebug)
 
 			try {
 				this.log.easyDebug(`index.js didFinishLaunching - running getItem('state'), SensiboAPI() and refreshState()`)
