@@ -126,6 +126,10 @@ export default (device, platform) => {
 	const setTimeoutDelay = 1000
 	let setTimer = null
 	let preventTurningOff = false
+	// climateReactAsAutoMode: one HomeKit range change fires several SETs (both thumbs + mode + active).
+	// Each used to POST /smartmode immediately, which Sensibo rate-limits with HTTP 429 - coalesce them.
+	const climateReactDebounceMs = platform.climateReactAutoDebounceMs ?? 3000
+	let climateReactTimer = null
 	const sensiboApi = platform.sensiboApi
 	const log = platform.log
 
@@ -246,13 +250,15 @@ export default (device, platform) => {
 
 			// Send Climate React state command and refresh state
 			if (prop === 'smartMode') {
-				(async () => {
+				clearTimeout(climateReactTimer)
+				climateReactTimer = setTimeout(async () => {
 					try {
 						// FIXME: check if sensiboFormattedClimateReactState is still required, could potentially be replaced with:
 						//        const sensiboNewClimateReactState = state.smartMode (or similar)??
 						const sensiboNewClimateReactState = sensiboFormattedClimateReactState(device, state)
 
-						log.easyDebug(`${device.name} - StateHandler smartMode - before calling API to set new Climate React`)
+						log.easyDebug(`${device.name} - StateHandler smartMode - (debounced ${climateReactDebounceMs}ms) before calling API to set new Climate React`)
+						log.easyDebug(`${device.name} - StateHandler smartMode - payload: ${JSON.stringify(sensiboNewClimateReactState)}`)
 
 						await sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
 					} catch (error) {
@@ -274,7 +280,12 @@ export default (device, platform) => {
 
 					log.easyDebug(`${device.name} - StateHandler - smartMode update complete, deleting state.smartMode.updateRunning`)
 					delete state.smartMode.updateRunning
-				})()
+
+					// The band has reached Sensibo, so a refresh may mirror it back into autoBand again.
+					if (device.autoBand) {
+						device.autoBand.pending = false
+					}
+				}, climateReactDebounceMs)
 
 				// TODO: should we "catch" if the API call fails and prevent it from updating state?
 
@@ -304,6 +315,15 @@ export default (device, platform) => {
 				} else {
 					log.easyDebug(`${device.name} - StateHandler pureBoost SET - skipping refreshState as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
 				}
+
+				return true
+			}
+
+			// climateReactAsAutoMode: AUTO sends NOTHING to the AC - Climate React alone switches the unit
+			// on and off, which is the whole point (the fan stops instead of running continuously).
+			// Turning the accessory OFF is still forwarded, so the unit actually stops.
+			if (platform.climateReactAsAutoMode && state.mode === 'AUTO' && state.active === true) {
+				log.easyDebug(`${device.name} - StateHandler - AUTO is driven by Climate React, skipping acState command for prop: ${prop}`)
 
 				return true
 			}

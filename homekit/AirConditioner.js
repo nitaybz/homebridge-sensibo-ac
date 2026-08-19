@@ -45,7 +45,20 @@ class AirConditioner {
 		this.climateReactSwitchInAccessory = platform.climateReactSwitchInAccessory
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
 
+		this.climateReactAsAutoMode = platform.climateReactAsAutoMode
+		this.climateReactAutoLowOffset = platform.climateReactAutoLowOffset
+
 		this.capabilities = this.Utils.airConditionerCapabilities(device.remoteCapabilities.modes)
+
+		// climateReactAsAutoMode: the HomeKit AUTO range lives here, not in state.targetTemperature
+		// (a single value shared by both range thumbs). `pending` means the user just moved a thumb and
+		// a Climate React update is in flight, so a background refresh must not overwrite the band yet.
+		this.autoBand = {
+			low: null,
+			high: null,
+			pending: false
+		}
+		this.Utils.syncAutoBandFromDevice(device)
 
 		this.state = this.cachedState.devices[this.id] = this.Utils.airConditionerStateFromDevice(device)
 		this.state = new Proxy(this.state, StateHandler(this, platform))
@@ -671,8 +684,15 @@ class AirConditioner {
 					this.Utils.updateValue('HeaterCoolerService', 'Active', 1)
 
 					// update temperatures for HeaterCoolerService
-					this.Utils.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', this.state.targetTemperature)
-					this.Utils.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.state.targetTemperature)
+					if (this.climateReactAsAutoMode && this.state.mode === 'AUTO' && this.autoBand.low !== null && this.autoBand.high !== null) {
+						// AUTO is a range: push the two band edges separately, otherwise both thumbs would
+						// get the same value and the range would collapse.
+						this.Utils.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', this.autoBand.low)
+						this.Utils.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.autoBand.high)
+					} else {
+						this.Utils.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', this.state.targetTemperature)
+						this.Utils.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.state.targetTemperature)
+					}
 
 					// update vertical swing for HeaterCoolerService
 					if (!this.disableVerticalSwing && this.capabilities[this.state.mode].VerticalSwing) {

@@ -157,6 +157,28 @@
                 "default": false,
                 "required": false
             },
+            "climateReactAsAutoMode": {
+                "title": "Use Climate React as the AUTO mode",
+                "description": "Back the HomeKit AUTO mode with Climate React (Smart mode) instead of the AC's native AUTO. In AUTO nothing is sent to the AC - Climate React alone switches it on/off, so the fan stops between cycles. The AUTO temperature range sets the Climate React low/high thresholds. Switching to COOL or OFF disables Climate React. Exclude HEAT from the modes when using this.",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            },
+            "climateReactAutoLowOffset": {
+                "title": "AUTO low threshold offset (°C)",
+                "description": "Added to the LOW threshold sent to Climate React only, so HomeKit 23 becomes 23.2 in Climate React. The high threshold is never offset. Default 0.2.",
+                "type": "number",
+                "default": 0.2,
+                "required": false
+            },
+            "climateReactAutoDebounceMs": {
+                "title": "Climate React update debounce (ms)",
+                "description": "How long to wait after the last change before sending the Climate React update. Coalesces the burst of updates HomeKit sends when dragging the AUTO range, avoiding rate-limit (429) errors. Default 3000.",
+                "type": "integer",
+                "default": 3000,
+                "minimum": 0,
+                "required": false
+            },
             "enableClimateReactAutoSetup": {
                 "title": "Enable Climate React Auto Setup",
                 "description": "Auto-update the Climate React (Smart mode) configuration to align whenever the AC state is set or changed",

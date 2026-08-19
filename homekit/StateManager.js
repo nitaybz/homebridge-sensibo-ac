@@ -1,6 +1,7 @@
 let Characteristic
 let log
 let MINIMUM_NODE
+let platformRef
 
 function characteristicToMode(characteristic) {
 	// log.easyDebug(`characteristicToMode - characteristic: ${characteristic}`)
@@ -108,10 +109,115 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 	device.state.smartMode = smartModeState
 }
 
+/**
+ * climateReactAsAutoMode: back the HomeKit AUTO mode with Climate React (Sensibo "Smart mode").
+ *
+ * Design notes (learned the hard way):
+ *  - In AUTO we send NOTHING to the AC. Climate React alone switches the unit on/off, so the AC's
+ *    fan actually stops between cycles. StateHandler skips the acState POST while in AUTO.
+ *  - The single source of truth for "HomeKit is in AUTO" is smartMode.enabled as reported by
+ *    Sensibo (see Utils.airConditionerStateFromDevice). Because we never push a mode to the AC,
+ *    acState.mode can't fight the HomeKit tile.
+ *  - The band lives in device.autoBand (NOT state.targetTemperature, which is a single value and
+ *    would collapse the two range thumbs onto each other).
+ *  - The low offset is applied ONLY to lowTemperatureThreshold (a trigger, may be fractional).
+ *    lowTemperatureState.targetTemperature must stay a whole setpoint from the AC's list -
+ *    Sensibo rejects fractional AC setpoints with HTTP 400.
+ *
+ * @param   {Object}  device  Accessory whose Climate React state should be re-derived
+ * @returns {void}
+ */
+function updateClimateReactAutoMode(device) {
+	if (!platformRef?.climateReactAsAutoMode || !device.autoBand) {
+		return
+	}
+
+	const smartModeState = device.state.smartMode
+	const inAuto = device.state.mode === 'AUTO' && device.state.active === true
+
+	// Leaving AUTO (to COOL / HEAT / OFF) must switch Climate React off.
+	if (!inAuto) {
+		if (!smartModeState.enabled) {
+			return
+		}
+
+		log.easyDebug(`${device.name} - climateReactAsAutoMode - left AUTO (mode: ${device.state.mode}, active: ${device.state.active}), disabling Climate React`)
+		smartModeState.enabled = false
+		device.state.smartMode = smartModeState
+
+		return
+	}
+
+	const step = device.usesFahrenheit ? 1.8 : 1
+	const offset = platformRef.climateReactAutoLowOffset ?? 0.2
+	const high = device.autoBand.high
+	let low = device.autoBand.low
+
+	// HomeKit can momentarily collapse both range thumbs onto the same value while dragging;
+	// a degenerate band would make Climate React switch on and off at one threshold.
+	if (!(low < high)) {
+		low = high - step
+	}
+
+	const lowThreshold = Math.round((low + offset) * 100) / 100
+
+	smartModeState.enabled = true
+	smartModeState.type = 'temperature'
+	smartModeState.highTemperatureWebhook = null
+	smartModeState.lowTemperatureWebhook = null
+
+	// Upper edge: start cooling to the top of the band.
+	smartModeState.highTemperatureThreshold = high
+	smartModeState.highTemperatureState = {
+		on: true,
+		mode: 'cool',
+		targetTemperature: high,
+		temperatureUnit: device.temperatureUnit
+	}
+
+	// Lower edge: switch the unit off entirely (that's the whole point - the fan stops too).
+	smartModeState.lowTemperatureThreshold = lowThreshold
+	smartModeState.lowTemperatureState = {
+		on: false,
+		mode: 'cool',
+		targetTemperature: low,
+		temperatureUnit: device.temperatureUnit
+	}
+
+	const coolCapabilities = device.capabilities.COOL ?? device.capabilities.AUTO
+
+	if (coolCapabilities && 'fanSpeeds' in coolCapabilities && 'fanSpeed' in device.state) {
+		const currentFanLevel = device.Utils.percentToFanLevel(device.state.fanSpeed, coolCapabilities.fanSpeeds)
+
+		smartModeState.highTemperatureState.fanLevel = currentFanLevel
+		smartModeState.lowTemperatureState.fanLevel = currentFanLevel
+	}
+
+	if ('light' in device.state) {
+		const lightValue = device.state.light ? 'on' : 'off'
+
+		smartModeState.highTemperatureState.light = lightValue
+		smartModeState.lowTemperatureState.light = lightValue
+	}
+
+	if (coolCapabilities) {
+		const swingModes = device.Utils.sensiboFormattedSwingModes(coolCapabilities, device.state)
+
+		Object.assign(smartModeState.highTemperatureState, swingModes)
+		Object.assign(smartModeState.lowTemperatureState, swingModes)
+	}
+
+	log.easyDebug(`${device.name} - climateReactAsAutoMode - AUTO band: HomeKit [${low}, ${high}] -> Climate React [${lowThreshold}, ${high}]`)
+
+	// Assigning the whole object is what triggers StateHandler's setter (and the API call).
+	device.state.smartMode = smartModeState
+}
+
 export default (device, platform) => {
 	Characteristic = platform.api.hap.Characteristic
 	log = platform.log
 	MINIMUM_NODE = platform.MINIMUM_NODE
+	platformRef = platform
 
 	const enableClimateReactAutoSetup = platform.enableClimateReactAutoSetup
 
@@ -190,7 +296,12 @@ export default (device, platform) => {
 			},
 
 			CoolingThresholdTemperature: callback => {
-				const targetTemp = device.state.targetTemperature ?? device.HeaterCoolerService.getCharacteristic(Characteristic.CoolingThresholdTemperature).value
+				// climateReactAsAutoMode: in AUTO the two thumbs are the Climate React band, held in
+				// device.autoBand. Reading state.targetTemperature here would return one value for both
+				// thumbs and collapse the range.
+				const targetTemp = (platform.climateReactAsAutoMode && device.state.mode === 'AUTO')
+					? (device.autoBand.high ?? device.HeaterCoolerService.getCharacteristic(Characteristic.CoolingThresholdTemperature).value)
+					: (device.state.targetTemperature ?? device.HeaterCoolerService.getCharacteristic(Characteristic.CoolingThresholdTemperature).value)
 
 				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(GET) - Target Cooling Temperature:', device.Utils.toFahrenheit(targetTemp) + 'ºF')
@@ -202,7 +313,10 @@ export default (device, platform) => {
 			},
 
 			HeatingThresholdTemperature: callback => {
-				const targetTemp = device.state.targetTemperature ?? device.HeaterCoolerService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value
+				// climateReactAsAutoMode: in AUTO this is the bottom of the band (see above).
+				const targetTemp = (platform.climateReactAsAutoMode && device.state.mode === 'AUTO')
+					? (device.autoBand.low ?? device.HeaterCoolerService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value)
+					: (device.state.targetTemperature ?? device.HeaterCoolerService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value)
 
 				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(GET) - Target Heating Temperature:', device.Utils.toFahrenheit(targetTemp) + 'ºF')
@@ -499,6 +613,8 @@ export default (device, platform) => {
 				}
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
+				// Turning the accessory off while in AUTO must also switch Climate React off.
+				updateClimateReactAutoMode(device)
 
 				callback()
 			},
@@ -511,6 +627,8 @@ export default (device, platform) => {
 				device.state.active = true
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
+				// Entering AUTO enables Climate React; leaving it for COOL/HEAT disables it.
+				updateClimateReactAutoMode(device)
 
 				callback()
 			},
@@ -525,6 +643,22 @@ export default (device, platform) => {
 				const lastModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const lastMode = characteristicToMode(lastModeValue)
 
+				// climateReactAsAutoMode: in AUTO this thumb is the TOP of the Climate React band.
+				// Keep it in device.autoBand and don't touch state.targetTemperature - that is a single
+				// value shared by both thumbs and would collapse the range.
+				if (platform.climateReactAsAutoMode && lastMode === 'AUTO') {
+					device.autoBand.high = targetTemp
+					device.autoBand.pending = true
+					device.state.active = true
+					device.state.mode = lastMode
+
+					updateClimateReactAutoMode(device)
+
+					callback()
+
+					return
+				}
+
 				device.state.targetTemperature = targetTemp
 				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
@@ -532,6 +666,7 @@ export default (device, platform) => {
 				device.state.mode = lastMode
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
+				updateClimateReactAutoMode(device)
 
 				callback()
 			},
@@ -546,6 +681,20 @@ export default (device, platform) => {
 				const lastModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const lastMode = characteristicToMode(lastModeValue)
 
+				// climateReactAsAutoMode: in AUTO this thumb is the BOTTOM of the Climate React band.
+				if (platform.climateReactAsAutoMode && lastMode === 'AUTO') {
+					device.autoBand.low = targetTemp
+					device.autoBand.pending = true
+					device.state.active = true
+					device.state.mode = lastMode
+
+					updateClimateReactAutoMode(device)
+
+					callback()
+
+					return
+				}
+
 				device.state.targetTemperature = targetTemp
 				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
@@ -553,6 +702,7 @@ export default (device, platform) => {
 				device.state.mode = lastMode
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
+				updateClimateReactAutoMode(device)
 
 				callback()
 			},

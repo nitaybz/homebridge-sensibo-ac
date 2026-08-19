@@ -43,6 +43,35 @@ function toCelsiusPrivate(degreesF) {
 }
 
 // FIXME: This files location should move...
+/**
+ * climateReactAsAutoMode: mirror Sensibo's Climate React thresholds back into device.autoBand so HomeKit
+ * shows the range the user set. The stored low threshold carries the configured offset (HomeKit 23 -> CR
+ * 23.2), so it is removed and snapped back to the temperature step. Skipped while a user-initiated update
+ * is in flight (autoBand.pending), otherwise a refresh could overwrite a thumb the user just moved.
+ * @param   {Object}  device                     The accessory
+ * @param   {Object}  platform                   The platform (for config values)
+ * @param   {Object}  deviceFromSensiboResponse  Raw device object from the Sensibo API
+ * @returns {void}
+ */
+function syncAutoBandPrivate(device, platform, deviceFromSensiboResponse) {
+	if (!platform.climateReactAsAutoMode || !device.autoBand || device.autoBand.pending) {
+		return
+	}
+
+	const smartMode = deviceFromSensiboResponse.smartMode
+
+	if (!smartMode || smartMode.highTemperatureThreshold === undefined || smartMode.lowTemperatureThreshold === undefined
+		|| smartMode.highTemperatureThreshold === null || smartMode.lowTemperatureThreshold === null) {
+		return
+	}
+
+	const step = device.usesFahrenheit ? 1.8 : 1
+	const offset = platform.climateReactAutoLowOffset ?? 0.2
+
+	device.autoBand.high = smartMode.highTemperatureThreshold
+	device.autoBand.low = Math.round((smartMode.lowTemperatureThreshold - offset) / step) * step
+}
+
 export default (device, platform) => {
 	const Characteristic = platform.api.hap.Characteristic
 	const Constants = {
@@ -152,6 +181,19 @@ export default (device, platform) => {
 		 *                                               pureBoost(?), light, filterChange, filterLifeLevel, horizontalSwing, verticalSwing
 		 *                                               and fanSpeed
 		 */
+		/**
+		 * climateReactAsAutoMode: mirror Sensibo's Climate React thresholds back into device.autoBand so
+		 * HomeKit shows the range the user set. The stored low threshold carries the configured offset
+		 * (HomeKit 23 -> CR 23.2), so it is removed and snapped back to the temperature step here.
+		 * Skipped while a user-initiated update is in flight (autoBand.pending), otherwise a refresh
+		 * could overwrite a thumb the user just moved before it has even reached Sensibo.
+		 * @param   {Object}  deviceFromSensiboResponse  Raw device object from the Sensibo API
+		 * @returns {void}
+		 */
+		syncAutoBandFromDevice: deviceFromSensiboResponse => {
+			return syncAutoBandPrivate(device, platform, deviceFromSensiboResponse)
+		},
+
 		airConditionerStateFromDevice: deviceFromSensiboResponse => {
 			// TODO: BIG change, but consider moving smartMode out to be a sibling of state, rather than a child
 			// This would have impacts in a number of places, including StateHandler (might need a separate Proxy?), but could simplify
@@ -164,9 +206,20 @@ export default (device, platform) => {
 			// The following is used to ensure the device name is correctly set when logging in "private" functions at the top of this file
 			deviceNamePrivate = device.name
 
+			// climateReactAsAutoMode: Climate React being enabled IS the HomeKit AUTO mode - that is the
+			// single source of truth. We never push a mode to the AC in AUTO, so acState.mode (whatever
+			// Climate React last set it to) must not be allowed to overwrite the HomeKit tile.
+			const climateReactDrivesAuto = !!(platform.climateReactAsAutoMode && deviceFromSensiboResponse.smartMode?.enabled)
+
+			if (climateReactDrivesAuto) {
+				syncAutoBandPrivate(device, platform, deviceFromSensiboResponse)
+			}
+
 			const state = {
-				active: deviceFromSensiboResponse.acState.on,
-				mode: deviceFromSensiboResponse.acState.mode.toUpperCase(),
+				// In AUTO the accessory is "on" whenever Climate React is managing, even while it has the
+				// unit switched off at the bottom of the band.
+				active: climateReactDrivesAuto ? true : deviceFromSensiboResponse.acState.on,
+				mode: climateReactDrivesAuto ? 'AUTO' : deviceFromSensiboResponse.acState.mode.toUpperCase(),
 				// Note: targetTemperature can be null / missing from device.acState when unit is set to FAN (or DRY) mode
 				targetTemperature: !deviceFromSensiboResponse.acState.targetTemperature ? null : deviceFromSensiboResponse.acState.temperatureUnit === 'C' ? deviceFromSensiboResponse.acState.targetTemperature : toCelsiusPrivate(deviceFromSensiboResponse.acState.targetTemperature),
 				currentTemperature: deviceFromSensiboResponse.measurements.temperature,

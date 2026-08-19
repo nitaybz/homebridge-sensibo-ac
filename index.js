@@ -68,6 +68,13 @@ class SensiboACPlatform {
 		this.disableLightSwitch = config['disableLightSwitch'] || false
 		this.disableVerticalSwing = config['disableVerticalSwing'] || false
 		this.enableClimateReactAutoSetup = config['enableClimateReactAutoSetup'] || false
+		// climateReactAsAutoMode: the HomeKit AUTO mode is backed by Climate React instead of the AC's
+		// native AUTO. In AUTO nothing is sent to the AC - Climate React alone cycles the unit.
+		this.climateReactAsAutoMode = config['climateReactAsAutoMode'] || false
+		// Offset added to the LOW threshold sent to Climate React only (HomeKit 23 -> CR 23.2).
+		this.climateReactAutoLowOffset = config['climateReactAutoLowOffset'] ?? 0.2
+		// Coalesce the burst of HomeKit SETs from one range change into a single Climate React POST (avoids HTTP 429).
+		this.climateReactAutoDebounceMs = config['climateReactAutoDebounceMs'] ?? 3000
 		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
 		this.enableHistoryStorage = config['enableHistoryStorage'] || false
 		this.enableOccupancySensor = config['enableOccupancySensor'] || false
