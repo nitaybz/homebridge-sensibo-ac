@@ -171,6 +171,29 @@
                 "default": 0.2,
                 "required": false
             },
+            "climateReactAutoTargetTemperature": {
+                "title": "AUTO: AC setpoint while cooling (°C)",
+                "description": "The temperature Climate React commands on the AC when it switches the unit on in AUTO. Independent of the AUTO range: the range decides when the AC runs, this decides how hard it cools. Clamped to what the AC supports. Default 22.",
+                "type": "integer",
+                "default": 22,
+                "required": false
+            },
+            "climateReactAutoFanLevel": {
+                "title": "AUTO: fan level while cooling",
+                "description": "The fan level Climate React commands on the AC when it switches the unit on in AUTO. Falls back to the current fan level if the AC doesn't support the chosen one. Default low.",
+                "type": "string",
+                "default": "low",
+                "oneOf": [
+                    { "title": "Low", "enum": ["low"] },
+                    { "title": "Medium low", "enum": ["medium_low"] },
+                    { "title": "Medium", "enum": ["medium"] },
+                    { "title": "Medium high", "enum": ["medium_high"] },
+                    { "title": "High", "enum": ["high"] },
+                    { "title": "Strong", "enum": ["strong"] },
+                    { "title": "Auto", "enum": ["auto"] }
+                ],
+                "required": false
+            },
             "climateReactAutoDebounceMs": {
                 "title": "Climate React update debounce (ms)",
                 "description": "How long to wait after the last change before sending the Climate React update. Coalesces the burst of updates HomeKit sends when dragging the AUTO range, avoiding rate-limit (429) errors. Default 3000.",

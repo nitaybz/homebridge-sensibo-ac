@@ -75,6 +75,10 @@ class SensiboACPlatform {
 		this.climateReactAutoLowOffset = config['climateReactAutoLowOffset'] ?? 0.2
 		// Coalesce the burst of HomeKit SETs from one range change into a single Climate React POST (avoids HTTP 429).
 		this.climateReactAutoDebounceMs = config['climateReactAutoDebounceMs'] ?? 3000
+		// The AC setpoint and fan level Climate React commands when it switches the unit on. These are
+		// deliberately independent of the band: the band decides WHEN to run, this decides HOW hard.
+		this.climateReactAutoTargetTemperature = config['climateReactAutoTargetTemperature'] ?? 22
+		this.climateReactAutoFanLevel = config['climateReactAutoFanLevel'] ?? 'low'
 		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
 		this.enableHistoryStorage = config['enableHistoryStorage'] || false
 		this.enableOccupancySensor = config['enableOccupancySensor'] || false

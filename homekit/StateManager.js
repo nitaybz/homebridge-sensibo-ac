@@ -160,18 +160,28 @@ function updateClimateReactAutoMode(device) {
 	}
 
 	const lowThreshold = Math.round((low + offset) * 100) / 100
+	const coolCapabilities = device.capabilities.COOL ?? device.capabilities.AUTO
+	// The setpoint Climate React commands when it switches the unit on. Independent of the band: the
+	// band decides WHEN the AC runs, this decides how hard it cools while it does. Clamped to what the
+	// AC actually accepts, because Sensibo rejects out-of-range setpoints with HTTP 400.
+	let acTargetTemperature = platformRef.climateReactAutoTargetTemperature ?? 22
+	const temperatureRange = coolCapabilities?.temperatures?.[device.usesFahrenheit ? 'F' : 'C']
+
+	if (temperatureRange) {
+		acTargetTemperature = Math.min(Math.max(acTargetTemperature, temperatureRange.min), temperatureRange.max)
+	}
 
 	smartModeState.enabled = true
 	smartModeState.type = 'temperature'
 	smartModeState.highTemperatureWebhook = null
 	smartModeState.lowTemperatureWebhook = null
 
-	// Upper edge: start cooling to the top of the band.
+	// Upper edge: switch the unit on and cool at the configured setpoint.
 	smartModeState.highTemperatureThreshold = high
 	smartModeState.highTemperatureState = {
 		on: true,
 		mode: 'cool',
-		targetTemperature: high,
+		targetTemperature: acTargetTemperature,
 		temperatureUnit: device.temperatureUnit
 	}
 
@@ -180,13 +190,19 @@ function updateClimateReactAutoMode(device) {
 	smartModeState.lowTemperatureState = {
 		on: false,
 		mode: 'cool',
-		targetTemperature: low,
+		targetTemperature: acTargetTemperature,
 		temperatureUnit: device.temperatureUnit
 	}
 
-	const coolCapabilities = device.capabilities.COOL ?? device.capabilities.AUTO
+	const configuredFanLevel = platformRef.climateReactAutoFanLevel ?? 'low'
 
-	if (coolCapabilities && 'fanSpeeds' in coolCapabilities && 'fanSpeed' in device.state) {
+	if (coolCapabilities && 'fanSpeeds' in coolCapabilities && coolCapabilities.fanSpeeds.includes(configuredFanLevel)) {
+		smartModeState.highTemperatureState.fanLevel = configuredFanLevel
+		smartModeState.lowTemperatureState.fanLevel = configuredFanLevel
+	} else if (coolCapabilities && 'fanSpeeds' in coolCapabilities && 'fanSpeed' in device.state) {
+		// Configured fan level isn't supported by this AC - fall back to whatever is currently set.
+		log.easyDebug(`${device.name} - climateReactAsAutoMode - fan level '${configuredFanLevel}' not supported, using current`)
+
 		const currentFanLevel = device.Utils.percentToFanLevel(device.state.fanSpeed, coolCapabilities.fanSpeeds)
 
 		smartModeState.highTemperatureState.fanLevel = currentFanLevel
@@ -207,7 +223,7 @@ function updateClimateReactAutoMode(device) {
 		Object.assign(smartModeState.lowTemperatureState, swingModes)
 	}
 
-	log.easyDebug(`${device.name} - climateReactAsAutoMode - AUTO band: HomeKit [${low}, ${high}] -> Climate React [${lowThreshold}, ${high}]`)
+	log.easyDebug(`${device.name} - climateReactAsAutoMode - AUTO band: HomeKit [${low}, ${high}] -> Climate React [${lowThreshold}, ${high}], AC setpoint when running: ${acTargetTemperature}`)
 
 	// Assigning the whole object is what triggers StateHandler's setter (and the API call).
 	device.state.smartMode = smartModeState
