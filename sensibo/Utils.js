@@ -215,6 +215,11 @@ export default (device, platform) => {
 				syncAutoBandPrivate(device, platform, deviceFromSensiboResponse)
 			}
 
+			// In AUTO the accessory reports itself as active even while Climate React has the unit off,
+			// so keep the AC's real power state separately - it's what tells HomeKit whether we are
+			// actively cooling (COOLING) or waiting for the room to warm up again (IDLE).
+			device.acPowerOn = deviceFromSensiboResponse.acState.on
+
 			const state = {
 				// In AUTO the accessory is "on" whenever Climate React is managing, even while it has the
 				// unit switched off at the bottom of the band.

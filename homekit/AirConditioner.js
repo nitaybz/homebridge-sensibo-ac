@@ -719,7 +719,11 @@ class AirConditioner {
 						this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)
 					} else if (this.state.mode === 'AUTO') {
 						this.Utils.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.AUTO)
-						if (this.state.currentTemperature > this.state.targetTemperature) {
+						if (this.climateReactAsAutoMode) {
+							// Climate React drives AUTO: COOLING while it has the unit running, IDLE while it
+							// waits for the room to warm back up to the top of the band.
+							this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', this.acPowerOn ? Characteristic.CurrentHeaterCoolerState.COOLING : Characteristic.CurrentHeaterCoolerState.IDLE)
+						} else if (this.state.currentTemperature > this.state.targetTemperature) {
 							this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.COOLING)
 						} else {
 							this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)

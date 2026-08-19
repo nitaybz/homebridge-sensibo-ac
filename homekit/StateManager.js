@@ -252,6 +252,11 @@ export default (device, platform) => {
 
 				if (!active || stateCurrentMode === 'FAN' || stateCurrentMode === 'DRY') {
 					callback(null, Characteristic.CurrentHeaterCoolerState.INACTIVE)
+				} else if (platform.climateReactAsAutoMode && stateCurrentMode === 'AUTO') {
+					// climateReactAsAutoMode: AUTO stays active the whole time, but Climate React cycles the
+					// unit. Report what it is actually doing: cooling, or idling until the room warms back
+					// up to the top of the band.
+					callback(null, device.acPowerOn ? Characteristic.CurrentHeaterCoolerState.COOLING : Characteristic.CurrentHeaterCoolerState.IDLE)
 				} else if (stateCurrentMode === 'COOL') {
 					callback(null, Characteristic.CurrentHeaterCoolerState.COOLING)
 				} else if (stateCurrentMode === 'HEAT') {
