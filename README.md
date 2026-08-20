@@ -35,6 +35,7 @@ Check with: `node -v` & `homebridge -V` and update if needed
 - **HeaterCooler** (Air Conditioner) control, including adjusting fan speed (Rotation Speed) & vertical swing (Oscillate) from within the accessory in the Apple Home app.
 - **AC Sync Button** - easily toggle the state of the AC between ON/OFF in case your AC is out of sync (does not send commands to the AC)
 - **Climate React** - enable/disable Climate React (Smart mode). To adjust the settings, use the Sensibo app or turn on `Climate React Auto Setup`
+- **Climate React as the AUTO mode** - optionally back the HomeKit AUTO mode with Climate React, so the AC switches fully off between cooling cycles instead of running its fan continuously. The AUTO temperature range sets the Climate React thresholds
 - **Occupancy Sensor** - show the Home/Away status from Sensibo in the Home app via Occupancy sensor
 - **History Storage** - store temperature and humidity measurements over time, review them in the Eve app as a graph
 
@@ -146,6 +147,14 @@ See below the table for additional details on these settings.
 | `enableClimateReactSwitch` |  Adds a switch to enable/disable Climate React (Smart mode)      |          |  `false` |  Boolean |
 | `climateReactSwitchInAccessory` |  When set to `true`, adds a **Climate React** switch (like `enableClimateReactSwitch` above) but within the AC accessory. It will also remove the standalone AC Climate React switch (if one exists). Works only when `enableClimateReactSwitch` is also set to true  |          |  `false` |  Boolean  |
 | `enableClimateReactAutoSetup` |  When set to `true`, will auto-update the Climate React (Smart mode) configuration to align whenever the AC state is set or changed  |          |  `false` |  Boolean  |
+| `climateReactAsAutoMode`   |  When set to `true`, the HomeKit AUTO mode is backed by Climate React instead of the AC's native AUTO. See [Climate React as the AUTO mode](#climate-react-as-the-auto-mode)  |          |  `false` |  Boolean  |
+| `climateReactAutoLowOffset` |  Offset added to the **low** threshold sent to Climate React (a HomeKit range of 23-24 becomes 23.2-24). The high threshold is never offset. Only used when `climateReactAsAutoMode` is enabled  |          |  `0.2` |  Number  |
+| `climateReactAutoTargetTemperature` |  The AC setpoint Climate React commands when it switches the unit on in AUTO. Clamped to what the AC supports. Only used when `climateReactAsAutoMode` is enabled  |          |  `22` |  Integer  |
+| `climateReactAutoFanLevel` |  The fan level Climate React commands when it switches the unit on in AUTO. Falls back to the current fan level if unsupported by the AC. Only used when `climateReactAsAutoMode` is enabled  |          |  `low` |  String  |
+| `climateReactAutoTemperatureStep` |  Step for the HomeKit AUTO range. `0.5` allows ranges like 23.5-24.5, since Climate React thresholds are triggers rather than AC setpoints. Commands sent to the AC are still rounded to a whole degree. Celsius only. Only used when `climateReactAsAutoMode` is enabled  |          |  `1` |  Number  |
+| `climateReactAutoMinTemperature` |  Narrows the bottom of the temperature slider in the Home app. Ignored if lower than the AC supports. Only used when `climateReactAsAutoMode` is enabled  |          |  -  |  Number  |
+| `climateReactAutoMaxTemperature` |  Narrows the top of the temperature slider in the Home app. Ignored if higher than the AC supports. Only used when `climateReactAsAutoMode` is enabled  |          |  -  |  Number  |
+| `climateReactAutoDebounceMs` |  How long to wait after the last change before sending the Climate React update, so dragging the AUTO range results in a single API call. Only used when `climateReactAsAutoMode` is enabled  |          |  `3000` |  Integer  |
 | `enableHistoryStorage`     |  When set to `true`, temperature & humidity measurements will be stored over time, viewable as History in the Eve app  |          |  `false` |   Boolean |
 | `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home  |          |  `false` |  Boolean  |
 | `enableSyncButton`         |  When set to `true`, adds an **AC Sync** switch to toggle the state of the accessory in the Home app, without sending a command to the unit  |          |  `false` |  Boolean  |
@@ -258,6 +267,83 @@ To enable **Climate React Auto Setup**, add `"enableClimateReactAutoSetup": true
 Note: only temperature thresholds are supported by Climate React auto setup, for full options, see "Climate React" in the Sensibo app.
 
 Note 2: currently this does not work on Dry or Fan modes (as these are treated as separate accessories).
+
+#### Climate React as the AUTO mode
+
+Most ACs have a native AUTO mode, but it usually only modulates the compressor and keeps the fan running the
+whole time. Climate React does what AUTO is generally expected to do - it switches the unit **fully off** once
+the room is cool enough and back on when it warms up again - but by default it is only reachable as a separate
+switch.
+
+With `"climateReactAsAutoMode": true`, the HomeKit AUTO mode is backed by Climate React:
+
+- **COOL** is unchanged: it commands the AC directly with the temperature you set.
+- **AUTO** sends **no command to the AC**. Selecting it enables Climate React, which alone switches the unit
+  on and off. The AUTO temperature range in the Home app sets the Climate React thresholds.
+- Switching from AUTO to **COOL** or turning the accessory **off** disables Climate React.
+
+##### The temperature range
+
+The two thumbs of the HomeKit AUTO range map onto the Climate React thresholds:
+
+| HomeKit AUTO range | Climate React | Behaviour |
+| ------------------ | ------------- | --------- |
+| Upper value (e.g. 24°) | `highTemperatureThreshold` = 24 | Above this, the unit is switched **on** |
+| Lower value (e.g. 23°) | `lowTemperatureThreshold` = 23.2 | Below this, the unit is switched **off** |
+
+The low threshold is nudged up by `climateReactAutoLowOffset` (0.2 by default), so a HomeKit range of 23-24
+becomes 23.2-24 in Climate React. The high threshold is never offset.
+
+##### How hard it cools
+
+The range decides *when* the AC runs; two separate settings decide how it runs once Climate React switches it
+on:
+
+- `climateReactAutoTargetTemperature` (default `22`) - the setpoint commanded on the AC
+- `climateReactAutoFanLevel` (default `low`) - the fan level commanded on the AC
+
+Both are validated against the AC's reported capabilities and fall back to a supported value if necessary.
+
+##### Range step and bounds
+
+By default the AUTO range steps in whole degrees and spans everything the AC reports as supported, which is
+often wider than useful. Climate React thresholds are triggers rather than AC setpoints, so they can be finer:
+
+- `climateReactAutoTemperatureStep: 0.5` allows ranges like 23.5-24.5. Commands sent to the AC itself are
+  still rounded to a whole degree, so nothing invalid reaches the API. Celsius only.
+- `climateReactAutoMinTemperature` / `climateReactAutoMaxTemperature` narrow the slider, for example to
+  18-28. Values outside the AC's own capabilities are ignored.
+
+Bear in mind that a narrower band means the AC cycles more often.
+
+##### Example config
+
+```json
+{
+    "platform": "SensiboAC",
+    "apiKey": "YOUR_API_KEY",
+    "climateReactAsAutoMode": true,
+    "climateReactAutoLowOffset": 0.2,
+    "climateReactAutoTargetTemperature": 22,
+    "climateReactAutoFanLevel": "low",
+    "climateReactAutoTemperatureStep": 0.5,
+    "climateReactAutoMinTemperature": 18,
+    "climateReactAutoMaxTemperature": 28,
+    "modesToExclude": ["HEAT", "DRY", "FAN"]
+}
+```
+
+##### Notes
+
+- Set up Climate React once in the Sensibo app before enabling this - the plugin updates the existing
+  configuration rather than creating one from scratch.
+- Keep both `COOL` and `AUTO` available (exclude `HEAT` if your AC does not heat). This is what makes the Home
+  app expose both thumbs of the AUTO range.
+- The Climate React switch (`enableClimateReactSwitch`) duplicates this control and is best left off.
+- Because state is polled roughly every 90 seconds, the cooling/idle indication in the Home app can lag behind
+  reality by up to one polling cycle.
+- Only cooling is currently supported - the low edge switches the unit off rather than heating. Heat/cool
+  changeover could be added later using Climate React's low temperature state.
 
 ### Filter cleaning indication
 

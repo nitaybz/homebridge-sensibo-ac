@@ -68,6 +68,23 @@ class SensiboACPlatform {
 		this.disableLightSwitch = config['disableLightSwitch'] || false
 		this.disableVerticalSwing = config['disableVerticalSwing'] || false
 		this.enableClimateReactAutoSetup = config['enableClimateReactAutoSetup'] || false
+		// climateReactAsAutoMode: the HomeKit AUTO mode is backed by Climate React instead of the AC's
+		// native AUTO. In AUTO nothing is sent to the AC - Climate React alone cycles the unit.
+		this.climateReactAsAutoMode = config['climateReactAsAutoMode'] || false
+		// Offset added to the LOW threshold sent to Climate React only (HomeKit 23 -> CR 23.2).
+		this.climateReactAutoLowOffset = config['climateReactAutoLowOffset'] ?? 0.2
+		// Coalesce the burst of HomeKit SETs from one range change into a single Climate React POST (avoids HTTP 429).
+		this.climateReactAutoDebounceMs = config['climateReactAutoDebounceMs'] ?? 3000
+		// The AC setpoint and fan level Climate React commands when it switches the unit on. These are
+		// deliberately independent of the band: the band decides WHEN to run, this decides HOW hard.
+		this.climateReactAutoTargetTemperature = config['climateReactAutoTargetTemperature'] ?? 22
+		this.climateReactAutoFanLevel = config['climateReactAutoFanLevel'] ?? 'low'
+		// Step for the HomeKit AUTO range. Climate React thresholds are triggers, not AC setpoints, so
+		// they may be finer than the whole degrees the AC itself accepts.
+		this.climateReactAutoTemperatureStep = config['climateReactAutoTemperatureStep'] ?? 1
+		// Optional narrower bounds for the AUTO range, so the Home app slider isn't the AC's full span.
+		this.climateReactAutoMinTemperature = config['climateReactAutoMinTemperature'] ?? null
+		this.climateReactAutoMaxTemperature = config['climateReactAutoMaxTemperature'] ?? null
 		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
 		this.enableHistoryStorage = config['enableHistoryStorage'] || false
 		this.enableOccupancySensor = config['enableOccupancySensor'] || false
