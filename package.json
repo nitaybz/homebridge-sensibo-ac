@@ -12,6 +12,8 @@
   "type": "module",
   "keywords": [
     "homebridge-plugin",
+    "supports-hap",
+    "supports-matter",
     "homebridge-sensibo-ac",
     "homebridge-sensibo",
     "sensibo",

@@ -45,7 +45,31 @@ class AirConditioner {
 		this.climateReactSwitchInAccessory = platform.climateReactSwitchInAccessory
 		this.syncButtonInAccessory = platform.syncButtonInAccessory
 
+		this.climateReactAsAutoMode = platform.climateReactAsAutoMode
+		this.climateReactAutoLowOffset = platform.climateReactAutoLowOffset
+
+		// Climate React thresholds are triggers rather than AC setpoints, so the AUTO range can be finer
+		// than the whole degrees the AC accepts. Commands sent to the AC itself are rounded back to a
+		// supported value (see sensiboFormattedACState).
+		if (this.climateReactAsAutoMode && this.temperatureUnit !== FAHRENHEIT_UNIT) {
+			this.temperatureStep = platform.climateReactAutoTemperatureStep ?? 1
+		}
+
+		this.climateReactAutoFanLevel = platform.climateReactAutoFanLevel
+		this.climateReactAutoMinTemperature = platform.climateReactAutoMinTemperature
+		this.climateReactAutoMaxTemperature = platform.climateReactAutoMaxTemperature
+
 		this.capabilities = this.Utils.airConditionerCapabilities(device.remoteCapabilities.modes)
+
+		// climateReactAsAutoMode: the HomeKit AUTO range lives here, not in state.targetTemperature
+		// (a single value shared by both range thumbs). `pending` means the user just moved a thumb and
+		// a Climate React update is in flight, so a background refresh must not overwrite the band yet.
+		this.autoBand = {
+			low: null,
+			high: null,
+			pending: false
+		}
+		this.Utils.syncAutoBandFromDevice(device)
 
 		this.state = this.cachedState.devices[this.id] = this.Utils.airConditionerStateFromDevice(device)
 		this.state = new Proxy(this.state, StateHandler(this, platform))
@@ -262,6 +286,19 @@ class AirConditioner {
 						maxValue: this.Utils.toCelsius(this.capabilities[mode].temperatures[FAHRENHEIT_UNIT].max),
 						minStep: this.temperatureStep
 					}
+				}
+			}
+
+			// Optionally narrow the temperature slider. modeProps is only used for the threshold
+			// characteristics, so this affects the range shown in the Home app and nothing else. Values
+			// outside the AC's own capabilities are ignored, since the AC would reject them anyway.
+			if (modeProps && this.climateReactAsAutoMode) {
+				if (this.climateReactAutoMinTemperature !== null && this.climateReactAutoMinTemperature > modeProps.minValue) {
+					modeProps.minValue = this.climateReactAutoMinTemperature
+				}
+
+				if (this.climateReactAutoMaxTemperature !== null && this.climateReactAutoMaxTemperature < modeProps.maxValue) {
+					modeProps.maxValue = this.climateReactAutoMaxTemperature
 				}
 			}
 
@@ -593,6 +630,10 @@ class AirConditioner {
 	}
 
 	updateHomeKit() {
+		// Matter is derived from the same device state, independently of the HomeKit characteristics, so
+		// it is pushed here rather than at the end - updateHomeKit() returns early further down.
+		this.matter?.update()
+
 		// log new state with FakeGato
 		if (this.loggingService) {
 			this.log.easyDebug(`${this.name} - Making FakeGato log entry`)
@@ -671,8 +712,15 @@ class AirConditioner {
 					this.Utils.updateValue('HeaterCoolerService', 'Active', 1)
 
 					// update temperatures for HeaterCoolerService
-					this.Utils.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', this.state.targetTemperature)
-					this.Utils.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.state.targetTemperature)
+					if (this.climateReactAsAutoMode && this.state.mode === 'AUTO' && this.autoBand.low !== null && this.autoBand.high !== null) {
+						// AUTO is a range: push the two band edges separately, otherwise both thumbs would
+						// get the same value and the range would collapse.
+						this.Utils.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', this.autoBand.low)
+						this.Utils.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.autoBand.high)
+					} else {
+						this.Utils.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', this.state.targetTemperature)
+						this.Utils.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.state.targetTemperature)
+					}
 
 					// update vertical swing for HeaterCoolerService
 					if (!this.disableVerticalSwing && this.capabilities[this.state.mode].VerticalSwing) {
@@ -699,7 +747,11 @@ class AirConditioner {
 						this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)
 					} else if (this.state.mode === 'AUTO') {
 						this.Utils.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.AUTO)
-						if (this.state.currentTemperature > this.state.targetTemperature) {
+						if (this.climateReactAsAutoMode) {
+							// Climate React drives AUTO: COOLING while it has the unit running, IDLE while it
+							// waits for the room to warm back up to the top of the band.
+							this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', this.acPowerOn ? Characteristic.CurrentHeaterCoolerState.COOLING : Characteristic.CurrentHeaterCoolerState.IDLE)
+						} else if (this.state.currentTemperature > this.state.targetTemperature) {
 							this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.COOLING)
 						} else {
 							this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)

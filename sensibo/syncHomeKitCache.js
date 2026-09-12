@@ -302,5 +302,9 @@ export default platform => {
 				})
 			})
 		}
+
+		// Matter mirrors the same accessory list, so it is brought in line here, where that list has just
+		// settled. A no-op when Matter is off or nothing changed.
+		platform.matterBridge?.sync()
 	}
 }

@@ -81,6 +81,8 @@ class HumiditySensor {
 	}
 
 	updateHomeKit() {
+		this.matter?.update()
+
 		// log new state with FakeGato
 		if (this.loggingService) {
 			this.log.easyDebug(`${this.name} - Making FakeGato log entry`)

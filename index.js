@@ -1,4 +1,5 @@
 import path from 'path'
+import MatterBridge from './matter/MatterBridge.js'
 import migrateLegacyPersist from './sensibo/persistMigration.js'
 import refreshState from './sensibo/refreshState.js'
 import SensiboApi from './sensibo/SensiboAPI.js'
@@ -68,6 +69,23 @@ class SensiboACPlatform {
 		this.disableLightSwitch = config['disableLightSwitch'] || false
 		this.disableVerticalSwing = config['disableVerticalSwing'] || false
 		this.enableClimateReactAutoSetup = config['enableClimateReactAutoSetup'] || false
+		// climateReactAsAutoMode: the HomeKit AUTO mode is backed by Climate React instead of the AC's
+		// native AUTO. In AUTO nothing is sent to the AC - Climate React alone cycles the unit.
+		this.climateReactAsAutoMode = config['climateReactAsAutoMode'] || false
+		// Offset added to the LOW threshold sent to Climate React only (HomeKit 23 -> CR 23.2).
+		this.climateReactAutoLowOffset = config['climateReactAutoLowOffset'] ?? 0.2
+		// Coalesce the burst of HomeKit SETs from one range change into a single Climate React POST (avoids HTTP 429).
+		this.climateReactAutoDebounceMs = config['climateReactAutoDebounceMs'] ?? 3000
+		// The AC setpoint and fan level Climate React commands when it switches the unit on. These are
+		// deliberately independent of the band: the band decides WHEN to run, this decides HOW hard.
+		this.climateReactAutoTargetTemperature = config['climateReactAutoTargetTemperature'] ?? 22
+		this.climateReactAutoFanLevel = config['climateReactAutoFanLevel'] ?? 'low'
+		// Step for the HomeKit AUTO range. Climate React thresholds are triggers, not AC setpoints, so
+		// they may be finer than the whole degrees the AC itself accepts.
+		this.climateReactAutoTemperatureStep = config['climateReactAutoTemperatureStep'] ?? 1
+		// Optional narrower bounds for the AUTO range, so the Home app slider isn't the AC's full span.
+		this.climateReactAutoMinTemperature = config['climateReactAutoMinTemperature'] ?? null
+		this.climateReactAutoMaxTemperature = config['climateReactAutoMaxTemperature'] ?? null
 		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
 		this.enableHistoryStorage = config['enableHistoryStorage'] || false
 		this.enableOccupancySensor = config['enableOccupancySensor'] || false
@@ -75,6 +93,16 @@ class SensiboACPlatform {
 		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
 		this.syncButtonInAccessory = config['syncButtonInAccessory'] || false
 		this.externalHumiditySensor = config['externalHumiditySensor'] || false
+		// Matter (Homebridge v2 and above). Homebridge only exposes its Matter API on a bridge that has
+		// Matter switched on, so that setting is the real opt-in - this one turns the plugin's half off
+		// without disabling Matter for the whole bridge. Nothing here changes the HAP side.
+		this.enableMatter = config['enableMatter'] !== false
+		// 'RoomAirConditioner' is the semantically correct Matter type and keeps on/off separate from the
+		// mode; 'Thermostat' is recognised by more ecosystems but has no on/off of its own.
+		this.matterAirConditionerDeviceType = config['matterAirConditionerDeviceType'] || 'RoomAirConditioner'
+		// Off by default: a FanControl cluster on a thermostat endpoint is the part controllers disagree
+		// about most, and the fan speed is not why most people bridge an AC to another ecosystem.
+		this.matterExposeFanSpeed = config['matterExposeFanSpeed'] || false
 		this.locationsToInclude = config['locationsToInclude'] || []
 
 		this.modesToExclude = config['modesToExclude']?.map(mode => {
@@ -136,6 +164,12 @@ class SensiboACPlatform {
 				}))
 				// console.trace('tracing')
 			}
+		}
+
+		this.matterBridge = new MatterBridge(this)
+
+		if (this.matterBridge.available) {
+			this.log.info(`Matter is enabled on this bridge, ${this.enableMatter ? 'accessories will also be published over Matter' : 'but enableMatter is off - publishing to HomeKit only'}.`)
 		}
 
 		this.api.on('didFinishLaunching', async () => {
@@ -204,6 +238,12 @@ class SensiboACPlatform {
 
 	configureAccessory(accessory) {
 		this.cachedAccessories.push(accessory)
+	}
+
+	// The Matter equivalent of configureAccessory: Homebridge calls this for each Matter accessory it
+	// restored from its own cache, so accessories that no longer exist can be unregistered.
+	configureMatterAccessory(accessory) {
+		this.matterBridge?.configureCached(accessory)
 	}
 
 }

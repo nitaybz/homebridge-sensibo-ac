@@ -2,22 +2,37 @@ function sensiboFormattedACState(device, state) {
 	device.log.easyDebug(`${device.name} -> sensiboFormattedACState start`)
 	// device.log.easyDebug(`${device.name} -> sensiboFormattedACState acState: ${JSON.stringify(acState, null, 4)}`)
 
+	// climateReactAsAutoMode: while in AUTO we normally send nothing to the AC, but turning the accessory
+	// off still has to reach it. Never send the AC's native "auto" in that command - it is exactly the mode
+	// this feature exists to avoid (its fan never stops), and it would linger in the AC's state until
+	// Climate React next fires. Send "cool" instead, which is what Climate React itself commands.
+	const drivenByClimateReact = device.climateReactAsAutoMode && state.mode === 'AUTO'
+	const effectiveMode = drivenByClimateReact ? 'COOL' : state.mode
+	const effectiveCapabilities = device.capabilities[effectiveMode] ?? device.capabilities[state.mode]
 	const acState = {
 		on: state.active,
-		mode: state.mode.toLowerCase(),
-		targetTemperature: device.usesFahrenheit ? device.Utils.toFahrenheit(state.targetTemperature) : state.targetTemperature,
+		mode: effectiveMode.toLowerCase(),
+		// The AUTO range may use a finer step than the AC supports (Climate React thresholds are triggers,
+		// not setpoints), so round back to a whole degree here - Sensibo rejects fractional setpoints with 400.
+		targetTemperature: device.usesFahrenheit ? device.Utils.toFahrenheit(state.targetTemperature) : Math.round(state.targetTemperature),
 		temperatureUnit: device.temperatureUnit
 	}
-	const swingModes = device.Utils.sensiboFormattedSwingModes(device.capabilities[state.mode], state)
+	const swingModes = device.Utils.sensiboFormattedSwingModes(effectiveCapabilities, state)
 
 	// be mindful .assign() copies references (not a deep clone): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#examples
 	Object.assign(acState, swingModes)
 
-	if ('fanSpeeds' in device.capabilities[state.mode]) {
-		acState.fanLevel = device.Utils.percentToFanLevel(state.fanSpeed, device.capabilities[state.mode].fanSpeeds)
+	if ('fanSpeeds' in effectiveCapabilities) {
+		// In AUTO, keep the fan level consistent with what Climate React commands, so the AC's stored state
+		// doesn't end up on "auto" (which is what the native AUTO mode uses).
+		const autoModeFanLevel = device.climateReactAutoFanLevel ?? 'low'
+
+		acState.fanLevel = drivenByClimateReact && effectiveCapabilities.fanSpeeds.includes(autoModeFanLevel)
+			? autoModeFanLevel
+			: device.Utils.percentToFanLevel(state.fanSpeed, effectiveCapabilities.fanSpeeds)
 	}
 
-	if ('light' in device.capabilities[state.mode]) {
+	if ('light' in effectiveCapabilities) {
 		acState.light = state.light ? 'on' : 'off'
 	}
 
@@ -126,6 +141,10 @@ export default (device, platform) => {
 	const setTimeoutDelay = 1000
 	let setTimer = null
 	let preventTurningOff = false
+	// climateReactAsAutoMode: one HomeKit range change fires several SETs (both thumbs + mode + active).
+	// Each used to POST /smartmode immediately, which Sensibo rate-limits with HTTP 429 - coalesce them.
+	const climateReactDebounceMs = platform.climateReactAutoDebounceMs ?? 3000
+	let climateReactTimer = null
 	const sensiboApi = platform.sensiboApi
 	const log = platform.log
 
@@ -246,13 +265,16 @@ export default (device, platform) => {
 
 			// Send Climate React state command and refresh state
 			if (prop === 'smartMode') {
-				(async () => {
-					try {
-						// FIXME: check if sensiboFormattedClimateReactState is still required, could potentially be replaced with:
-						//        const sensiboNewClimateReactState = state.smartMode (or similar)??
-						const sensiboNewClimateReactState = sensiboFormattedClimateReactState(device, state)
+				// Build the payload NOW rather than when the debounce fires. A refreshState landing during
+				// the debounce window overwrites state.smartMode with what Sensibo still has stored, so
+				// reading it later would send the previous band back and undo the change being made.
+				const sensiboNewClimateReactState = sensiboFormattedClimateReactState(device, state)
 
-						log.easyDebug(`${device.name} - StateHandler smartMode - before calling API to set new Climate React`)
+				clearTimeout(climateReactTimer)
+				climateReactTimer = setTimeout(async () => {
+					try {
+						log.easyDebug(`${device.name} - StateHandler smartMode - (debounced ${climateReactDebounceMs}ms) before calling API to set new Climate React`)
+						log.easyDebug(`${device.name} - StateHandler smartMode - payload: ${JSON.stringify(sensiboNewClimateReactState)}`)
 
 						await sensiboApi.setDeviceClimateReactState(device.id, sensiboNewClimateReactState)
 					} catch (error) {
@@ -274,7 +296,12 @@ export default (device, platform) => {
 
 					log.easyDebug(`${device.name} - StateHandler - smartMode update complete, deleting state.smartMode.updateRunning`)
 					delete state.smartMode.updateRunning
-				})()
+
+					// The band has reached Sensibo, so a refresh may mirror it back into autoBand again.
+					if (device.autoBand) {
+						device.autoBand.pending = false
+					}
+				}, climateReactDebounceMs)
 
 				// TODO: should we "catch" if the API call fails and prevent it from updating state?
 
@@ -304,6 +331,15 @@ export default (device, platform) => {
 				} else {
 					log.easyDebug(`${device.name} - StateHandler pureBoost SET - skipping refreshState as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
 				}
+
+				return true
+			}
+
+			// climateReactAsAutoMode: AUTO sends NOTHING to the AC - Climate React alone switches the unit
+			// on and off, which is the whole point (the fan stops instead of running continuously).
+			// Turning the accessory OFF is still forwarded, so the unit actually stops.
+			if (platform.climateReactAsAutoMode && state.mode === 'AUTO' && state.active === true) {
+				log.easyDebug(`${device.name} - StateHandler - AUTO is driven by Climate React, skipping acState command for prop: ${prop}`)
 
 				return true
 			}
