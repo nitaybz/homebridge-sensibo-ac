@@ -92,7 +92,7 @@ function getTokenFromAPI(username, password) {
 			}).catch(error => {
 				const errorContent = {}
 
-				errorContent.message = error.response.data.error_description || error.response.data.error
+				errorContent.message = error.response?.data?.error_description || error.response?.data?.error || error.message
 
 				log.error('SensiboAPI.js getTokenFromAPI - Could NOT complete token request. Error message:')
 				log.warn(errorContent.message)
