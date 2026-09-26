@@ -687,7 +687,7 @@ export default (device, platform) => {
 		sensorStateFromSensorMeasurements: sensorMeasurements => {
 			const formattedMeasurements = {
 				currentTemperature: sensorMeasurements.temperature,
-				lowBattery: sensorMeasurements.batteryVoltage > 100 ? 'BATTERY_LEVEL_NORMAL' : 'BATTERY_LEVEL_LOW',
+				lowBattery: sensorMeasurements.batteryVoltage != null && sensorMeasurements.batteryVoltage <= 100 ? 'BATTERY_LEVEL_LOW' : 'BATTERY_LEVEL_NORMAL',
 				motionDetected: sensorMeasurements.motion,
 				relativeHumidity: sensorMeasurements.humidity
 			}
