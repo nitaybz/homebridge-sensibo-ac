@@ -427,7 +427,7 @@ export default (device, platform) => {
 			// log.easyDebug(`${device.name} - airQualityStateFromDeviceMeasurements start`)
 			const formattedMeasurements = {}
 
-			if (deviceMeasurements == null || (!deviceMeasurements.tvoc && !deviceMeasurements.co2 && !deviceMeasurements.pm25)) {
+			if (deviceMeasurements == null || (!deviceMeasurements.iaq && !deviceMeasurements.tvoc && !deviceMeasurements.co2 && !deviceMeasurements.pm25)) {
 				log.warn(`${device.name} - Utils airQualityStateFromDeviceMeasurements no measurements available, returning empty state`)
 
 				return formattedMeasurements
