@@ -47,7 +47,8 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 	smartModeState.lowTemperatureWebhook = null
 
 	smartModeState.highTemperatureState = {
-		targetTemperature: device.state.targetTemperature,
+		// state is kept in Celsius, but Sensibo reads it in the unit named below
+		targetTemperature: device.usesFahrenheit ? device.Utils.toFahrenheit(device.state.targetTemperature) : device.state.targetTemperature,
 		temperatureUnit: device.temperatureUnit,
 		mode: device.state.mode.toLowerCase()
 	}
