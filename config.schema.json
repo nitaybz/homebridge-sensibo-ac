@@ -164,6 +164,66 @@
                 "default": false,
                 "required": false
             },
+			"climateReactAutoSetupOffset": {
+				"title": "Climate React Auto Setup Offset",
+				"description": "Degrees added to both Climate React auto setup thresholds (can be negative)",
+				"type": "number",
+				"default": 0,
+				"required": false
+			},
+			"positiveClimateReactAutoSetupMultiplier": {
+				"title": "Positive Climate React Auto Setup Multiplier",
+				"description": "How many degrees (1.8 per step in F) above the target the upper Climate React auto setup threshold sits",
+				"type": "number",
+				"default": 1,
+				"required": false
+			},
+			"negativeClimateReactAutoSetupMultiplier": {
+				"title": "Negative Climate React Auto Setup Multiplier",
+				"description": "How many degrees (1.8 per step in F) below the target the lower Climate React auto setup threshold sits",
+				"type": "number",
+				"default": 1,
+				"required": false
+			},
+			"climateReactAsAuto": {
+				"title": "Climate React As Auto",
+				"description": "Implement HomeKit AUTO with Climate React instead of the AC's own auto mode: set heat-to and cool-to, and the plugin picks cooling or heating from how the room drifts while the AC is off. COOL and HEAT also run through Climate React. Climate React is fully managed by the plugin (no Climate React switch). Needs COOL and HEAT; AUTO is shown unless listed in Modes To Exclude",
+				"type": "boolean",
+				"default": false,
+				"required": false
+			},
+			"brokenThermostat": {
+				"title": "Broken Thermostat Mode",
+				"description": "Always send the AC its coldest setting in COOL and hottest in HEAT (including Climate React's states), so the AC never stops on its own. HomeKit still shows the temperature you selected. Something else (e.g. Climate React) must turn the AC off",
+				"type": "boolean",
+				"default": false,
+				"required": false
+			},
+			"enableRepeatClimateReactAction": {
+				"title": "Enable Climate React Repeat",
+				"description": "Re-send the last Climate React action when nothing changed the AC since, in case the AC missed the command",
+				"type": "boolean",
+				"default": false,
+				"required": false
+			},
+			"commandRepeatCount": {
+				"title": "Command Repeat Count",
+				"description": "How many times the repeated Climate React action is sent (1-3). Warning: repeats may override a change you make in between",
+				"type": "integer",
+				"minimum": 1,
+				"maximum": 3,
+				"default": 1,
+				"required": false
+			},
+			"commandRepeatDelaySeconds": {
+				"title": "Command Repeat Delay (seconds)",
+				"description": "Seconds between repeated Climate React commands (1-60). Warning: long delays make a conflict with your own changes more likely",
+				"type": "integer",
+				"minimum": 1,
+				"maximum": 60,
+				"default": 1,
+				"required": false
+			},
 			"enableHistoryStorage": {
 				"title": "Enable History Storage",
 				"description": "Record temperature & humidity measurements over time, viewable as History in the Eve app",

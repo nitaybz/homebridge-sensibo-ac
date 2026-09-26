@@ -1,6 +1,7 @@
 let Characteristic
 let log
 let MINIMUM_NODE
+let platformPrivate
 
 function characteristicToMode(characteristic) {
 	// log.easyDebug(`characteristicToMode - characteristic: ${characteristic}`)
@@ -40,14 +41,32 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 	// FIXME: check this
 	// If nothing (relevant) has changed should we skip...? Like we do in StateHandler for SET?
 
-	const smartModeState = device.state.smartMode
+	// A new object, so StateHandler's "already equal" check sees the change. The plugin takes Climate React over:
+	// the thresholds and both states are rebuilt from the AC's state, replacing what was set up in the Sensibo app.
+	const smartModeState = { ...device.state.smartMode }
+
+	// Climate React as auto: the plugin owns whether Climate React is on
+	if (device.autoClimateReact) {
+		smartModeState.enabled = device.autoClimateReact.climateReactEnabled()
+	}
+
+	const degree = device.usesFahrenheit ? 1.8 : 1
+	const highTemperatureThreshold = device.state.targetTemperature + degree * platformPrivate.positiveClimateReactAutoSetupMultiplier + platformPrivate.climateReactAutoSetupOffset
+	const lowTemperatureThreshold = device.state.targetTemperature - degree * platformPrivate.negativeClimateReactAutoSetupMultiplier + platformPrivate.climateReactAutoSetupOffset
 
 	smartModeState.type = 'temperature'
 	smartModeState.highTemperatureWebhook = null
 	smartModeState.lowTemperatureWebhook = null
 
+	// Broken thermostat: Climate React's states switch the AC on at its extreme setting too, the thresholds above stay
+	// around the user's target
+	const stateTemperature = platformPrivate.brokenThermostat && (device.state.mode === 'COOL' || device.state.mode === 'HEAT')
+		? device.Utils.brokenThermostatTemperature(device.state.mode)
+		: device.state.targetTemperature
+
 	smartModeState.highTemperatureState = {
-		targetTemperature: device.state.targetTemperature,
+		// state is kept in Celsius, but Sensibo reads it in the unit named below
+		targetTemperature: device.usesFahrenheit ? device.Utils.toFahrenheit(stateTemperature) : stateTemperature,
 		temperatureUnit: device.temperatureUnit,
 		mode: device.state.mode.toLowerCase()
 	}
@@ -63,14 +82,14 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 	}
 
 	if (device.state.mode === 'COOL') {
-		smartModeState.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
+		smartModeState.highTemperatureThreshold = highTemperatureThreshold
 		smartModeState.highTemperatureState.on = true
-		smartModeState.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
+		smartModeState.lowTemperatureThreshold = lowTemperatureThreshold
 		smartModeState.lowTemperatureState.on = false
 	} else if (device.state.mode === 'HEAT') {
-		smartModeState.highTemperatureThreshold = device.state.targetTemperature + (device.usesFahrenheit ? 1.8 : 1)
+		smartModeState.highTemperatureThreshold = highTemperatureThreshold
 		smartModeState.highTemperatureState.on = false
-		smartModeState.lowTemperatureThreshold = device.state.targetTemperature - (device.usesFahrenheit ? 1.8 : 1)
+		smartModeState.lowTemperatureThreshold = lowTemperatureThreshold
 		smartModeState.lowTemperatureState.on = true
 	}
 
@@ -108,20 +127,68 @@ function updateClimateReact(device, enableClimateReactAutoSetup) {
 	device.state.smartMode = smartModeState
 }
 
+/**
+ * Switch the AC on in the given HomeKit mode. In Climate React as auto, AUTO is never sent to the AC: the plugin takes
+ * over (and updates Climate React itself), and COOL/HEAT run through Climate React with the direction pinned.
+ * @param   {Object}   device  the AirConditioner
+ * @param   {string}   mode    'AUTO', 'COOL' or 'HEAT'
+ * @returns {boolean}          whether the caller still needs to update Climate React
+ */
+function setMode(device, mode) {
+	if (device.autoClimateReact) {
+		if (mode === 'AUTO') {
+			device.autoClimateReact.enterAuto()
+				.catch(error => {
+					log.error(`${device.name} - Auto: entering AUTO failed: ${error?.message ?? error}`)
+				})
+
+			return false
+		}
+
+		device.autoClimateReact.selectManual(mode)
+	}
+
+	device.state.active = true
+	device.state.mode = mode
+
+	return true
+}
+
+/**
+ * FAN and DRY take the AC out of Climate React as auto
+ * @param {Object} device  the AirConditioner
+ */
+function leaveClimateReact(device) {
+	if (device.autoClimateReact?.state.active) {
+		device.autoClimateReact.setActive(false)
+		// A new object, so StateHandler's "already equal" check sees the change
+		device.state.smartMode = {
+			...device.state.smartMode,
+			enabled: false
+		}
+	}
+}
+
 export default (device, platform) => {
 	Characteristic = platform.api.hap.Characteristic
 	log = platform.log
 	MINIMUM_NODE = platform.MINIMUM_NODE
+	platformPrivate = platform
 
 	const enableClimateReactAutoSetup = platform.enableClimateReactAutoSetup
 
 	return {
 
+		updateClimateReact: () => {
+			updateClimateReact(device, enableClimateReactAutoSetup)
+		},
+
 		get: {
 			// AC (Auto, Cool, Heat only)
 			// TODO: refactor this similar to PureActive below?
 			ACActive: callback => {
-				const active = device.state.active
+				// Climate React as auto holding the AC off still counts as on
+				const active = device.state.active || !!device.autoClimateReact?.state.active
 				const mode = device.state.mode
 
 				if (!active || mode === 'FAN' || mode === 'DRY') {
@@ -136,25 +203,11 @@ export default (device, platform) => {
 			},
 
 			CurrentHeaterCoolerState: callback => {
-				const active = device.state.active
-				const deviceCurrentModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.CurrentHeaterCoolerState).value
-				const stateCurrentMode = device.state.mode
-				const currentTemp = device.state.currentTemperature
-				const targetTemp = device.state.targetTemperature
+				const currentState = device.currentHeaterCoolerState()
 
-				log.easyDebug(device.name, '(GET) - Current HeaterCooler State:', active ? stateCurrentMode + ' (' + deviceCurrentModeValue + ')' : 'OFF')
+				log.easyDebug(device.name, '(GET) - Current HeaterCooler State:', currentState)
 
-				if (!active || stateCurrentMode === 'FAN' || stateCurrentMode === 'DRY') {
-					callback(null, Characteristic.CurrentHeaterCoolerState.INACTIVE)
-				} else if (stateCurrentMode === 'COOL') {
-					callback(null, Characteristic.CurrentHeaterCoolerState.COOLING)
-				} else if (stateCurrentMode === 'HEAT') {
-					callback(null, Characteristic.CurrentHeaterCoolerState.HEATING)
-				} else if (currentTemp > targetTemp) {
-					callback(null, Characteristic.CurrentHeaterCoolerState.COOLING)
-				} else {
-					callback(null, Characteristic.CurrentHeaterCoolerState.HEATING)
-				}
+				callback(null, currentState)
 			},
 
 			TargetHeaterCoolerState: callback => {
@@ -162,6 +215,12 @@ export default (device, platform) => {
 				const deviceCurrentModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const stateCurrentMode = device.state.mode
 				const stateCurrentModeValue = stateCurrentMode ? Characteristic.TargetHeaterCoolerState[stateCurrentMode] ??= deviceCurrentModeValue : deviceCurrentModeValue
+
+				if (device.autoClimateReact?.state.auto) {
+					log.easyDebug(device.name, '(GET) - Target HeaterCooler State: AUTO (Climate React as auto)')
+
+					return callback(null, Characteristic.TargetHeaterCoolerState.AUTO)
+				}
 
 				log.easyDebug(device.name, '(GET) - Target HeaterCooler State:', active ? stateCurrentMode + ' (' + stateCurrentModeValue + ')' : 'OFF (' + stateCurrentModeValue + ')')
 				if (!active || stateCurrentMode === 'FAN' || stateCurrentMode === 'DRY') {
@@ -190,7 +249,8 @@ export default (device, platform) => {
 			},
 
 			CoolingThresholdTemperature: callback => {
-				const targetTemp = device.state.targetTemperature ?? device.HeaterCoolerService.getCharacteristic(Characteristic.CoolingThresholdTemperature).value
+				const setpoint = device.autoClimateReact?.state.auto ? device.autoClimateReact.state.coolTo : device.state.targetTemperature
+				const targetTemp = setpoint ?? device.HeaterCoolerService.getCharacteristic(Characteristic.CoolingThresholdTemperature).value
 
 				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(GET) - Target Cooling Temperature:', device.Utils.toFahrenheit(targetTemp) + 'ºF')
@@ -202,7 +262,8 @@ export default (device, platform) => {
 			},
 
 			HeatingThresholdTemperature: callback => {
-				const targetTemp = device.state.targetTemperature ?? device.HeaterCoolerService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value
+				const setpoint = device.autoClimateReact?.state.auto ? device.autoClimateReact.state.heatTo : device.state.targetTemperature
+				const targetTemp = setpoint ?? device.HeaterCoolerService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value
 
 				if (device.usesFahrenheit) {
 					log.easyDebug(device.name, '(GET) - Target Heating Temperature:', device.Utils.toFahrenheit(targetTemp) + 'ºF')
@@ -488,13 +549,16 @@ export default (device, platform) => {
 				log.easyDebug(device.name, '(SET) - AC Active State:', acActive)
 
 				if (acActive) {
-					device.state.active = true
 					const lastModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 					const lastMode = characteristicToMode(lastModeValue)
 
 					log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
-					device.state.mode = lastMode
+
+					if (!setMode(device, lastMode)) {
+						return callback()
+					}
 				} else if (device.state.mode === 'COOL' || device.state.mode === 'HEAT' || device.state.mode === 'AUTO') {
+					device.autoClimateReact?.setActive(false)
 					device.state.active = false
 				}
 
@@ -507,10 +571,10 @@ export default (device, platform) => {
 				const mode = characteristicToMode(state)
 
 				log.easyDebug(device.name, '(SET) - Target HeaterCooler State:', mode, '(' + state + ')')
-				device.state.mode = mode
-				device.state.active = true
 
-				updateClimateReact(device, enableClimateReactAutoSetup)
+				if (setMode(device, mode)) {
+					updateClimateReact(device, enableClimateReactAutoSetup)
+				}
 
 				callback()
 			},
@@ -525,13 +589,19 @@ export default (device, platform) => {
 				const lastModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const lastMode = characteristicToMode(lastModeValue)
 
-				device.state.targetTemperature = targetTemp
+				// In Climate React as auto, AUTO keeps its own setpoints and points the AC at one of them
+				device.autoClimateReact?.setCoolTo(targetTemp)
+
+				if (!(device.autoClimateReact && lastMode === 'AUTO')) {
+					device.state.targetTemperature = targetTemp
+				}
+
 				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
-				device.state.active = true
-				device.state.mode = lastMode
 
-				updateClimateReact(device, enableClimateReactAutoSetup)
+				if (setMode(device, lastMode)) {
+					updateClimateReact(device, enableClimateReactAutoSetup)
+				}
 
 				callback()
 			},
@@ -546,13 +616,19 @@ export default (device, platform) => {
 				const lastModeValue = device.HeaterCoolerService.getCharacteristic(Characteristic.TargetHeaterCoolerState).value
 				const lastMode = characteristicToMode(lastModeValue)
 
-				device.state.targetTemperature = targetTemp
+				// In Climate React as auto, AUTO keeps its own setpoints and points the AC at one of them
+				device.autoClimateReact?.setHeatTo(targetTemp)
+
+				if (!(device.autoClimateReact && lastMode === 'AUTO')) {
+					device.state.targetTemperature = targetTemp
+				}
+
 				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
-				device.state.active = true
-				device.state.mode = lastMode
 
-				updateClimateReact(device, enableClimateReactAutoSetup)
+				if (setMode(device, lastMode)) {
+					updateClimateReact(device, enableClimateReactAutoSetup)
+				}
 
 				callback()
 			},
@@ -567,10 +643,10 @@ export default (device, platform) => {
 
 				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
-				device.state.active = true
-				device.state.mode = lastMode
 
-				updateClimateReact(device, enableClimateReactAutoSetup)
+				if (setMode(device, lastMode)) {
+					updateClimateReact(device, enableClimateReactAutoSetup)
+				}
 
 				callback()
 			},
@@ -584,10 +660,10 @@ export default (device, platform) => {
 
 				// TODO: Check on the below. It turns the unit ON if it's currently off. Maybe it's required by API?
 				log.easyDebug(device.name, '(SET) - HeaterCooler State:', lastMode, '(' + lastModeValue + ')')
-				device.state.active = true
-				device.state.mode = lastMode
 
-				updateClimateReact(device, enableClimateReactAutoSetup)
+				if (setMode(device, lastMode)) {
+					updateClimateReact(device, enableClimateReactAutoSetup)
+				}
 
 				callback()
 			},
@@ -598,9 +674,7 @@ export default (device, platform) => {
 				log.easyDebug(device.name, '(SET) - Pure Active State:', state)
 				device.state.active = state
 
-				// TODO: check if ClimateReact is valid for Pure
-				updateClimateReact(device, enableClimateReactAutoSetup)
-
+				// An air purifier has no Climate React
 				callback()
 			},
 
@@ -622,16 +696,14 @@ export default (device, platform) => {
 					device.state.active = false
 				}
 
-				// TODO: check if ClimateReact is valid for Pure
-				updateClimateReact(device, enableClimateReactAutoSetup)
-
+				// An air purifier has no Climate React
 				callback()
 			},
 
 			// FILTER
 			ResetFilterIndication: (value, callback) => {
 				log.easyDebug(device.name, '(SET) - Filter Change Indication: RESET')
-				device.state.filterChange = 0
+				device.state.filterChange = 'FILTER_OK'
 				device.state.filterLifeLevel = 100
 
 				callback()
@@ -646,6 +718,7 @@ export default (device, platform) => {
 					log.easyDebug(device.name, '(SET) - Mode to: FAN')
 					device.state.mode = 'FAN'
 					device.state.active = true
+					leaveClimateReact(device)
 				} else if (device.state.mode === 'FAN') {
 					device.state.active = false
 				}
@@ -660,6 +733,7 @@ export default (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - Mode to: FAN')
 				device.state.mode = 'FAN'
+				leaveClimateReact(device)
 
 				callback()
 			},
@@ -670,6 +744,7 @@ export default (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - Mode to: FAN')
 				device.state.mode = 'FAN'
+				leaveClimateReact(device)
 
 				callback()
 			},
@@ -683,6 +758,7 @@ export default (device, platform) => {
 					log.easyDebug(device.name, '(SET) - Mode to: DRY')
 					device.state.mode = 'DRY'
 					device.state.active = true
+					leaveClimateReact(device)
 				} else if (device.state.mode === 'DRY') {
 					device.state.active = false
 				}
@@ -694,6 +770,7 @@ export default (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - HeaterCooler State: DRY')
 				device.state.mode = 'DRY'
+				leaveClimateReact(device)
 
 				callback()
 			},
@@ -705,6 +782,7 @@ export default (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - Mode to: DRY')
 				device.state.mode = 'DRY'
+				leaveClimateReact(device)
 
 				callback()
 			},
@@ -715,6 +793,7 @@ export default (device, platform) => {
 				device.state.active = true
 				log.easyDebug(device.name, '(SET) - Mode to: DRY')
 				device.state.mode = 'DRY'
+				leaveClimateReact(device)
 
 				callback()
 			},
@@ -746,7 +825,11 @@ export default (device, platform) => {
 
 				// TODO: Check on the below. It turns the unit ON if it's currently OFF. Maybe it's required by API?
 				log.easyDebug(device.name, '(SET) - HeaterCooler State (HorizontalSwing):', lastMode, '(' + lastModeValue + ')')
-				device.state.active = true
+
+				// Climate React as auto decides when the AC runs, a swing change must not start it
+				if (!device.autoClimateReact?.state.active) {
+					device.state.active = true
+				}
 				// device.state.mode = lastMode
 
 				updateClimateReact(device, enableClimateReactAutoSetup)
@@ -778,9 +861,11 @@ export default (device, platform) => {
 			// CLIMATE REACT
 			ClimateReactSwitch: (state, callback) => {
 				log.easyDebug(device.name, '(SET) - Climate React Enabled Switch:', state)
-				const smartModeState = device.state.smartMode
-
-				smartModeState.enabled = !!state
+				// A new object, so StateHandler's "already equal" check sees the change
+				const smartModeState = {
+					...device.state.smartMode,
+					enabled: !!state
+				}
 
 				// NOTE: we must set the 'smartMode' property directly (and NOT for example like so: device.state.smartMode.enabled = true),
 				//       otherwise the StateHandler's setter code will not be executed and any changes will not take effect.

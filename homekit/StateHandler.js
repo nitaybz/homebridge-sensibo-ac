@@ -1,11 +1,15 @@
-function sensiboFormattedACState(device, state) {
+function sensiboFormattedACState(device, state, brokenThermostat) {
 	device.log.easyDebug(`${device.name} -> sensiboFormattedACState start`)
 	// device.log.easyDebug(`${device.name} -> sensiboFormattedACState acState: ${JSON.stringify(acState, null, 4)}`)
 
+	// Broken thermostat: the AC gets its extreme setting, the user's target stays in state (and HomeKit)
+	const targetTemperature = brokenThermostat && (state.mode === 'COOL' || state.mode === 'HEAT')
+		? device.Utils.brokenThermostatTemperature(state.mode)
+		: state.targetTemperature
 	const acState = {
 		on: state.active,
 		mode: state.mode.toLowerCase(),
-		targetTemperature: device.usesFahrenheit ? device.Utils.toFahrenheit(state.targetTemperature) : state.targetTemperature,
+		targetTemperature: device.usesFahrenheit ? device.Utils.toFahrenheit(targetTemperature) : targetTemperature,
 		temperatureUnit: device.temperatureUnit
 	}
 	const swingModes = device.Utils.sensiboFormattedSwingModes(device.capabilities[state.mode], state)
@@ -129,6 +133,78 @@ export default (device, platform) => {
 	const sensiboApi = platform.sensiboApi
 	const log = platform.log
 
+	/**
+	 * Sends the whole AC state to Sensibo once `delay` has passed without another change
+	 * @param {Object} state  the (unproxied) state
+	 * @param {string} prop   the property that changed, for logging
+	 * @param {*}      value  its new value, for logging
+	 * @param {number} delay  how long to wait for more changes before sending
+	 */
+	function scheduleSend(state, prop, value, delay) {
+		log.easyDebug(`${device.name} - StateHandler - updating setProcessing to true, Prop: ${prop}`)
+
+		// TODO: check if this should be set earlier
+		platform.setProcessing = true
+
+		// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
+		// FIXME: check on issue / race condition that prevents AC turning off if the previous command was to set fan to 0% (auto)
+		if (prop === 'fanSpeed' && value === 0 && device.capabilities[state.mode].autoFanSpeed) {
+			preventTurningOff = true
+		}
+
+		clearTimeout(setTimer)
+		// TODO: check if "function () {" below could/should be an arrow function
+		setTimer = setTimeout(async function () {
+			// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
+			if (preventTurningOff && state.active === false) {
+				log.easyDebug(`${device.name} - StateHandler - Auto fan speed, don't turn off when fanSpeed set to 0%. Prop: ${prop}, Value: ${value}`)
+				state.active = true
+				preventTurningOff = false
+			}
+
+			const sensiboNewACState = sensiboFormattedACState(device, state, platform.brokenThermostat)
+
+			log.easyDebug(`${device.name} - before calling API to set new state`)
+			// log.easyDebug(JSON.stringify(sensiboNewACState, null, 4))
+
+			try {
+				// send state command to Sensibo
+				await sensiboApi.setDeviceACState(device.id, sensiboNewACState)
+			} catch (error) {
+				// If something goes wrong, wait 1 second and then call refreshState to get the current Sensibo state for all devices and update to match
+				log.error(`${device.name} - StateHandler - ERROR setting ${prop} to ${value}`)
+				log.warn(`${device.name} - Error message: ${JSON.stringify(error, null, 4)}`)
+
+				setTimeout(() => {
+					platform.setProcessing = false
+
+					if (!platform.refreshStateProcessing && !platform.setProcessing) {
+						// Has a catch ✓
+						platform.refreshState()
+							.catch(error => {
+								log.error(`${device.name} - StateHandler setDeviceACState - error occurred in refreshState. Error message:`)
+								log.warn(error.message || error)
+							})
+					} else {
+						log.easyDebug(`${device.name} - StateHandler setDeviceACState SET - skipping refreshState as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
+					}
+				}, setTimeoutDelay)
+				// setTimeoutDelay = 1000ms, wait 1 second
+
+				return
+			}
+
+			setTimeout(() => {
+				log.easyDebug(`${device.name} - StateHandler - resetting setProcessing to false after successful API call, Prop: ${prop}`)
+
+				platform.setProcessing = false
+				device.updateHomeKit()
+			}, (setTimeoutDelay / 2))
+			// setTimeoutDelay = 1000ms, wait 0.5 second
+		}, delay)
+		// delay is normally setTimeoutDelay = 1000ms, wait 1 second
+	}
+
 	return {
 		// As StateHandler is invoked as a Proxy the below overwrites/intercepts the default get() commands [traps]
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
@@ -200,6 +276,18 @@ export default (device, platform) => {
 			log.easyDebug(`StateHandler.js SET New Value: ${JSON.stringify(value, null, 4)}`)
 			// log.easyDebug(`StateHandler.js SET Current State: ${JSON.stringify(state, null, 4)}`)
 			// log.easyDebug(`StateHandler.js value args: ${JSON.stringify(...args)}`)
+
+			// '_' replaces the whole state at once and sends it (used to repeat a Climate React action). It is sent right away:
+			// debouncing it would let the next repeat cancel this one before it is sent
+			if (prop === '_') {
+				Object.entries(value).forEach(([key, propertyValue]) => {
+					Reflect.set(state, key, propertyValue)
+				})
+
+				scheduleSend(state, prop, value, 0)
+
+				return true
+			}
 
 			if (!platform.allowRepeatedCommands && prop in state && state[prop] === value) {
 				if (prop === 'smartMode') {
@@ -308,68 +396,7 @@ export default (device, platform) => {
 				return true
 			}
 
-			log.easyDebug(`${device.name} - StateHandler - updating setProcessing to true, Prop: ${prop}`)
-
-			// TODO: check if this should be set earlier
-			platform.setProcessing = true
-
-			// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
-			// FIXME: check on issue / race condition that prevents AC turning off if the previous command was to set fan to 0% (auto)
-			if (prop === 'fanSpeed' && value === 0 && device.capabilities[state.mode].autoFanSpeed) {
-				preventTurningOff = true
-			}
-
-			clearTimeout(setTimer)
-			// TODO: check if "function () {" below could/should be an arrow function
-			setTimer = setTimeout(async function () {
-				// Make sure device is not turning off when setting fanSpeed to 0 (AUTO)
-				if (preventTurningOff && state.active === false) {
-					log.easyDebug(`${device.name} - StateHandler - Auto fan speed, don't turn off when fanSpeed set to 0%. Prop: ${prop}, Value: ${value}`)
-					state.active = true
-					preventTurningOff = false
-				}
-
-				const sensiboNewACState = sensiboFormattedACState(device, state)
-
-				log.easyDebug(`${device.name} - before calling API to set new state`)
-				// log.easyDebug(JSON.stringify(sensiboNewACState, null, 4))
-
-				try {
-					// send state command to Sensibo
-					await sensiboApi.setDeviceACState(device.id, sensiboNewACState)
-				} catch (error) {
-					// If something goes wrong, wait 1 second and then call refreshState to get the current Sensibo state for all devices and update to match
-					log.error(`${device.name} - StateHandler - ERROR setting ${prop} to ${value}`)
-					log.warn(`${device.name} - Error message: ${JSON.stringify(error, null, 4)}`)
-
-					setTimeout(() => {
-						platform.setProcessing = false
-
-						if (!platform.refreshStateProcessing && !platform.setProcessing) {
-							// Has a catch ✓
-							platform.refreshState()
-								.catch(error => {
-									log.error(`${device.name} - StateHandler setDeviceACState - error occurred in refreshState. Error message:`)
-									log.warn(error.message || error)
-								})
-						} else {
-							log.easyDebug(`${device.name} - StateHandler setDeviceACState SET - skipping refreshState as platform.refreshStateProcessing: ${platform.refreshStateProcessing} OR platform.setProcessing: ${platform.setProcessing} is true.`)
-						}
-					}, setTimeoutDelay)
-					// setTimeoutDelay = 1000ms, wait 1 second
-
-					return
-				}
-
-				setTimeout(() => {
-					log.easyDebug(`${device.name} - StateHandler - resetting setProcessing to false after successful API call, Prop: ${prop}`)
-
-					platform.setProcessing = false
-					device.updateHomeKit()
-				}, (setTimeoutDelay / 2))
-				// setTimeoutDelay = 1000ms, wait 0.5 second
-			}, setTimeoutDelay)
-			// setTimeoutDelay = 1000ms, wait 1 second
+			scheduleSend(state, prop, value, setTimeoutDelay)
 
 			return true
 		}

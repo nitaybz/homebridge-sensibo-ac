@@ -1,4 +1,90 @@
 let log
+// Sensibo event kind for an AC state change, and the event reason Climate React uses
+const acStateChangedEventKind = 1000000
+const climateReactEventReason = 'Trigger'
+const minDate = new Date('0001-01-01T00:00:00Z')
+
+/**
+ * Some ACs miss an IR command that Climate React sent, while Sensibo believes it arrived. To make such a mismatch less
+ * likely to last, re-send the state that the last Climate React action produced, as long as nothing else changed the
+ * AC since. It is repeated commandRepeatCount times, commandRepeatDelayMilliseconds apart.
+ * @param   {Object}         platform
+ * @param   {Object}         airConditioner  the AirConditioner accessory
+ * @param   {Object}         device          the device from the Sensibo response
+ * @returns {Promise<Date|undefined>}             the new lastStateRefresh for the AC, if it changes
+ */
+async function repeatClimateReactAction(platform, airConditioner, device) {
+	if (!platform.enableRepeatClimateReactAction) {
+		return
+	}
+
+	if (!(airConditioner.state.smartMode?.enabled ?? false)) {
+		log.easyDebug(`Repeat Climate React Action for ${airConditioner.name}: Climate React is disabled, skipping.`)
+
+		return
+	}
+
+	const since = airConditioner.lastStateRefresh.getTime()
+
+	// The first refresh only records the time, events from before it are not ours to repeat
+	if (since === minDate.getTime()) {
+		return new Date()
+	}
+
+	const events = await platform.sensiboApi.getDeviceEvents(device.id)
+	const acStateChanges = events
+		.filter(event => {
+			return event.eventKind == acStateChangedEventKind
+		})
+		.sort((a, b) => {
+			return Date.parse(b.timestamp) - Date.parse(a.timestamp)
+		})
+	const lastClimateReactChange = acStateChanges.find(event => {
+		return event.details?.reason == climateReactEventReason && Date.parse(event.timestamp) >= since
+	})
+	const now = new Date()
+
+	if (!lastClimateReactChange) {
+		log.easyDebug(`Repeat Climate React Action for ${airConditioner.name}: no Climate React change since the last refresh, skipping.`)
+
+		return now
+	}
+
+	const lastClimateReactChangeTime = Date.parse(lastClimateReactChange.timestamp)
+	const newerChanges = acStateChanges.filter(event => {
+		return Date.parse(event.timestamp) > lastClimateReactChangeTime
+	})
+
+	if (newerChanges.length > 0) {
+		log.easyDebug(`Repeat Climate React Action for ${airConditioner.name}: the AC was changed since, skipping.`)
+
+		return now
+	}
+
+	// Too recent: the AC may still be acting on it. Look at it again on the next refresh.
+	if (now.getTime() - lastClimateReactChangeTime < platform.repeatClimateReactActionMinGapMilliseconds) {
+		log.easyDebug(`Repeat Climate React Action for ${airConditioner.name}: the Climate React change is too recent, will look again next refresh.`)
+
+		return new Date(lastClimateReactChangeTime)
+	}
+
+	const resultingState = airConditioner.Utils.airConditionerStateFromDevice({
+		...device,
+		acState: lastClimateReactChange.details.resultingAcState
+	})
+
+	log.easyDebug(`Repeat Climate React Action for ${airConditioner.name}: re-sending the last Climate React result ${platform.commandRepeatCount} time(s), ${platform.commandRepeatDelayMilliseconds / 1000}s apart`)
+
+	// WARNING: repeats that are far apart can override a change the user makes in between
+	for (let i = 0; i < platform.commandRepeatCount; i++) {
+		setTimeout(() => {
+			// Setting the special '_' property replaces the whole state and sends it to Sensibo (see StateHandler)
+			airConditioner.state._ = resultingState
+		}, platform.commandRepeatDelayMilliseconds * i)
+	}
+
+	return now
+}
 
 function getAllDevicesAndUpdatePlatform(platform) {
 	log.easyDebug('refreshState getAllDevicesAndUpdatePlatform - Starting...')
@@ -84,9 +170,30 @@ function getAllDevicesAndUpdatePlatform(platform) {
 	})
 }
 
-function refreshAllDevices(platform) {
+/**
+ * The AC's state from a refresh. In broken thermostat mode Sensibo echoes back the extreme temperature the plugin sent,
+ * which must not replace the user's target that HomeKit shows: it is left out (update() skips null values), except on
+ * a cold start when there is no target yet.
+ * @param   {Object}  platform
+ * @param   {Object}  airConditioner  the AirConditioner accessory
+ * @param   {Object}  device          the device from the Sensibo response
+ * @returns {Object}                  the state to update the accessory with
+ */
+function airConditionerStateFromRefresh(platform, airConditioner, device) {
+	const state = airConditioner.Utils.airConditionerStateFromDevice(device)
+
+	if (platform.brokenThermostat && (state.mode === 'COOL' || state.mode === 'HEAT') && airConditioner.state.targetTemperature != null) {
+		state.targetTemperature = null
+	}
+
+	return state
+}
+
+async function refreshAllDevices(platform) {
 	log.easyDebug('refreshState refreshAllDevices - Starting...')
 
+	// Per-device work that calls the API, awaited below so one device's failure is logged instead of crashing the bridge
+	const pending = []
 	// Needs to be here outside the forEach loop so that each location is only stored once
 	const occupancySensorHandledLocations = []
 
@@ -106,7 +213,19 @@ function refreshAllDevices(platform) {
 			switch (accessory.type) {
 				case 'AirConditioner':
 					// Update AC state, note: updateHomeKit gets called within StateHandler.js, e.g. GET when prop === 'update'
-					accessory.state.update(accessory.Utils.airConditionerStateFromDevice(device))
+					accessory.state.update(airConditionerStateFromRefresh(platform, accessory, device))
+
+					// Climate React as auto watches the room drift, but only from refreshes that were applied: update()
+					// skips them while a command is being sent
+					if (!platform.setProcessing) {
+						accessory.autoClimateReact?.onRefresh()
+					}
+					pending.push(repeatClimateReactAction(platform, accessory, device)
+						.then(lastStateRefresh => {
+							if (lastStateRefresh) {
+								accessory.lastStateRefresh = lastStateRefresh
+							}
+						}))
 
 					break
 				case 'AirPurifier':
@@ -175,13 +294,25 @@ function refreshAllDevices(platform) {
 			})
 		}
 	})
+
+	// NOTE: these must be awaited: an unawaited rejection (e.g. a 504 from getDeviceEvents) becomes an
+	//       UnhandledPromiseRejection that crashes the child bridge
+	const results = await Promise.allSettled(pending)
+
+	results
+		.filter(result => {
+			return result.status === 'rejected'
+		})
+		.forEach(result => {
+			log.warn(`refreshState refreshAllDevices - refreshing a device failed: ${result.reason?.message || JSON.stringify(result.reason)}`)
+		})
 }
 
 function doRefresh(platform) {
 	log.easyDebug('refreshState doRefresh - Starting...')
 
 	return getAllDevicesAndUpdatePlatform(platform)
-		.then(outcome => {
+		.then(async outcome => {
 			log.devDebug('refreshState doRefresh - getAllDevicesAndUpdatePlatform.then outcome:')
 			log.devDebug(outcome)
 
@@ -195,7 +326,7 @@ function doRefresh(platform) {
 			log.devDebug('refreshState doRefresh - Running refreshAllDevices (refresh individual devices)')
 
 			// Iterate through all the devices returned from Sensibo and update state on activeAccessories
-			refreshAllDevices(platform)
+			await refreshAllDevices(platform)
 
 			log.easyDebug('refreshState doRefresh - refreshAllDevices complete')
 

@@ -1,3 +1,4 @@
+import AutoClimateReact from './AutoClimateReact.js'
 import fakegato from 'fakegato-history'
 import StateHandler from './StateHandler.js'
 import StateManager from './StateManager.js'
@@ -50,6 +51,10 @@ class AirConditioner {
 		this.state = this.cachedState.devices[this.id] = this.Utils.airConditionerStateFromDevice(device)
 		this.state = new Proxy(this.state, StateHandler(this, platform))
 		this.stateManager = StateManager(this, platform)
+		// Climate React as auto: HomeKit AUTO (and COOL/HEAT) run through Climate React, managed by the plugin
+		this.autoClimateReact = platform.climateReactAsAuto ? new AutoClimateReact(this, platform) : null
+		// when the repeat Climate React action last looked at the AC's events, see refreshState
+		this.lastStateRefresh = new Date('0001-01-01T00:00:00Z')
 
 		this.UUID = this.api.hap.uuid.generate(this.id)
 		this.accessory = platform.cachedAccessories.find(accessory => {
@@ -245,6 +250,11 @@ class AirConditioner {
 				continue
 			}
 
+			// Climate React as auto implements AUTO itself (added below), the AC's own auto mode is never used
+			if (this.autoClimateReact && mode === 'AUTO') {
+				continue
+			}
+
 			validModes.push(Characteristic.TargetHeaterCoolerState[mode])
 
 			let modeProps = false
@@ -280,6 +290,13 @@ class AirConditioner {
 					}
 				}
 			}
+		}
+
+		const autoClimateReactPossible = this.capabilities.COOL?.homeKitSupported && this.capabilities.HEAT?.homeKitSupported
+			&& !this.modesToExclude.includes('COOL') && !this.modesToExclude.includes('HEAT')
+
+		if (this.autoClimateReact && autoClimateReactPossible && !this.modesToExclude.includes('AUTO')) {
+			validModes.push(Characteristic.TargetHeaterCoolerState.AUTO)
 		}
 
 		if (validModes.length < 1) {
@@ -592,6 +609,55 @@ class AirConditioner {
 		}
 	}
 
+	/**
+	 * What the HeaterCooler is doing right now, for CurrentHeaterCoolerState
+	 * @returns {number} a CurrentHeaterCoolerState value
+	 */
+	currentHeaterCoolerState() {
+		const state = this.state
+
+		if (state.mode === 'FAN' || state.mode === 'DRY') {
+			return Characteristic.CurrentHeaterCoolerState.INACTIVE
+		}
+
+		// Climate React as auto holding the AC off is still switched on, just idle
+		if (!state.active) {
+			return this.autoClimateReact?.state.active ? Characteristic.CurrentHeaterCoolerState.IDLE : Characteristic.CurrentHeaterCoolerState.INACTIVE
+		}
+
+		if (state.mode === 'COOL') {
+			return Characteristic.CurrentHeaterCoolerState.COOLING
+		}
+
+		if (state.mode === 'HEAT') {
+			return Characteristic.CurrentHeaterCoolerState.HEATING
+		}
+
+		// AUTO: guess from the room against the target; a unit that cannot heat is never HEATING
+		if (state.currentTemperature > state.targetTemperature) {
+			return Characteristic.CurrentHeaterCoolerState.COOLING
+		}
+
+		if (state.currentTemperature < state.targetTemperature && this.capabilities.HEAT) {
+			return Characteristic.CurrentHeaterCoolerState.HEATING
+		}
+
+		return Characteristic.CurrentHeaterCoolerState.IDLE
+	}
+
+	/**
+	 * HeaterCooler target state, setpoints and current state; in Climate React as auto, AUTO shows its own two setpoints
+	 */
+	updateHeaterCoolerTarget() {
+		const auto = this.autoClimateReact?.state.auto
+		const mode = auto ? 'AUTO' : this.state.mode
+
+		this.Utils.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState[mode])
+		this.Utils.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', auto ? this.autoClimateReact.state.heatTo : this.state.targetTemperature)
+		this.Utils.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', auto ? this.autoClimateReact.state.coolTo : this.state.targetTemperature)
+		this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', this.currentHeaterCoolerState())
+	}
+
 	updateHomeKit() {
 		// log new state with FakeGato
 		if (this.loggingService) {
@@ -642,6 +708,28 @@ class AirConditioner {
 			this.Utils.updateValue('LightSwitchService', 'On', switchValue)
 		}
 
+		// Climate React as auto is holding the AC off: the HeaterCooler stays on, idle
+		if (!this.state.active && this.autoClimateReact?.state.active) {
+			if (this.HeaterCoolerService) {
+				this.Utils.updateValue('HeaterCoolerService', 'Active', 1)
+				this.updateHeaterCoolerTarget()
+			}
+
+			if (this.DryService) {
+				this.Utils.updateValue('DryService', 'Active', 0)
+				this.Utils.updateValue('DryService', 'CurrentHumidifierDehumidifierState', 0)
+			}
+
+			if (this.FanService) {
+				this.Utils.updateValue('FanService', 'Active', 0)
+			}
+
+			// cache last state to storage
+			this.storage.setItem('state', this.cachedState)
+
+			return
+		}
+
 		// if status is OFF, set all services to INACTIVE
 		if (!this.state.active) {
 			if (this.HeaterCoolerService) {
@@ -670,10 +758,6 @@ class AirConditioner {
 					// turn on HeaterCoolerService
 					this.Utils.updateValue('HeaterCoolerService', 'Active', 1)
 
-					// update temperatures for HeaterCoolerService
-					this.Utils.updateValue('HeaterCoolerService', 'HeatingThresholdTemperature', this.state.targetTemperature)
-					this.Utils.updateValue('HeaterCoolerService', 'CoolingThresholdTemperature', this.state.targetTemperature)
-
 					// update vertical swing for HeaterCoolerService
 					if (!this.disableVerticalSwing && this.capabilities[this.state.mode].VerticalSwing) {
 						this.Utils.updateValue('HeaterCoolerService', 'SwingMode', Characteristic.SwingMode[this.state.verticalSwing])
@@ -690,21 +774,8 @@ class AirConditioner {
 						this.Utils.updateValue('HeaterCoolerService', 'FilterLifeLevel', this.state.filterLifeLevel)
 					}
 
-					// set proper target and current state of HeaterCoolerService
-					if (this.state.mode === 'COOL') {
-						this.Utils.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.COOL)
-						this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.COOLING)
-					} else if (this.state.mode === 'HEAT') {
-						this.Utils.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.HEAT)
-						this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)
-					} else if (this.state.mode === 'AUTO') {
-						this.Utils.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.AUTO)
-						if (this.state.currentTemperature > this.state.targetTemperature) {
-							this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.COOLING)
-						} else {
-							this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)
-						}
-					}
+					// set temperatures, target and current state of HeaterCoolerService
+					this.updateHeaterCoolerTarget()
 				}
 
 				if (this.DryService) {

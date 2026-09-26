@@ -107,6 +107,14 @@ On a device with Homebridge already installled:
         "disableLightSwitch": false,
         "disableVerticalSwing": false,
         "enableClimateReactAutoSetup": false,
+        "climateReactAutoSetupOffset": 0,
+        "positiveClimateReactAutoSetupMultiplier": 1,
+        "negativeClimateReactAutoSetupMultiplier": 1,
+        "climateReactAsAuto": false,
+        "brokenThermostat": false,
+        "enableRepeatClimateReactAction": false,
+        "commandRepeatCount": 1,
+        "commandRepeatDelaySeconds": 1,
         "enableClimateReactSwitch": true,
         "enableHistoryStorage": true,
         "enableOccupancySensor": true,
@@ -146,6 +154,14 @@ See below the table for additional details on these settings.
 | `enableClimateReactSwitch` |  Adds a switch to enable/disable Climate React (Smart mode)      |          |  `false` |  Boolean |
 | `climateReactSwitchInAccessory` |  When set to `true`, adds a **Climate React** switch (like `enableClimateReactSwitch` above) but within the AC accessory. It will also remove the standalone AC Climate React switch (if one exists). Works only when `enableClimateReactSwitch` is also set to true  |          |  `false` |  Boolean  |
 | `enableClimateReactAutoSetup` |  When set to `true`, will auto-update the Climate React (Smart mode) configuration to align whenever the AC state is set or changed  |          |  `false` |  Boolean  |
+| `climateReactAutoSetupOffset` |  Degrees added to both Climate React auto setup thresholds (can be negative)  |          |  `0` |  Number  |
+| `positiveClimateReactAutoSetupMultiplier` |  How many degrees (1.8 per step in F) above the target the upper auto setup threshold sits  |          |  `1` |  Number  |
+| `negativeClimateReactAutoSetupMultiplier` |  How many degrees (1.8 per step in F) below the target the lower auto setup threshold sits  |          |  `1` |  Number  |
+| `climateReactAsAuto` |  When set to `true`, HomeKit AUTO is implemented with Climate React instead of the AC's own auto mode, and COOL/HEAT also run through Climate React. Climate React is fully managed by the plugin (no switch). See below  |          |  `false` |  Boolean  |
+| `brokenThermostat` |  When set to `true`, always sends the AC its coldest setting in COOL and hottest in HEAT, so the AC never stops on its own. Something else (e.g. Climate React) must turn it off  |          |  `false` |  Boolean  |
+| `enableRepeatClimateReactAction` |  When set to `true`, re-sends the last Climate React action when nothing changed the AC since, in case the AC missed it  |          |  `false` |  Boolean  |
+| `commandRepeatCount` |  How many times the repeated Climate React action is sent (1-3)  |          |  `1` |  Integer  |
+| `commandRepeatDelaySeconds` |  Seconds between repeated Climate React commands (1-60)  |          |  `1` |  Integer  |
 | `enableHistoryStorage`     |  When set to `true`, temperature & humidity measurements will be stored over time, viewable as History in the Eve app  |          |  `false` |   Boolean |
 | `enableOccupancySensor`    |  Adds an occupancy sensor to represent the state of someone at home  |          |  `false` |  Boolean  |
 | `enableSyncButton`         |  When set to `true`, adds an **AC Sync** switch to toggle the state of the accessory in the Home app, without sending a command to the unit  |          |  `false` |  Boolean  |
@@ -247,17 +263,39 @@ To show the **Climate React** switch within the AC accessory, instead of a separ
 
 #### Climate React auto setup
 
-When enabled, every time the AC's temperature or speed is set or changed, the Climate React configuration will be updated so that the desired temperature is maintained.
+When enabled, every time the AC's temperature or speed is set or changed, the plugin takes over the Climate React configuration and rewrites it so that the desired temperature is maintained. Settings made in the Sensibo app are replaced.
 
-For example, if setting an AC to Cool and 25°C, Climate React will be set such that when the temperature rises above 25°C the AC starts to cool and when the temperature drops below 24° (the target temperature minus 1 degree C, or the equivalent F delta), the AC will be turned off.
+For example, if setting an AC to Cool and 25°C, Climate React will be set such that when the temperature rises above 26°C (the target plus 1 degree C, or 1.8 degrees F) the AC starts to cool, and when it drops below 24°C (the target minus 1 degree C, or 1.8 degrees F) the AC is turned off. In Heat it is the other way round: on below 24°C, off above 26°C.
 
-When setting an AC to Heat with a target temprature, Climate React will be set to plus 1 degree C, or equivalent F delta.
+The thresholds are `target + 1 × positiveClimateReactAutoSetupMultiplier + climateReactAutoSetupOffset` and `target - 1 × negativeClimateReactAutoSetupMultiplier + climateReactAutoSetupOffset` in C; in F each multiplier step is 1.8 degrees.
 
 To enable **Climate React Auto Setup**, add `"enableClimateReactAutoSetup": true` to your config.
 
 Note: only temperature thresholds are supported by Climate React auto setup, for full options, see "Climate React" in the Sensibo app.
 
 Note 2: currently this does not work on Dry or Fan modes (as these are treated as separate accessories).
+
+#### Climate React as auto
+
+Many ACs have no real auto mode, or a poor one. With `"climateReactAsAuto": true` the plugin implements HomeKit AUTO itself:
+
+- AUTO shows two setpoints, heat-to and cool-to. Climate React cycles the AC around one of them, and the plugin decides which one from how the room drifts while the AC is off: rising past cool-to means cooling, falling past heat-to means heating. Between the two it keeps the current direction, so it never heats a room that would warm up on its own.
+- When no direction is known yet (first use, or it was lost), the plugin reads the last day of Sensibo history for a recent AC-off period, and otherwise keeps the AC off and watches the room for about 30 minutes before deciding.
+- COOL and HEAT work the same way with the direction fixed and a single target. FAN and DRY take the AC out of Climate React.
+- The two setpoints are kept far enough apart that one band's overshoot can't reach the other setpoint.
+- While Climate React holds the AC off, the Home app shows it on and idle.
+
+Requires both COOL and HEAT. AUTO is shown unless it is listed in `modesToExclude`. The Climate React switches are turned off, since the plugin owns Climate React.
+
+#### Broken thermostat
+
+For ACs whose own thermostat stops them too early or too late, `"brokenThermostat": true` always sends the AC its coldest setting in COOL and its hottest in HEAT (Climate React's states included), so it never stops on its own. The Home app keeps showing the temperature you picked. Something else, usually Climate React auto setup or Climate React as auto, has to turn the AC off.
+
+#### Repeat Climate React action
+
+Some ACs miss an IR command sent by Climate React while Sensibo still believes it arrived. With `"enableRepeatClimateReactAction": true`, the plugin checks the device's events on each refresh and re-sends the state the last Climate React action produced, as long as nothing else changed the AC since and it is at least 45 seconds old.
+
+`commandRepeatCount` (1-3) and `commandRepeatDelaySeconds` (1-60) control how many times it is sent and how far apart. Long delays make it more likely that a repeat overrides a change you made in between.
 
 ### Filter cleaning indication
 

@@ -1,9 +1,83 @@
 import axios from 'axios'
 
 const baseURL = 'https://home.sensibo.com/api/v2'
+// Sensibo's API intermittently rate limits us or answers with a server/gateway error. Both are
+// transient, but they differ in what we can safely do about it, so they are classified separately.
+//
+// Rejected: the server explicitly refused the request without acting on it (and, for 429, tells us
+// when to come back). Re-sending cannot double-apply a command, so ANY method may be retried -
+// which matters, because in practice it is the acStates/smartmode POSTs that get rate limited.
+const rejectedStatusCodes = [429]
+// Ambiguous: the request may well have reached the AC before the error came back, so only idempotent
+// methods are retried - re-sending a POST/PATCH here could re-issue an AC command.
+const ambiguousStatusCodes = [408, 500, 502, 503, 504]
+const transientNetworkCodes = ['ECONNABORTED', 'ECONNRESET', 'ETIMEDOUT', 'EAI_AGAIN', 'EPIPE']
+const idempotentMethods = ['get', 'head', 'options', 'put', 'delete']
+const maxRetries = 3
+const retryBaseDelayMilliseconds = 1000
+const maxRetryDelayMilliseconds = 8000
 let credentials
 let log
 let storage
+
+function isTransientError(error) {
+	if (error.response) {
+		return rejectedStatusCodes.includes(error.response.status) || ambiguousStatusCodes.includes(error.response.status)
+	}
+
+	// no response at all -> connection level failure
+	return transientNetworkCodes.includes(error.code)
+}
+
+function isRetryable(error) {
+	if (!error.config || !isTransientError(error) || (error.config.retryCount || 0) >= maxRetries) {
+		return false
+	}
+
+	// A rejected request never reached the AC, so re-sending it is safe whatever the method is
+	if (error.response && rejectedStatusCodes.includes(error.response.status)) {
+		return true
+	}
+
+	return idempotentMethods.includes((error.config.method || 'get').toLowerCase())
+}
+
+function retryDelay(error) {
+	const retryAfter = error.response?.headers?.['retry-after']
+
+	if (retryAfter) {
+		const parsedRetryAfter = parseInt(retryAfter)
+		const timeToWait = Number.isNaN(parsedRetryAfter) ? Date.parse(retryAfter) - Date.now() : parsedRetryAfter * 1000
+
+		if (timeToWait > 0) {
+			return timeToWait
+		}
+	}
+
+	// exponential backoff with jitter, so several devices failing at once don't retry in lockstep
+	const backoff = Math.min(retryBaseDelayMilliseconds * Math.pow(2, error.config.retryCount || 0), maxRetryDelayMilliseconds)
+
+	return backoff / 2 + Math.random() * (backoff / 2)
+}
+
+axios.interceptors.response.use(null, async error => {
+	if (!isRetryable(error)) {
+		throw error
+	}
+
+	// the delay is based on the retries made so far, so the first retry uses the base tier
+	const timeToWait = retryDelay(error)
+	const reason = error.response ? `status code ${error.response.status}` : error.code || error.message
+
+	error.config.retryCount = (error.config.retryCount || 0) + 1
+	log?.easyDebug(`Retrying ${(error.config.method || 'get').toUpperCase()} ${error.config.url} in ${Math.round(timeToWait)}ms (attempt ${error.config.retryCount} of ${maxRetries}) after ${reason}`)
+
+	await new Promise(resolve => {
+		setTimeout(resolve, timeToWait)
+	})
+
+	return axios(error.config)
+})
 
 async function getAuthKeyFromStorage(username) {
 	log.easyDebug('SensiboAPI.js getAuthKeyFromStorage - Checking for token in local storage')
@@ -92,7 +166,7 @@ function getTokenFromAPI(username, password) {
 			}).catch(error => {
 				const errorContent = {}
 
-				errorContent.message = error.response.data.error_description || error.response.data.error
+				errorContent.message = error.response?.data?.error_description || error.response?.data?.error || error.message
 
 				log.error('SensiboAPI.js getTokenFromAPI - Could NOT complete token request. Error message:')
 				log.warn(errorContent.message)
@@ -234,6 +308,12 @@ async function apiRequest(method, path, data) {
 				const json = response.data
 				let results
 
+				// Only fires when the request actually had to be retried, so it stays silent in normal
+				// operation while making a recovery visible
+				if (response.config?.retryCount) {
+					log.info(`Sensibo API recovered after ${response.config.retryCount} retry/retries: ${baseURL + path}`)
+				}
+
 				if (json.status && json.status == 'success') {
 					log.easyDebug(`SensiboAPI.js apiRequest - Successful ${method.toUpperCase()} response:`)
 
@@ -264,12 +344,26 @@ async function apiRequest(method, path, data) {
 				errorContent.errorURL = baseURL + path
 				errorContent.message = error.message
 
-				log.error(`SensiboAPI.js apiRequest - Error URL: ${errorContent.errorURL}`)
-				log.warn(`SensiboAPI.js apiRequest - Error message: ${errorContent.message}`)
+				if (isTransientError(error)) {
+					// Sensibo's API is having a bad moment - we retried where it was safe, the next poll will try again.
+					// Log it as a single warning line rather than as an error, to keep the log readable.
+					const retries = error.config?.retryCount || 0
+					const outcome = retries >= maxRetries ? 'retries exhausted' : 'not retried'
+
+					log.warn(`Sensibo API temporarily unavailable (${errorContent.message}) after ${retries + 1} attempt(s), ${outcome}: ${errorContent.errorURL}`)
+				} else {
+					log.error(`SensiboAPI.js apiRequest - Error URL: ${errorContent.errorURL}`)
+					log.warn(`SensiboAPI.js apiRequest - Error message: ${errorContent.message}`)
+				}
 
 				if (error.response) {
 					errorContent.response = error.response.data
-					log.warn(`SensiboAPI.js apiRequest - Error response: ${JSON.stringify(errorContent.response, null, 4)}`)
+
+					if (isTransientError(error)) {
+						log.easyDebug(`SensiboAPI.js apiRequest - Error response: ${JSON.stringify(errorContent.response, null, 4)}`)
+					} else {
+						log.warn(`SensiboAPI.js apiRequest - Error response: ${JSON.stringify(errorContent.response, null, 4)}`)
+					}
 				}
 
 				// log.warn(error)
@@ -386,6 +480,25 @@ export default async function (platform) {
 			const json = { newValue: value }
 
 			return await apiRequest('patch', path, json)
+		},
+
+		getDeviceEvents: async deviceId => {
+			const path = `/pods/${deviceId}/events`
+
+			// Note: events come newest first, but callers should not rely on the order
+			return await apiRequest('get', path)
+		},
+
+		/**
+		 * @param   {string}  deviceId
+		 * @param   {number}  days      Sensibo allows at most 1 without a subscription
+		 * @returns {Promise<{temperature: {time: string, value: number}[], humidity: {time: string, value: number}[]}>}
+		 */
+		getDeviceHistoricalMeasurements: async (deviceId, days) => {
+			const path = `/pods/${deviceId}/historicalMeasurements?days=${days}`
+			const response = await apiRequest('get', path)
+
+			return response.result
 		},
 
 		resetFilterIndicator: async deviceId => {

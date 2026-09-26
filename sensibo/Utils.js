@@ -77,7 +77,7 @@ export default (device, platform) => {
 					capabilities[mode].homeKitSupported = true
 				}
 
-				if ('C' in modeCapabilities.temperatures || 'F' in modeCapabilities.temperatures) {
+				if (modeCapabilities.temperatures && ('C' in modeCapabilities.temperatures || 'F' in modeCapabilities.temperatures)) {
 					capabilities[mode].temperatures = {}
 				}
 
@@ -244,7 +244,7 @@ export default (device, platform) => {
 					capabilities[mode].homeKitSupported = true
 				}
 
-				if ('C' in modeCapabilities.temperatures || 'F' in modeCapabilities.temperatures) {
+				if (modeCapabilities.temperatures && ('C' in modeCapabilities.temperatures || 'F' in modeCapabilities.temperatures)) {
 					capabilities[mode].temperatures = {}
 				}
 
@@ -427,7 +427,7 @@ export default (device, platform) => {
 			// log.easyDebug(`${device.name} - airQualityStateFromDeviceMeasurements start`)
 			const formattedMeasurements = {}
 
-			if (deviceMeasurements == null || (!deviceMeasurements.tvoc && !deviceMeasurements.co2 && !deviceMeasurements.pm25)) {
+			if (deviceMeasurements == null || (!deviceMeasurements.iaq && !deviceMeasurements.tvoc && !deviceMeasurements.co2 && !deviceMeasurements.pm25)) {
 				log.warn(`${device.name} - Utils airQualityStateFromDeviceMeasurements no measurements available, returning empty state`)
 
 				return formattedMeasurements
@@ -534,6 +534,27 @@ export default (device, platform) => {
 			log.easyDebug(`${device.name} - Utils Constants`)
 
 			return Constants
+		},
+
+		/**
+		 * The target temperature sent to the AC in broken thermostat mode: its coldest setting in COOL and hottest in HEAT,
+		 * so the AC never stops on its own
+		 * @param   {string}  mode  'COOL' or 'HEAT'
+		 * @returns {number}        the temperature in Celsius
+		 */
+		brokenThermostatTemperature: mode => {
+			const temperatures = device.capabilities[mode]?.temperatures
+			const extreme = mode === 'COOL' ? 'min' : 'max'
+
+			if (temperatures?.C) {
+				return temperatures.C[extreme]
+			}
+
+			if (temperatures?.F) {
+				return toCelsiusPrivate(temperatures.F[extreme])
+			}
+
+			return mode === 'COOL' ? 16 : 30
 		},
 
 		/**
@@ -687,7 +708,7 @@ export default (device, platform) => {
 		sensorStateFromSensorMeasurements: sensorMeasurements => {
 			const formattedMeasurements = {
 				currentTemperature: sensorMeasurements.temperature,
-				lowBattery: sensorMeasurements.batteryVoltage > 100 ? 'BATTERY_LEVEL_NORMAL' : 'BATTERY_LEVEL_LOW',
+				lowBattery: sensorMeasurements.batteryVoltage != null && sensorMeasurements.batteryVoltage <= 100 ? 'BATTERY_LEVEL_LOW' : 'BATTERY_LEVEL_NORMAL',
 				motionDetected: sensorMeasurements.motion,
 				relativeHumidity: sensorMeasurements.humidity
 			}

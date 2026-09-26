@@ -29,8 +29,8 @@ class SensiboACPlatform {
 		}
 		this.syncHomeKitCache = syncHomeKitCache(this)
 
-		this.debug = config['debug'] || false
-		this.devDebug = config['devDebug'] || false
+		this.debug = config['debug'] ?? false
+		this.devDebug = config['devDebug'] ?? false
 		this.PLATFORM_NAME = PLATFORM_NAME
 		this.PLUGIN_NAME = PLUGIN_NAME
 		this.PLUGIN_VERSION = PLUGIN_VERSION
@@ -54,32 +54,54 @@ class SensiboACPlatform {
 			return
 		}
 
-		this.name = config['name'] || PLATFORM_NAME
-		this.allowRepeatedCommands = config['allowRepeatedCommands'] || false
-		this.carbonDioxideAlertThreshold = config['carbonDioxideAlertThreshold'] || 1500
-		this.climateReactSwitchInAccessory = config['climateReactSwitchInAccessory'] || false
-		this.devicesToExclude = config['devicesToExclude'] || []
-		this.disableAirQuality = config['disableAirQuality'] || false
-		this.disableCarbonDioxide = config['disableCarbonDioxide'] || false
-		this.disableDry = config['disableDry'] || false
-		this.disableFan = config['disableFan'] || false
-		this.disableHorizontalSwing = config['disableHorizontalSwing'] || false
-		this.disableHumidity = config['disableHumidity'] || false
-		this.disableLightSwitch = config['disableLightSwitch'] || false
-		this.disableVerticalSwing = config['disableVerticalSwing'] || false
-		this.enableClimateReactAutoSetup = config['enableClimateReactAutoSetup'] || false
-		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] || false
-		this.enableHistoryStorage = config['enableHistoryStorage'] || false
-		this.enableOccupancySensor = config['enableOccupancySensor'] || false
-		this.enableSyncButton = config['enableSyncButton'] || false
-		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] || false
-		this.syncButtonInAccessory = config['syncButtonInAccessory'] || false
-		this.externalHumiditySensor = config['externalHumiditySensor'] || false
-		this.locationsToInclude = config['locationsToInclude'] || []
+		this.name = config['name'] ?? PLATFORM_NAME
+		this.allowRepeatedCommands = config['allowRepeatedCommands'] ?? false
+		this.brokenThermostat = config['brokenThermostat'] ?? false
+		this.carbonDioxideAlertThreshold = config['carbonDioxideAlertThreshold'] ?? 1500
+		this.climateReactSwitchInAccessory = config['climateReactSwitchInAccessory'] ?? false
+		this.devicesToExclude = config['devicesToExclude'] ?? []
+		this.disableAirQuality = config['disableAirQuality'] ?? false
+		this.disableCarbonDioxide = config['disableCarbonDioxide'] ?? false
+		this.disableDry = config['disableDry'] ?? false
+		this.disableFan = config['disableFan'] ?? false
+		this.disableHorizontalSwing = config['disableHorizontalSwing'] ?? false
+		this.disableHumidity = config['disableHumidity'] ?? false
+		this.disableLightSwitch = config['disableLightSwitch'] ?? false
+		this.disableVerticalSwing = config['disableVerticalSwing'] ?? false
+		this.enableClimateReactAutoSetup = config['enableClimateReactAutoSetup'] ?? false
+		this.climateReactAutoSetupOffset = config['climateReactAutoSetupOffset'] ?? 0
+		this.positiveClimateReactAutoSetupMultiplier = config['positiveClimateReactAutoSetupMultiplier'] ?? 1
+		this.negativeClimateReactAutoSetupMultiplier = config['negativeClimateReactAutoSetupMultiplier'] ?? 1
+		this.enableClimateReactSwitch = config['enableClimateReactSwitch'] ?? false
+		this.enableRepeatClimateReactAction = config['enableRepeatClimateReactAction'] ?? false
+		this.commandRepeatCount = Math.max(1, Math.min(3, config['commandRepeatCount'] ?? 1))
+		// Minimum 1s: HomeKit sends a single user action as several characteristic writes (e.g. Active, mode and
+		// temperature) within about a second, which StateHandler groups with its 1s debounce. Repeated commands skip that
+		// debounce (see StateHandler's '_' property), so keeping them at least 1s apart stops them arriving faster than
+		// HomeKit's own grouping window.
+		this.commandRepeatDelayMilliseconds = Math.max(1, Math.min(60, config['commandRepeatDelaySeconds'] ?? 1)) * 1000
+		// must be shorter than the polling interval, so a missed Climate React action is repeated on the next refresh
+		this.repeatClimateReactActionMinGapMilliseconds = 45000
+		this.enableHistoryStorage = config['enableHistoryStorage'] ?? false
+		this.enableOccupancySensor = config['enableOccupancySensor'] ?? false
+		this.enableSyncButton = config['enableSyncButton'] ?? false
+		this.ignoreHomeKitDevices = config['ignoreHomeKitDevices'] ?? false
+		this.syncButtonInAccessory = config['syncButtonInAccessory'] ?? false
+		this.externalHumiditySensor = config['externalHumiditySensor'] ?? false
+		this.locationsToInclude = config['locationsToInclude'] ?? []
+
+		this.climateReactAsAuto = config['climateReactAsAuto'] ?? false
+
+		// Climate React as auto: the plugin owns Climate React, so it is always set up and never user-facing
+		if (this.climateReactAsAuto) {
+			this.enableClimateReactAutoSetup = true
+			this.enableClimateReactSwitch = false
+			this.climateReactSwitchInAccessory = false
+		}
 
 		this.modesToExclude = config['modesToExclude']?.map(mode => {
 			return mode.toUpperCase()
-		}) || []
+		}) ?? []
 
 		this.disableAirConditioner = ['AUTO', 'COOL', 'HEAT'].every(mode => {
 			return this.modesToExclude.indexOf(mode) !== -1
