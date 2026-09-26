@@ -631,7 +631,7 @@ export default (device, platform) => {
 			// FILTER
 			ResetFilterIndication: (value, callback) => {
 				log.easyDebug(device.name, '(SET) - Filter Change Indication: RESET')
-				device.state.filterChange = 0
+				device.state.filterChange = 'FILTER_OK'
 				device.state.filterLifeLevel = 100
 
 				callback()
