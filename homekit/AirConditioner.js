@@ -701,8 +701,10 @@ class AirConditioner {
 						this.Utils.updateValue('HeaterCoolerService', 'TargetHeaterCoolerState', Characteristic.TargetHeaterCoolerState.AUTO)
 						if (this.state.currentTemperature > this.state.targetTemperature) {
 							this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.COOLING)
-						} else {
+						} else if (this.state.currentTemperature < this.state.targetTemperature) {
 							this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.HEATING)
+						} else {
+							this.Utils.updateValue('HeaterCoolerService', 'CurrentHeaterCoolerState', Characteristic.CurrentHeaterCoolerState.IDLE)
 						}
 					}
 				}

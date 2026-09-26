@@ -152,8 +152,10 @@ export default (device, platform) => {
 					callback(null, Characteristic.CurrentHeaterCoolerState.HEATING)
 				} else if (currentTemp > targetTemp) {
 					callback(null, Characteristic.CurrentHeaterCoolerState.COOLING)
-				} else {
+				} else if (currentTemp < targetTemp) {
 					callback(null, Characteristic.CurrentHeaterCoolerState.HEATING)
+				} else {
+					callback(null, Characteristic.CurrentHeaterCoolerState.IDLE)
 				}
 			},
 
