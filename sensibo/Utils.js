@@ -77,7 +77,7 @@ export default (device, platform) => {
 					capabilities[mode].homeKitSupported = true
 				}
 
-				if ('C' in modeCapabilities.temperatures || 'F' in modeCapabilities.temperatures) {
+				if (modeCapabilities.temperatures && ('C' in modeCapabilities.temperatures || 'F' in modeCapabilities.temperatures)) {
 					capabilities[mode].temperatures = {}
 				}
 
@@ -244,7 +244,7 @@ export default (device, platform) => {
 					capabilities[mode].homeKitSupported = true
 				}
 
-				if ('C' in modeCapabilities.temperatures || 'F' in modeCapabilities.temperatures) {
+				if (modeCapabilities.temperatures && ('C' in modeCapabilities.temperatures || 'F' in modeCapabilities.temperatures)) {
 					capabilities[mode].temperatures = {}
 				}
 
